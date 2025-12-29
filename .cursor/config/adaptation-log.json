@@ -1,0 +1,214 @@
+{
+  "adaptations": [
+    {
+      "date": "2025-12-27T19:12:59.851Z",
+      "type": "auto-adaptation",
+      "rulesGenerated": 1,
+      "profile": {
+        "type": "web-application",
+        "languages": [
+          "JavaScript"
+        ],
+        "frameworks": [],
+        "patterns": [],
+        "detectedAt": "2025-12-27T19:12:59.846Z",
+        "lastUpdated": "2025-12-27T19:12:59.846Z",
+        "version": "1.0.0",
+        "configFiles": [
+          "package.json",
+          "tsconfig.json"
+        ],
+        "dependencies": {
+          "axios": "^1.6.0"
+        }
+      }
+    },
+    {
+      "date": "2025-12-27T19:13:56.370Z",
+      "type": "auto-adaptation",
+      "rulesGenerated": 1,
+      "profile": {
+        "type": "web-application",
+        "languages": [
+          "JavaScript"
+        ],
+        "frameworks": [],
+        "patterns": [],
+        "detectedAt": "2025-12-27T19:13:56.367Z",
+        "lastUpdated": "2025-12-27T19:13:56.367Z",
+        "version": "1.0.0",
+        "configFiles": [
+          "package.json",
+          "tsconfig.json"
+        ],
+        "dependencies": {
+          "axios": "^1.6.0"
+        }
+      }
+    },
+    {
+      "date": "2025-12-27T19:21:42.810Z",
+      "type": "auto-adaptation",
+      "rulesGenerated": 1,
+      "profile": {
+        "type": "web-application",
+        "languages": [
+          "JavaScript"
+        ],
+        "frameworks": [],
+        "patterns": [],
+        "detectedAt": "2025-12-27T19:21:42.807Z",
+        "lastUpdated": "2025-12-27T19:21:42.807Z",
+        "version": "1.0.0",
+        "configFiles": [
+          "package.json",
+          "tsconfig.json"
+        ],
+        "dependencies": {
+          "axios": "^1.6.0"
+        }
+      }
+    },
+    {
+      "date": "2025-12-27T19:21:44.438Z",
+      "type": "auto-adaptation",
+      "rulesGenerated": 1,
+      "profile": {
+        "type": "web-application",
+        "languages": [
+          "JavaScript"
+        ],
+        "frameworks": [],
+        "patterns": [],
+        "detectedAt": "2025-12-27T19:21:44.435Z",
+        "lastUpdated": "2025-12-27T19:21:44.435Z",
+        "version": "1.0.0",
+        "configFiles": [
+          "package.json",
+          "tsconfig.json"
+        ],
+        "dependencies": {
+          "axios": "^1.6.0"
+        }
+      }
+    },
+    {
+      "date": "2025-12-27T19:21:56.098Z",
+      "type": "auto-adaptation",
+      "rulesGenerated": 1,
+      "profile": {
+        "type": "web-application",
+        "languages": [
+          "JavaScript"
+        ],
+        "frameworks": [],
+        "patterns": [],
+        "detectedAt": "2025-12-27T19:21:56.095Z",
+        "lastUpdated": "2025-12-27T19:21:56.095Z",
+        "version": "1.0.0",
+        "configFiles": [
+          "package.json",
+          "tsconfig.json"
+        ],
+        "dependencies": {
+          "axios": "^1.6.0"
+        }
+      }
+    },
+    {
+      "date": "2025-12-29T06:25:29.663Z",
+      "type": "auto-adaptation",
+      "rulesGenerated": 1,
+      "profile": {
+        "type": "web-application",
+        "languages": [
+          "JavaScript"
+        ],
+        "frameworks": [],
+        "patterns": [],
+        "detectedAt": "2025-12-29T06:25:29.658Z",
+        "lastUpdated": "2025-12-29T06:25:29.658Z",
+        "version": "1.0.0",
+        "configFiles": [
+          "package.json",
+          "tsconfig.json"
+        ],
+        "dependencies": {
+          "axios": "^1.6.0"
+        }
+      }
+    },
+    {
+      "date": "2025-12-29T06:34:45.171Z",
+      "type": "auto-adaptation",
+      "rulesGenerated": 1,
+      "profile": {
+        "type": "web-application",
+        "languages": [
+          "JavaScript"
+        ],
+        "frameworks": [],
+        "patterns": [],
+        "detectedAt": "2025-12-29T06:34:45.166Z",
+        "lastUpdated": "2025-12-29T06:34:45.166Z",
+        "version": "1.0.0",
+        "configFiles": [
+          "package.json",
+          "tsconfig.json"
+        ],
+        "dependencies": {
+          "axios": "^1.6.0"
+        }
+      }
+    },
+    {
+      "date": "2025-12-29T06:38:48.262Z",
+      "type": "auto-adaptation",
+      "rulesGenerated": 1,
+      "profile": {
+        "type": "web-application",
+        "languages": [
+          "JavaScript"
+        ],
+        "frameworks": [],
+        "patterns": [],
+        "detectedAt": "2025-12-29T06:38:48.258Z",
+        "lastUpdated": "2025-12-29T06:38:48.258Z",
+        "version": "1.0.0",
+        "configFiles": [
+          "package.json",
+          "tsconfig.json"
+        ],
+        "dependencies": {
+          "axios": "^1.6.0"
+        }
+      }
+    },
+    {
+      "date": "2025-12-29T06:39:52.160Z",
+      "type": "auto-adaptation",
+      "rulesGenerated": 1,
+      "profile": {
+        "type": "web-application",
+        "languages": [
+          "JavaScript"
+        ],
+        "frameworks": [],
+        "patterns": [],
+        "detectedAt": "2025-12-29T06:39:52.155Z",
+        "lastUpdated": "2025-12-29T06:39:52.155Z",
+        "version": "1.0.0",
+        "configFiles": [
+          "package.json",
+          "tsconfig.json"
+        ],
+        "dependencies": {
+          "axios": "^1.6.0"
+        }
+      }
+    }
+  ],
+  "lastAdaptation": "2025-12-29T06:39:52.160Z",
+  "totalAdaptations": 9,
+  "version": "1.0.0"
+}

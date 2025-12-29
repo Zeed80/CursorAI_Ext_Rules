@@ -1,0 +1,747 @@
+import * as vscode from 'vscode';
+import { Orchestrator, Task } from './orchestrator';
+import { SettingsManager } from '../integration/settings-manager';
+import { LocalAgent, AgentThoughts, AgentSolution, ProjectContext } from '../agents/local-agent';
+import { BackendAgent } from '../agents/backend-agent';
+import { FrontendAgent } from '../agents/frontend-agent';
+import { ArchitectAgent } from '../agents/architect-agent';
+import { AnalystAgent } from '../agents/analyst-agent';
+import { DevOpsAgent } from '../agents/devops-agent';
+import { QAAgent } from '../agents/qa-agent';
+import { BrainstormingManager, ConsolidatedSolution } from './brainstorming-manager';
+import { SolutionEvaluator, RankedSolutions } from './solution-evaluator';
+import { ProjectDependencyGraph } from './project-dependency-graph';
+import { ProjectKnowledgeBase, DecisionHistory } from './project-knowledge-base';
+import { LearningEngine } from './learning-engine';
+import { ProjectAnalyzer } from './project-analyzer';
+import { QualityChecker, QualityCheckReport } from './quality-checker';
+import { CursorAPI } from '../integration/cursor-api';
+import { AgentsStatusTreeProvider } from '../ui/agents-status-tree';
+import { AgentInfo } from './agent-manager';
+
+/**
+ * Самообучаемый оркестратор
+ * Расширяет базовый Orchestrator функциями:
+ * - Мозговой штурм с несколькими агентами
+ * - Самообучение на основе истории решений
+ * - Работа с картой зависимостей проекта
+ * - Интеграция с локальными агентами
+ */
+export class SelfLearningOrchestrator extends Orchestrator {
+    private localAgents: Map<string, LocalAgent> = new Map();
+    private brainstormingManager: BrainstormingManager;
+    private solutionEvaluator: SolutionEvaluator;
+    private dependencyGraph: ProjectDependencyGraph;
+    private knowledgeBase: ProjectKnowledgeBase;
+    private learningEngine: LearningEngine;
+    private qualityChecker: QualityChecker;
+    private thoughtsCallbacks: Map<string, (thoughts: AgentThoughts) => void> = new Map();
+    private learningInterval?: NodeJS.Timeout;
+    private agentsStatusTreeProvider?: AgentsStatusTreeProvider;
+
+    constructor(
+        context: vscode.ExtensionContext,
+        settingsManager: SettingsManager,
+        agentsStatusTreeProvider?: AgentsStatusTreeProvider
+    ) {
+        super(context, settingsManager);
+        this.brainstormingManager = new BrainstormingManager();
+        this.dependencyGraph = new ProjectDependencyGraph();
+        this.knowledgeBase = new ProjectKnowledgeBase();
+        this.solutionEvaluator = new SolutionEvaluator(this.dependencyGraph);
+        this.learningEngine = new LearningEngine(this.knowledgeBase);
+        this.qualityChecker = new QualityChecker(this.dependencyGraph, this.knowledgeBase);
+        this.agentsStatusTreeProvider = agentsStatusTreeProvider;
+        
+        // Инициализация агентов асинхронно (не блокируем конструктор)
+        this.initializeLocalAgents(context).catch(error => {
+            console.error('Error initializing local agents:', error);
+        });
+    }
+
+    /**
+     * Инициализация локальных агентов
+     */
+    private async initializeLocalAgents(context: vscode.ExtensionContext): Promise<void> {
+        const agents = [
+            new BackendAgent(context),
+            new FrontendAgent(context),
+            new ArchitectAgent(context),
+            new AnalystAgent(context),
+            new DevOpsAgent(context),
+            new QAAgent(context)
+        ];
+
+        // Регистрируем всех агентов параллельно
+        await Promise.all(agents.map(async (agent) => {
+            this.localAgents.set(agent.getId(), agent);
+            
+            // Загружаем сохраненную модель для агента
+            const savedModel = this.settingsManager.getAgentModel(agent.getId());
+            if (savedModel) {
+                agent.setSelectedModel(savedModel);
+            }
+            
+            // Регистрируем агента в AgentManager
+            (this as any).agentManager.registerLocalAgent(agent);
+            
+            // Обновляем статус агента с информацией о модели
+            if (this.agentsStatusTreeProvider) {
+                this.agentsStatusTreeProvider.updateAgentStatus(agent.getId(), {
+                    selectedModel: savedModel
+                });
+            }
+            
+            // Регистрируем агента через CursorAPI (создает правила)
+            await CursorAPI.registerAgent({
+                id: agent.getId(),
+                name: agent.getName(),
+                description: agent.getDescription(),
+                enabled: true
+            });
+            
+            // Создаем или обновляем фонового агента CursorAI с сохраненной моделью
+            try {
+                const agentInstructions = `Ты - ${agent.getName()}. ${agent.getDescription()}\n\n` +
+                    `Твоя задача - помогать пользователю в разработке, предоставляя детальные и точные ответы.`;
+                
+                const modelId = savedModel ? savedModel.id : undefined;
+                const backgroundAgentId = await CursorAPI.createOrUpdateBackgroundAgent(
+                    agent.getId(),
+                    agent.getName(),
+                    agent.getDescription(),
+                    agentInstructions,
+                    modelId
+                );
+                
+                if (backgroundAgentId) {
+                    console.log(`Background agent ${backgroundAgentId} created/updated for agent ${agent.getId()} during initialization`);
+                } else {
+                    console.debug(`Background agent not created for agent ${agent.getId()} (API may not be available)`);
+                }
+            } catch (bgAgentError: any) {
+                console.debug(`Failed to create background agent for ${agent.getId()} during initialization:`, bgAgentError.message);
+                // Продолжаем выполнение, даже если не удалось создать фонового агента
+            }
+            
+            // Устанавливаем callback для размышлений
+            agent.setThoughtsCallback((thoughts) => {
+                const callback = this.thoughtsCallbacks.get(thoughts.agentId);
+                if (callback) {
+                    callback(thoughts);
+                }
+                
+                // Обновляем размышления в AgentManager
+                (this as any).agentManager.updateAgentThoughts(thoughts.agentId, thoughts);
+            });
+        }));
+    }
+
+    /**
+     * Запуск оркестратора с инициализацией всех компонентов
+     */
+    async start(): Promise<void> {
+        await super.start();
+
+        // Инициализация карты зависимостей
+        await this.dependencyGraph.initialize();
+
+        // Инициализация базы знаний
+        await this.knowledgeBase.initialize();
+
+        // Загрузка стратегий обучения
+        await this.learningEngine.loadStrategies();
+
+        // Запуск периодического обучения
+        this.startLearningCycle();
+
+        // Ждем завершения инициализации агентов перед диагностикой
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Диагностика агентов после инициализации
+        await this.diagnoseAgents();
+
+        console.log('SelfLearningOrchestrator started with all components initialized');
+    }
+
+    /**
+     * Диагностика всех агентов для выявления проблем
+     */
+    async diagnoseAgents(): Promise<void> {
+        console.log('Starting agent diagnostics...');
+        
+        for (const [agentId, agent] of this.localAgents.entries()) {
+            try {
+                const diagnostics = await this.diagnoseAgent(agentId, agent);
+                
+                // Обновляем статус агента в AgentManager
+                this.getAgentManager().updateAgentStatus(agentId, {
+                    status: diagnostics.llmAvailable && diagnostics.agentInitialized ? 'idle' : 'error',
+                    errorMessage: this.buildErrorMessage(diagnostics),
+                    diagnostics: diagnostics
+                });
+
+                // Обновляем статус в UI
+                if (this.agentsStatusTreeProvider) {
+                    this.agentsStatusTreeProvider.updateAgentStatus(agentId, {
+                        status: diagnostics.llmAvailable && diagnostics.agentInitialized ? 'idle' : 'error',
+                        errorMessage: this.buildErrorMessage(diagnostics),
+                        diagnostics: diagnostics
+                    });
+                }
+            } catch (error: any) {
+                console.error(`Error diagnosing agent ${agentId}:`, error);
+                this.getAgentManager().updateAgentStatus(agentId, {
+                    status: 'error',
+                    errorMessage: `Ошибка диагностики: ${error.message}`,
+                    diagnostics: {
+                        llmAvailable: false,
+                        llmError: error.message,
+                        agentRegistered: false,
+                        agentInitialized: false,
+                        lastCheckTime: new Date()
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * Диагностика отдельного агента
+     */
+    private async diagnoseAgent(agentId: string, agent: LocalAgent): Promise<NonNullable<AgentInfo['diagnostics']>> {
+        const diagnostics: AgentInfo['diagnostics'] = {
+            llmAvailable: false,
+            agentRegistered: false,
+            agentInitialized: false,
+            lastCheckTime: new Date()
+        };
+
+        // Проверка доступности LLM
+        try {
+            const [model] = await vscode.lm.selectChatModels({
+                vendor: 'copilot',
+                family: 'gpt-4o'
+            });
+            
+            if (model) {
+                diagnostics.llmAvailable = true;
+            } else {
+                diagnostics.llmError = 'Не найдена подходящая языковая модель. Убедитесь, что установлен GitHub Copilot или другой провайдер LLM.';
+            }
+        } catch (error: any) {
+            diagnostics.llmError = `Ошибка доступа к LLM: ${error.message}. Возможно, API vscode.lm недоступен или не настроен.`;
+        }
+
+        // Проверка регистрации агента
+        const registeredAgent = this.getAgentManager().getLocalAgent(agentId);
+        diagnostics.agentRegistered = registeredAgent !== undefined;
+
+        // Проверка инициализации агента
+        diagnostics.agentInitialized = agent !== undefined && agent !== null;
+
+        return diagnostics;
+    }
+
+    /**
+     * Построение сообщения об ошибке на основе диагностики
+     */
+    private buildErrorMessage(diagnostics: NonNullable<AgentInfo['diagnostics']>): string | undefined {
+        if (!diagnostics) {
+            return 'Диагностика не выполнена';
+        }
+
+        const errors: string[] = [];
+
+        if (!diagnostics.llmAvailable) {
+            errors.push(diagnostics.llmError || 'LLM недоступен');
+        }
+
+        if (!diagnostics.agentRegistered) {
+            errors.push('Агент не зарегистрирован в системе');
+        }
+
+        if (!diagnostics.agentInitialized) {
+            errors.push('Агент не инициализирован');
+        }
+
+        return errors.length > 0 ? errors.join('; ') : undefined;
+    }
+
+    /**
+     * Остановка оркестратора
+     */
+    async stop(): Promise<void> {
+        if (this.learningInterval) {
+            clearInterval(this.learningInterval);
+            this.learningInterval = undefined;
+        }
+
+        this.brainstormingManager.dispose();
+        this.dependencyGraph.dispose();
+        await this.knowledgeBase.saveKnowledge();
+        await this.learningEngine.saveStrategies();
+
+        await super.stop();
+    }
+
+    /**
+     * Инициация мозгового штурма для задачи
+     */
+    async initiateBrainstorming(
+        task: Task,
+        agentIds?: string[],
+        thoughtsCallback?: (agentId: string, thoughts: AgentThoughts) => void
+    ): Promise<ConsolidatedSolution> {
+        // Если агенты не указаны, используем рекомендации от learning engine
+        const recommendedAgents = agentIds || this.learningEngine.recommendAgents(
+            task,
+            Array.from(this.localAgents.keys())
+        );
+
+        // Сохраняем callback для размышлений
+        if (thoughtsCallback) {
+            recommendedAgents.forEach(agentId => {
+                this.thoughtsCallbacks.set(agentId, (thoughts) => thoughtsCallback(agentId, thoughts));
+            });
+        }
+
+        // Получаем контекст проекта
+        const projectContext = await this.buildProjectContext();
+
+        // Инициируем мозговой штурм
+        const session = await this.brainstormingManager.initiateBrainstorming(
+            task,
+            recommendedAgents,
+            this.localAgents,
+            projectContext,
+            thoughtsCallback
+        );
+
+        // Ждем завершения всех агентов
+        const solutions = await this.brainstormingManager.waitForAllAgents(session.id);
+
+        // Консолидируем решения
+        const consolidated = await this.brainstormingManager.consolidateSolutions(solutions);
+
+        // Оцениваем решения
+        const ranked = await this.solutionEvaluator.compareSolutions(solutions, projectContext);
+        consolidated.bestSolution = ranked.best.solution;
+
+        return consolidated;
+    }
+
+    /**
+     * Выполнение задачи с мозговым штурмом
+     */
+    async executeTaskWithBrainstorming(
+        taskId: string,
+        thoughtsCallback?: (agentId: string, thoughts: AgentThoughts) => void
+    ): Promise<void> {
+        const task = this.getTask(taskId);
+        if (!task) {
+            throw new Error(`Task ${taskId} not found`);
+        }
+
+        task.status = 'in-progress';
+
+        try {
+            // Инициируем мозговой штурм
+            const consolidated = await this.initiateBrainstorming(task, undefined, thoughtsCallback);
+
+            // Проверяем, идеально ли решение
+            const evaluation = await this.solutionEvaluator.evaluateSolution(
+                consolidated.bestSolution!,
+                await this.buildProjectContext()
+            );
+
+            let finalSolution = consolidated.bestSolution!;
+
+            // Если решение не идеально, дорабатываем его
+            if (evaluation.score < 0.8) {
+                console.log(`Solution score ${evaluation.score} is below threshold, refining...`);
+                
+                const feedback = this.generateRefinementFeedback(evaluation);
+                const agent = this.localAgents.get(finalSolution.agentId);
+                
+                if (agent) {
+                    const refined = await this.brainstormingManager.refineSolution(
+                        finalSolution,
+                        feedback,
+                        agent,
+                        task,
+                        await this.buildProjectContext()
+                    );
+                    
+                    const refinedEvaluation = await this.solutionEvaluator.evaluateSolution(
+                        refined,
+                        await this.buildProjectContext()
+                    );
+                    
+                    if (refinedEvaluation.score > evaluation.score) {
+                        finalSolution = refined;
+                    }
+                }
+            }
+
+            // Выполняем решение
+            const agent = this.localAgents.get(finalSolution.agentId);
+            if (!agent) {
+                throw new Error(`Agent ${finalSolution.agentId} not found`);
+            }
+
+            const projectContext = await this.buildProjectContext();
+            const executionResult = await agent.executeSolution(finalSolution, task, projectContext);
+
+            // Сохраняем решение в историю
+            await this.recordDecision(task, finalSolution, executionResult, evaluation);
+
+            // Обновляем статус задачи
+            if (executionResult.success) {
+                task.status = 'completed';
+                task.executionResult = {
+                    success: true,
+                    message: executionResult.message,
+                    filesChanged: executionResult.filesChanged,
+                    codeChanges: executionResult.codeChanges
+                };
+                
+                // Обновляем статус задачи в базовом классе
+                this.updateTaskStatus(task.id, 'completed', true);
+                
+                // Обновляем статус агента
+                (this as any).agentManager.updateAgentStatus(finalSolution.agentId, {
+                    status: 'idle',
+                    currentTask: undefined,
+                    lastActivity: new Date()
+                });
+            } else {
+                task.status = 'blocked';
+                task.executionResult = {
+                    success: false,
+                    error: executionResult.error
+                };
+                
+                // Обновляем статус задачи в базовом классе
+                this.updateTaskStatus(task.id, 'blocked', false, executionResult.error);
+            }
+
+        } catch (error: any) {
+            console.error(`Error executing task with brainstorming:`, error);
+            task.status = 'blocked';
+            task.executionResult = {
+                success: false,
+                error: error.message || 'Unknown error'
+            };
+        }
+    }
+
+    /**
+     * Построение контекста проекта
+     */
+    private async buildProjectContext(): Promise<ProjectContext> {
+        const knowledge = this.knowledgeBase.getKnowledge();
+        const profile = knowledge?.profile || null;
+
+        // Получаем зависимости из графа
+        const dependencies: { [filePath: string]: string[] } = {};
+        if (knowledge?.dependencies) {
+            Object.keys(knowledge.dependencies.files || {}).forEach(filePath => {
+                const depInfo = this.dependencyGraph.getDependencies(filePath);
+                if (depInfo) {
+                    dependencies[filePath] = depInfo.imports;
+                }
+            });
+        }
+
+        return {
+            structure: knowledge?.structure || {
+                files: [],
+                directories: [],
+                entryPoints: []
+            },
+            dependencies,
+            patterns: knowledge?.patterns.map(p => p.name) || [],
+            standards: {
+                codeStyle: profile?.codeStyle,
+                architecture: profile?.architecture
+            },
+            knowledge: knowledge ? {
+                metrics: knowledge.metrics,
+                history: knowledge.history.slice(-10) // Последние 10 решений
+            } : {}
+        };
+    }
+
+    /**
+     * Запись решения в историю
+     */
+    private async recordDecision(
+        task: Task,
+        solution: AgentSolution,
+        executionResult: any,
+        evaluation: any
+    ): Promise<void> {
+        const decision: DecisionHistory = {
+            id: `decision-${Date.now()}`,
+            taskId: task.id,
+            timestamp: new Date(),
+            decision: {
+                type: 'selected',
+                solutionId: solution.id,
+                agentId: solution.agentId,
+                reasoning: solution.reasoning
+            },
+            outcome: {
+                success: executionResult.success,
+                executionTime: executionResult.executionTime || 0,
+                filesChanged: executionResult.filesChanged?.length || 0,
+                quality: evaluation.score,
+                issues: evaluation.weaknesses
+            },
+            lessons: [
+                ...evaluation.strengths.map((s: string) => `Сильная сторона: ${s}`),
+                ...evaluation.weaknesses.map((w: string) => `Слабая сторона: ${w}`),
+                ...evaluation.recommendations.map((r: string) => `Рекомендация: ${r}`)
+            ]
+        };
+
+        this.knowledgeBase.addDecision(decision);
+        await this.knowledgeBase.saveKnowledge();
+    }
+
+    /**
+     * Генерация обратной связи для доработки решения
+     */
+    private generateRefinementFeedback(evaluation: any): string {
+        const feedback = [
+            'Текущее решение требует доработки:',
+            ...evaluation.weaknesses.map((w: string) => `- ${w}`),
+            '',
+            'Рекомендации:',
+            ...evaluation.recommendations.map((r: string) => `- ${r}`)
+        ].join('\n');
+
+        return feedback;
+    }
+
+    /**
+     * Запуск цикла обучения
+     */
+    private startLearningCycle(): void {
+        // Обучение каждые 24 часа
+        this.learningInterval = setInterval(async () => {
+            try {
+                await this.learningEngine.learn();
+                await this.learningEngine.saveStrategies();
+                console.log('Learning cycle completed');
+            } catch (error) {
+                console.error('Error in learning cycle:', error);
+            }
+        }, 86400000); // 24 часа
+
+        // Первое обучение сразу после запуска (если есть история)
+        setTimeout(async () => {
+            try {
+                await this.learningEngine.learn();
+            } catch (error) {
+                console.error('Error in initial learning:', error);
+            }
+        }, 5000);
+    }
+
+    /**
+     * Получение графа зависимостей
+     */
+    getDependencyGraph(): ProjectDependencyGraph {
+        return this.dependencyGraph;
+    }
+
+    /**
+     * Получение базы знаний
+     */
+    getKnowledgeBase(): ProjectKnowledgeBase {
+        return this.knowledgeBase;
+    }
+
+    /**
+     * Получение локальных агентов
+     */
+    getLocalAgents(): Map<string, LocalAgent> {
+        return this.localAgents;
+    }
+
+    /**
+     * Переопределение executeTask для использования мозгового штурма и проверки качества
+     */
+    async executeTask(taskId: string): Promise<void> {
+        const task = this.getTasks().find(t => t.id === taskId);
+        if (!task) {
+            console.error(`Task ${taskId} not found`);
+            return;
+        }
+
+        // Специальная обработка задач проверки качества
+        if (task.type === 'quality-check') {
+            await this.executeQualityCheckTask(task);
+        } else {
+            // Используем новый метод с мозговым штурмом для обычных задач
+            await this.executeTaskWithBrainstorming(taskId);
+        }
+    }
+
+    /**
+     * Выполнение задачи проверки качества
+     */
+    private async executeQualityCheckTask(mainTask: Task): Promise<void> {
+        console.log(`SelfLearningOrchestrator: Executing quality check task ${mainTask.id}`);
+
+        try {
+            mainTask.status = 'in-progress';
+            mainTask.progress = {
+                filesChanged: 0,
+                timeElapsed: 0,
+                isActive: true,
+                lastActivity: new Date()
+            };
+
+            // Создаем подзадачи для проверки качества через QualityChecker
+            const scope = this.extractScopeFromDescription(mainTask.description);
+            await this.qualityChecker.createQualityCheckSubTasks(
+                this,
+                mainTask.id,
+                scope
+            );
+
+            // Ждем завершения всех подзадач
+            const allSubTasks = this.getTasks().filter(t => t.parentTaskId === mainTask.id);
+            await this.waitForSubTasksCompletion(allSubTasks);
+
+            // Консолидируем результаты
+            const report = await this.qualityChecker.consolidateQualityCheckResults(
+                mainTask,
+                allSubTasks,
+                this
+            );
+
+            // Генерируем рекомендации
+            const recommendations = await this.qualityChecker.analyzeQualityResults(report);
+
+            // Сохраняем отчет в задачу
+            mainTask.status = 'completed';
+            mainTask.qualityCheckResults = report.results;
+            mainTask.executionResult = {
+                success: true,
+                message: `Проверка качества завершена. Общая оценка: ${(report.overallScore * 100).toFixed(1)}%.\n\n${report.summary}\n\nРекомендации:\n${recommendations.join('\n')}`,
+                filesChanged: [],
+                codeChanges: 0
+            };
+
+            // Обновляем статус задачи
+            this.updateTaskStatus(mainTask.id, 'completed', true);
+
+            // Сохраняем результаты в базу знаний
+            await this.knowledgeBase.saveKnowledge();
+
+            console.log(`Quality check completed: ${report.overallScore * 100}%`);
+
+        } catch (error: any) {
+            console.error(`Error executing quality check task:`, error);
+            mainTask.status = 'blocked';
+            mainTask.executionResult = {
+                success: false,
+                error: error.message || 'Unknown error'
+            };
+            this.updateTaskStatus(mainTask.id, 'blocked', false, error.message);
+        }
+    }
+
+    /**
+     * Извлечение области проверки из описания задачи
+     */
+    private extractScopeFromDescription(description: string): 'full' | 'code' | 'architecture' | 'performance' | 'security' | undefined {
+        const desc = description.toLowerCase();
+        if (desc.includes('полн') || desc.includes('full')) return 'full';
+        if (desc.includes('код') || desc.includes('code')) return 'code';
+        if (desc.includes('архитектур') || desc.includes('architecture')) return 'architecture';
+        if (desc.includes('производительн') || desc.includes('performance')) return 'performance';
+        if (desc.includes('безопасн') || desc.includes('security')) return 'security';
+        return undefined;
+    }
+
+    /**
+     * Ожидание завершения всех подзадач
+     */
+    private async waitForSubTasksCompletion(subTasks: Task[]): Promise<void> {
+        return new Promise((resolve) => {
+            const checkInterval = setInterval(() => {
+                const allCompleted = subTasks.every(t => 
+                    t.status === 'completed' || t.status === 'blocked'
+                );
+
+                if (allCompleted) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 1000); // Проверяем каждую секунду
+
+            // Таймаут через 5 минут
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                resolve();
+            }, 300000);
+        });
+    }
+
+    /**
+     * Анализ проекта с обновлением базы знаний
+     */
+    async analyzeProject(): Promise<void> {
+        // Сначала вызываем базовый анализ
+        await super.analyzeProject();
+
+        // Обновляем базу знаний
+        const profile = await this.projectAnalyzer.analyzeProject();
+        this.knowledgeBase.updateProfile(profile);
+
+        // Обновляем структуру проекта
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (workspaceFolder) {
+            const files: string[] = [];
+            const directories: string[] = [];
+            
+            // Собираем информацию о структуре через dependency graph
+            const graph = this.dependencyGraph.getGraph();
+            if (graph) {
+                files.push(...Object.keys(graph.files));
+            }
+            
+            this.knowledgeBase.updateStructure({
+                files,
+                directories,
+                entryPoints: []
+            });
+        }
+
+        // Обновляем граф зависимостей
+        await this.dependencyGraph.buildGraph();
+        
+        // Получаем граф для сохранения в базе знаний
+        const graphData = this.dependencyGraph.getGraph();
+        this.knowledgeBase.updateDependencies(graphData);
+
+        await this.knowledgeBase.saveKnowledge();
+    }
+
+    /**
+     * Очистка ресурсов
+     */
+    dispose(): void {
+        if (this.learningInterval) {
+            clearInterval(this.learningInterval);
+        }
+        this.brainstormingManager.dispose();
+        this.dependencyGraph.dispose();
+        super.dispose();
+    }
+}

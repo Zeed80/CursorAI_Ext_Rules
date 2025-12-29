@@ -1,0 +1,13 @@
+---
+name: Documentation: security
+description: Rule based on best practice
+globs: ["**/*"]
+alwaysApply: false
+---
+
+# Documentation: security
+
+Documentation content for security
+
+## Source
+context7: N/A

@@ -1,0 +1,13 @@
+---
+name: Documentation: performance
+description: Rule based on best practice
+globs: ["**/*"]
+alwaysApply: false
+---
+
+# Documentation: performance
+
+Documentation content for performance
+
+## Source
+context7: N/A

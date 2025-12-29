@@ -1,0 +1,14 @@
+{
+  "versions": [
+    {
+      "version": "1766862779847-ljvdpw",
+      "rulePath": "j:\\Project\\CursorAI_Ext_Rules\\.cursor\\rules\\adaptive\\javascript-project.mdc",
+      "content": "---\nname: JavaScript Project Rules\ndescription: Автоматически сгенерированные правила для JavaScript проекта\nglobs: [\"**/*.js\"]\nalwaysApply: true\n---\n\n# Правила для JavaScript проекта\n\n## Обнаруженные технологии\n- Язык: JavaScript\n- Фреймворки: Не обнаружены\n- Архитектура: Не определена\n- Стиль кода: Не определен\n\n## JavaScript/TypeScript правила\n\n### Стиль кода\n- Используй const/let, избегай var\n- Arrow functions для callbacks\n- Async/await вместо Promises callbacks\n- Модули (import/export)\n\n### Типизация\n- Используй JSDoc для типизации\n\n### Обработка ошибок\n- Используй try-catch для async операций\n- Обрабатывай все ошибки\n- Логируй ошибки с контекстом\n\n",
+      "hash": "07a123c9d9c1794668cd4626a4c657cc7841b28c53dc5ebe289c9ea7c057280e",
+      "timestamp": "2025-12-27T19:12:59.847Z",
+      "reason": "Автоматически сгенерировано на основе анализа проекта (JavaScript)"
+    }
+  ],
+  "currentVersion": "1766862779847-ljvdpw",
+  "lastUpdated": "2025-12-27T19:12:59.849Z"
+}

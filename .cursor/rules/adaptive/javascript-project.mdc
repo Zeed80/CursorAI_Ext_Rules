@@ -1,0 +1,31 @@
+---
+name: JavaScript Project Rules
+description: Автоматически сгенерированные правила для JavaScript проекта
+globs: ["**/*.js"]
+alwaysApply: true
+---
+
+# Правила для JavaScript проекта
+
+## Обнаруженные технологии
+- Язык: JavaScript
+- Фреймворки: Не обнаружены
+- Архитектура: Не определена
+- Стиль кода: Не определен
+
+## JavaScript/TypeScript правила
+
+### Стиль кода
+- Используй const/let, избегай var
+- Arrow functions для callbacks
+- Async/await вместо Promises callbacks
+- Модули (import/export)
+
+### Типизация
+- Используй JSDoc для типизации
+
+### Обработка ошибок
+- Используй try-catch для async операций
+- Обрабатывай все ошибки
+- Логируй ошибки с контекстом
+

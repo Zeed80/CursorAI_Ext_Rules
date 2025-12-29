@@ -1,0 +1,45 @@
+---
+name: Rules Index
+description: Автоматически сгенерированный индекс правил
+globs: ["**/*"]
+alwaysApply: false
+---
+
+# Индекс правил
+
+## Всего правил: 29
+
+## Список правил:
+
+- [code-quality.mdc](adaptive\code-quality.mdc)
+- [context-summarizer.mdc](adaptive\context-summarizer.mdc)
+- [error-handling.mdc](adaptive\error-handling.mdc)
+- [javascript-project.mdc](adaptive\javascript-project.mdc)
+- [main-system-prompt.mdc](adaptive\main-system-prompt.mdc)
+- [mcp-context7-integration.mdc](adaptive\mcp-context7-integration.mdc)
+- [performance.mdc](adaptive\performance.mdc)
+- [project-analyzer.mdc](adaptive\project-analyzer.mdc)
+- [rule-generator.mdc](adaptive\rule-generator.mdc)
+- [rule-optimizer.mdc](adaptive\rule-optimizer.mdc)
+- [security.mdc](adaptive\security.mdc)
+- [web-search-integration.mdc](adaptive\web-search-integration.mdc)
+- [analyst.mdc](agents\analyst.mdc)
+- [architect.mdc](agents\architect.mdc)
+- [backend.mdc](agents\backend.mdc)
+- [devops.mdc](agents\devops.mdc)
+- [frontend.mdc](agents\frontend.mdc)
+- [qa.mdc](agents\qa.mdc)
+- [code-quality.mdc](code-quality.mdc)
+- [deep-analysis.mdc](deep-analysis.mdc)
+- [orchestrator.mdc](orchestrator.mdc)
+- [project-core.mdc](project-core.mdc)
+- [analyst.mdc](roles\analyst.mdc)
+- [architect.mdc](roles\architect.mdc)
+- [backend.mdc](roles\backend.mdc)
+- [devops.mdc](roles\devops.mdc)
+- [frontend.mdc](roles\frontend.mdc)
+- [qa.mdc](roles\qa.mdc)
+- [rules-index.mdc](rules-index.mdc)
+
+---
+*Обновлено: 2025-12-29T06:39:52.160Z*

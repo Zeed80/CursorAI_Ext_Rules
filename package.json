@@ -1,0 +1,256 @@
+{
+  "name": "cursor-ai-autonomous-extension",
+  "displayName": "CursorAI Autonomous Extension",
+  "description": "Автономное расширение CursorAI с виртуальным пользователем и системой самосовершенствования",
+  "version": "0.1.0",
+  "publisher": "cursor-autonomous",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/cursor-ai-autonomous-extension.git"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "cursor-autonomous.startOrchestrator",
+        "title": "Start Orchestrator",
+        "category": "Cursor Autonomous"
+      },
+      {
+        "command": "cursor-autonomous.stopOrchestrator",
+        "title": "Stop Orchestrator",
+        "category": "Cursor Autonomous"
+      },
+      {
+        "command": "cursor-autonomous.enableVirtualUser",
+        "title": "Enable Virtual User Mode",
+        "category": "Cursor Autonomous"
+      },
+      {
+        "command": "cursor-autonomous.disableVirtualUser",
+        "title": "Disable Virtual User Mode",
+        "category": "Cursor Autonomous"
+      },
+      {
+        "command": "cursor-autonomous.showStatus",
+        "title": "Show Status",
+        "category": "Cursor Autonomous"
+      },
+      {
+        "command": "cursor-autonomous.analyzeProject",
+        "title": "Analyze Project",
+        "category": "Cursor Autonomous"
+      },
+      {
+        "command": "cursor-autonomous.createTask",
+        "title": "Create Task",
+        "category": "Cursor Autonomous",
+        "icon": "$(add)"
+      },
+      {
+        "command": "cursor-autonomous.quickMenu",
+        "title": "Quick Menu",
+        "category": "Cursor Autonomous",
+        "icon": "$(list-selection)"
+      },
+      {
+        "command": "cursor-autonomous.toggleVirtualUser",
+        "title": "Toggle Virtual User",
+        "category": "Cursor Autonomous"
+      },
+      {
+        "command": "cursor-autonomous.showStatusPanel",
+        "title": "Show Status Panel",
+        "category": "Cursor Autonomous",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "cursor-autonomous.refreshAgentsStatus",
+        "title": "Refresh Agents Status",
+        "category": "Cursor Autonomous"
+      },
+      {
+        "command": "cursor-autonomous.showAgentDetails",
+        "title": "Show Agent Details",
+        "category": "Cursor Autonomous"
+      },
+      {
+        "command": "cursor-autonomous.selectAgentModel",
+        "title": "Select Model for Agent",
+        "category": "Cursor Autonomous"
+      },
+      {
+        "command": "cursor-autonomous.showAnalytics",
+        "title": "Show Task Analytics",
+        "category": "Cursor Autonomous",
+        "icon": "$(graph)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cursor-autonomous",
+          "title": "CursorAI",
+          "icon": "$(robot)"
+        }
+      ]
+    },
+    "views": {
+      "cursor-autonomous": [
+        {
+          "id": "cursorAutonomousAgents",
+          "name": "Агенты"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Cursor Autonomous",
+      "properties": {
+        "cursor-autonomous.enableVirtualUser": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable virtual user agent mode for autonomous operation"
+        },
+        "cursor-autonomous.autoImprove": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic self-improvement of agents"
+        },
+        "cursor-autonomous.improvementInterval": {
+          "type": "number",
+          "default": 86400000,
+          "description": "Interval for self-improvement in milliseconds (24 hours)",
+          "minimum": 3600000
+        },
+        "cursor-autonomous.virtualUserDecisionThreshold": {
+          "type": "number",
+          "default": 0.7,
+          "description": "Confidence threshold for virtual user decisions (0-1)",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "cursor-autonomous.monitoringInterval": {
+          "type": "number",
+          "default": 300000,
+          "description": "Project monitoring interval in milliseconds (5 minutes)",
+          "minimum": 60000
+        },
+        "cursor-autonomous.enableOrchestrator": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable orchestrator in agent selector"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "cursor-autonomous.quickMenu",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "cursor-autonomous.toggleVirtualUser",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v"
+      },
+        {
+          "command": "cursor-autonomous.showStatusPanel",
+          "key": "ctrl+shift+s",
+          "mac": "cmd+shift+s"
+        },
+        {
+          "command": "cursor-autonomous.analyzeProject",
+          "key": "ctrl+shift+p",
+        "mac": "cmd+shift+p",
+        "when": "editorTextFocus"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "cursor-autonomous.quickMenu"
+        },
+        {
+          "command": "cursor-autonomous.startOrchestrator"
+        },
+        {
+          "command": "cursor-autonomous.stopOrchestrator"
+        },
+        {
+          "command": "cursor-autonomous.enableVirtualUser"
+        },
+        {
+          "command": "cursor-autonomous.disableVirtualUser"
+        },
+        {
+          "command": "cursor-autonomous.toggleVirtualUser"
+        },
+        {
+          "command": "cursor-autonomous.showStatus"
+        },
+        {
+          "command": "cursor-autonomous.analyzeProject"
+        },
+        {
+          "command": "cursor-autonomous.showAnalytics"
+        }
+      ],
+      "statusBar/toolbar": [
+        {
+          "command": "cursor-autonomous.quickMenu",
+          "when": "true",
+          "group": "cursor-autonomous"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "cursor-autonomous.selectAgentModel",
+          "when": "viewItem == agent",
+          "group": "inline"
+        },
+        {
+          "command": "cursor-autonomous.showAgentDetails",
+          "when": "viewItem == agent",
+          "group": "inline"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package --no-dependencies",
+    "build": "npm run compile && npm run package",
+    "install:auto": "node install.js",
+    "build:standalone": "node build-standalone.js",
+    "build:all": "npm run build && npm run build:standalone"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vscode/vsce": "^2.22.0",
+    "eslint": "^8.0.0",
+    "pkg": "^5.8.1",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

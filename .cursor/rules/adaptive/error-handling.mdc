@@ -1,0 +1,13 @@
+---
+name: Documentation: error handling
+description: Rule based on best practice
+globs: ["**/*"]
+alwaysApply: false
+---
+
+# Documentation: error handling
+
+Documentation content for error handling
+
+## Source
+context7: N/A

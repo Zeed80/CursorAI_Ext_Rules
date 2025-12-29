@@ -1,0 +1,4404 @@
+{
+  "structure": {
+    "files": [
+      "build-standalone.js",
+      "install.js",
+      "src/agents/analyst-agent.ts",
+      "src/agents/architect-agent.ts",
+      "src/agents/backend-agent.ts",
+      "src/agents/devops-agent.ts",
+      "src/agents/frontend-agent.ts",
+      "src/agents/local-agent.ts",
+      "src/agents/qa-agent.ts",
+      "src/agents/self-improver.ts",
+      "src/agents/virtual-user-decision.ts",
+      "src/agents/virtual-user-monitor.ts",
+      "src/agents/virtual-user.ts",
+      "src/extension.ts",
+      "src/integration/cursor-api.ts",
+      "src/integration/settings-manager.ts",
+      "src/integration/ui-integration.ts",
+      "src/orchestrator/agent-manager.ts",
+      "src/orchestrator/autonomous-mode.ts",
+      "src/orchestrator/brainstorming-manager.ts",
+      "src/orchestrator/learning-engine.ts",
+      "src/orchestrator/orchestrator.ts",
+      "src/orchestrator/project-analyzer.ts",
+      "src/orchestrator/project-dependency-graph.ts",
+      "src/orchestrator/project-knowledge-base.ts",
+      "src/orchestrator/rule-generator.ts",
+      "src/orchestrator/self-learning-orchestrator.ts",
+      "src/orchestrator/solution-evaluator.ts",
+      "src/orchestrator/task-analytics.ts",
+      "src/orchestrator/task-executor.ts",
+      "src/orchestrator/task-planner.ts",
+      "src/self-improvement/agent-optimizer.ts",
+      "src/self-improvement/knowledge-searcher.ts",
+      "src/self-improvement/performance-monitor.ts",
+      "src/self-improvement/rule-updater.ts",
+      "src/storage/rules-integration.ts",
+      "src/storage/rules-versioning.ts",
+      "src/ui/agents-status-tree.ts",
+      "src/ui/analytics-panel.ts",
+      "src/ui/quick-access-panel.ts",
+      "src/ui/status-panel.ts",
+      "src/orchestrator/quality-checker.ts",
+      "out/orchestrator/quality-checker.js",
+      "out/agents/analyst-agent.js",
+      "out/agents/architect-agent.js",
+      "out/agents/backend-agent.js",
+      "out/agents/devops-agent.js",
+      "out/agents/frontend-agent.js",
+      "out/agents/local-agent.js",
+      "out/agents/qa-agent.js",
+      "out/agents/self-improver.js",
+      "out/agents/virtual-user-decision.js",
+      "out/agents/virtual-user-monitor.js",
+      "out/agents/virtual-user.js",
+      "out/extension.js",
+      "out/integration/cursor-api.js",
+      "out/integration/settings-manager.js",
+      "out/integration/ui-integration.js",
+      "out/orchestrator/agent-manager.js",
+      "out/orchestrator/autonomous-mode.js",
+      "out/orchestrator/brainstorming-manager.js",
+      "out/orchestrator/learning-engine.js",
+      "out/orchestrator/orchestrator.js",
+      "out/orchestrator/project-analyzer.js",
+      "out/orchestrator/project-dependency-graph.js",
+      "out/orchestrator/project-knowledge-base.js",
+      "out/orchestrator/rule-generator.js",
+      "out/orchestrator/self-learning-orchestrator.js",
+      "out/orchestrator/solution-evaluator.js",
+      "out/orchestrator/task-analytics.js",
+      "out/orchestrator/task-executor.js",
+      "out/orchestrator/task-planner.js",
+      "out/self-improvement/agent-optimizer.js",
+      "out/self-improvement/knowledge-searcher.js",
+      "out/self-improvement/performance-monitor.js",
+      "out/self-improvement/rule-updater.js",
+      "out/storage/rules-integration.js",
+      "out/storage/rules-versioning.js",
+      "out/ui/agents-status-tree.js",
+      "out/ui/analytics-panel.js",
+      "out/ui/quick-access-panel.js",
+      "out/ui/status-panel.js"
+    ],
+    "directories": [],
+    "entryPoints": []
+  },
+  "dependencies": {
+    "version": "1.0.0",
+    "lastUpdated": "2025-12-29T06:01:06.153Z",
+    "files": {
+      "build-standalone.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [],
+          "functions": [
+            "log",
+            "logStep",
+            "logSuccess",
+            "logError",
+            "main"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": []
+      },
+      "install.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [],
+          "functions": [
+            "log",
+            "logStep",
+            "logSuccess",
+            "logError",
+            "logWarning",
+            "checkCommand",
+            "findCursorExecutable",
+            "checkDependencies",
+            "installDependencies",
+            "compileProject",
+            "buildExtension",
+            "installExtension",
+            "main"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": []
+      },
+      "src/agents/analyst-agent.ts": {
+        "exports": [
+          "AnalystAgent"
+        ],
+        "imports": [
+          "../orchestrator/orchestrator",
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "AnalystAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ]
+      },
+      "src/agents/architect-agent.ts": {
+        "exports": [
+          "ArchitectAgent"
+        ],
+        "imports": [
+          "../orchestrator/orchestrator",
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "ArchitectAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ]
+      },
+      "src/agents/backend-agent.ts": {
+        "exports": [
+          "BackendAgent"
+        ],
+        "imports": [
+          "../orchestrator/orchestrator",
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "BackendAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ]
+      },
+      "src/agents/devops-agent.ts": {
+        "exports": [
+          "DevOpsAgent"
+        ],
+        "imports": [
+          "../orchestrator/orchestrator",
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "DevOpsAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ]
+      },
+      "src/agents/frontend-agent.ts": {
+        "exports": [
+          "FrontendAgent"
+        ],
+        "imports": [
+          "../orchestrator/orchestrator",
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "FrontendAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ]
+      },
+      "src/agents/local-agent.ts": {
+        "exports": [
+          "ProjectContext",
+          "SolutionOption",
+          "AgentThoughts",
+          "AgentSolution",
+          "ExecutionResult"
+        ],
+        "imports": [
+          "../orchestrator/orchestrator",
+          "../integration/cursor-api"
+        ],
+        "dependencies": {
+          "classes": [
+            "LocalAgent"
+          ],
+          "functions": [],
+          "types": [
+            "ProjectContext",
+            "SolutionOption",
+            "AgentThoughts",
+            "AgentSolution",
+            "ExecutionResult"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/agents/analyst-agent.ts",
+          "src/agents/architect-agent.ts",
+          "src/agents/backend-agent.ts",
+          "src/agents/devops-agent.ts",
+          "src/agents/frontend-agent.ts",
+          "src/agents/qa-agent.ts",
+          "src/extension.ts",
+          "src/orchestrator/agent-manager.ts",
+          "src/orchestrator/brainstorming-manager.ts",
+          "src/orchestrator/learning-engine.ts",
+          "src/orchestrator/quality-checker.ts",
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "src/orchestrator/solution-evaluator.ts",
+          "src/ui/agents-status-tree.ts"
+        ]
+      },
+      "src/agents/qa-agent.ts": {
+        "exports": [
+          "QAAgent"
+        ],
+        "imports": [
+          "../orchestrator/orchestrator",
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "QAAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ]
+      },
+      "src/agents/self-improver.ts": {
+        "exports": [
+          "SelfImprover"
+        ],
+        "imports": [
+          "../orchestrator/orchestrator",
+          "../integration/settings-manager",
+          "../self-improvement/performance-monitor",
+          "../self-improvement/knowledge-searcher",
+          "../self-improvement/rule-updater",
+          "../self-improvement/agent-optimizer"
+        ],
+        "dependencies": {
+          "classes": [
+            "SelfImprover"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/extension.ts",
+          "src/orchestrator/autonomous-mode.ts"
+        ]
+      },
+      "src/agents/virtual-user-decision.ts": {
+        "exports": [
+          "Decision",
+          "DecisionMaker"
+        ],
+        "imports": [
+          "../integration/settings-manager",
+          "./virtual-user"
+        ],
+        "dependencies": {
+          "classes": [
+            "DecisionMaker"
+          ],
+          "functions": [],
+          "types": [
+            "Decision"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/agents/virtual-user.ts"
+        ]
+      },
+      "src/agents/virtual-user-monitor.ts": {
+        "exports": [
+          "ProjectState",
+          "ProjectMonitor"
+        ],
+        "imports": [
+          "../integration/settings-manager"
+        ],
+        "dependencies": {
+          "classes": [
+            "ProjectMonitor"
+          ],
+          "functions": [],
+          "types": [
+            "ProjectState"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/agents/virtual-user.ts"
+        ]
+      },
+      "src/agents/virtual-user.ts": {
+        "exports": [
+          "ProjectGoal",
+          "Proposal",
+          "VirtualUser"
+        ],
+        "imports": [
+          "../orchestrator/orchestrator",
+          "../integration/settings-manager",
+          "../integration/ui-integration",
+          "./virtual-user-monitor",
+          "./virtual-user-decision"
+        ],
+        "dependencies": {
+          "classes": [
+            "VirtualUser"
+          ],
+          "functions": [],
+          "types": [
+            "ProjectGoal",
+            "Proposal"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/agents/virtual-user-decision.ts",
+          "src/extension.ts",
+          "src/orchestrator/autonomous-mode.ts"
+        ]
+      },
+      "src/extension.ts": {
+        "exports": [
+          "activate",
+          "deactivate"
+        ],
+        "imports": [
+          "./orchestrator/orchestrator",
+          "./orchestrator/self-learning-orchestrator",
+          "./integration/settings-manager",
+          "./integration/ui-integration",
+          "./agents/virtual-user",
+          "./agents/self-improver",
+          "./storage/rules-integration",
+          "./integration/cursor-api",
+          "./ui/agents-status-tree",
+          "./ui/status-panel",
+          "./ui/analytics-panel",
+          "./agents/local-agent"
+        ],
+        "dependencies": {
+          "classes": [],
+          "functions": [
+            "activate",
+            "sendTaskToChat",
+            "startStatusUpdates",
+            "updateAgentsStatus",
+            "getStatusText",
+            "updateStatusBar",
+            "deactivate"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": []
+      },
+      "src/integration/cursor-api.ts": {
+        "exports": [
+          "CursorAgent",
+          "CursorModel",
+          "BackgroundAgentConfig",
+          "CursorAPI"
+        ],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "CursorAPI"
+          ],
+          "functions": [],
+          "types": [
+            "CursorAgent",
+            "CursorModel",
+            "BackgroundAgentConfig",
+            "ApiRequestOptions"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/agents/local-agent.ts",
+          "src/extension.ts",
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "src/orchestrator/task-executor.ts"
+        ]
+      },
+      "src/integration/settings-manager.ts": {
+        "exports": [
+          "SettingsManager"
+        ],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "SettingsManager"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/agents/self-improver.ts",
+          "src/agents/virtual-user-decision.ts",
+          "src/agents/virtual-user-monitor.ts",
+          "src/agents/virtual-user.ts",
+          "src/extension.ts",
+          "src/integration/ui-integration.ts",
+          "src/orchestrator/agent-manager.ts",
+          "src/orchestrator/autonomous-mode.ts",
+          "src/orchestrator/orchestrator.ts",
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "src/orchestrator/task-analytics.ts",
+          "src/self-improvement/knowledge-searcher.ts",
+          "src/self-improvement/performance-monitor.ts"
+        ]
+      },
+      "src/integration/ui-integration.ts": {
+        "exports": [
+          "UIIntegration"
+        ],
+        "imports": [
+          "./settings-manager"
+        ],
+        "dependencies": {
+          "classes": [
+            "UIIntegration"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/agents/virtual-user.ts",
+          "src/extension.ts"
+        ]
+      },
+      "src/orchestrator/agent-manager.ts": {
+        "exports": [
+          "AgentInfo",
+          "AgentManager"
+        ],
+        "imports": [
+          "../integration/settings-manager",
+          "./orchestrator",
+          "../agents/local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "AgentManager"
+          ],
+          "functions": [],
+          "types": [
+            "AgentInfo"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/orchestrator.ts",
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "src/orchestrator/task-planner.ts"
+        ]
+      },
+      "src/orchestrator/autonomous-mode.ts": {
+        "exports": [
+          "AutonomousMode"
+        ],
+        "imports": [
+          "./orchestrator",
+          "../agents/virtual-user",
+          "../agents/self-improver",
+          "../integration/settings-manager"
+        ],
+        "dependencies": {
+          "classes": [
+            "AutonomousMode"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": []
+      },
+      "src/orchestrator/brainstorming-manager.ts": {
+        "exports": [
+          "BrainstormingSession",
+          "ConsolidatedSolution",
+          "BrainstormingManager"
+        ],
+        "imports": [
+          "./orchestrator",
+          "../agents/local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "BrainstormingManager"
+          ],
+          "functions": [],
+          "types": [
+            "BrainstormingSession",
+            "ConsolidatedSolution"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ]
+      },
+      "src/orchestrator/learning-engine.ts": {
+        "exports": [
+          "AgentSelectionStrategy",
+          "EvaluationWeights",
+          "LearningEngine"
+        ],
+        "imports": [
+          "./project-knowledge-base",
+          "../agents/local-agent",
+          "./orchestrator"
+        ],
+        "dependencies": {
+          "classes": [
+            "LearningEngine"
+          ],
+          "functions": [],
+          "types": [
+            "AgentSelectionStrategy",
+            "EvaluationWeights"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ]
+      },
+      "src/orchestrator/orchestrator.ts": {
+        "exports": [
+          "Task",
+          "AgentConsultation",
+          "Orchestrator"
+        ],
+        "imports": [
+          "../integration/settings-manager",
+          "./agent-manager",
+          "./task-planner",
+          "./project-analyzer",
+          "./rule-generator",
+          "./task-analytics",
+          "./task-executor",
+          "./quality-checker"
+        ],
+        "dependencies": {
+          "classes": [
+            "Orchestrator"
+          ],
+          "functions": [],
+          "types": [
+            "Task",
+            "AgentConsultation"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/agents/analyst-agent.ts",
+          "src/agents/architect-agent.ts",
+          "src/agents/backend-agent.ts",
+          "src/agents/devops-agent.ts",
+          "src/agents/frontend-agent.ts",
+          "src/agents/local-agent.ts",
+          "src/agents/qa-agent.ts",
+          "src/agents/self-improver.ts",
+          "src/agents/virtual-user.ts",
+          "src/extension.ts",
+          "src/orchestrator/agent-manager.ts",
+          "src/orchestrator/autonomous-mode.ts",
+          "src/orchestrator/brainstorming-manager.ts",
+          "src/orchestrator/learning-engine.ts",
+          "src/orchestrator/quality-checker.ts",
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "src/orchestrator/task-analytics.ts",
+          "src/orchestrator/task-executor.ts",
+          "src/orchestrator/task-planner.ts",
+          "src/ui/agents-status-tree.ts",
+          "src/ui/analytics-panel.ts",
+          "src/ui/status-panel.ts"
+        ]
+      },
+      "src/orchestrator/project-analyzer.ts": {
+        "exports": [
+          "ProjectProfile",
+          "ProjectAnalyzer"
+        ],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "ProjectAnalyzer"
+          ],
+          "functions": [],
+          "types": [
+            "ProjectProfile"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/orchestrator.ts",
+          "src/orchestrator/project-knowledge-base.ts",
+          "src/orchestrator/rule-generator.ts",
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "src/storage/rules-integration.ts"
+        ]
+      },
+      "src/orchestrator/project-dependency-graph.ts": {
+        "exports": [
+          "DependencyInfo",
+          "DependencyGraph",
+          "ImpactAnalysis",
+          "FileChange",
+          "ProjectDependencyGraph"
+        ],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "ProjectDependencyGraph"
+          ],
+          "functions": [],
+          "types": [
+            "DependencyInfo",
+            "DependencyGraph",
+            "ImpactAnalysis",
+            "FileChange"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/project-knowledge-base.ts",
+          "src/orchestrator/quality-checker.ts",
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "src/orchestrator/solution-evaluator.ts"
+        ]
+      },
+      "src/orchestrator/project-knowledge-base.ts": {
+        "exports": [
+          "CodePattern",
+          "CodeStandards",
+          "DecisionHistory",
+          "ProjectMetrics",
+          "ProjectKnowledge",
+          "ProjectKnowledgeBase"
+        ],
+        "imports": [
+          "./project-analyzer",
+          "./project-dependency-graph"
+        ],
+        "dependencies": {
+          "classes": [
+            "ProjectKnowledgeBase"
+          ],
+          "functions": [],
+          "types": [
+            "CodePattern",
+            "CodeStandards",
+            "DecisionHistory",
+            "ProjectMetrics",
+            "ProjectKnowledge"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/learning-engine.ts",
+          "src/orchestrator/quality-checker.ts",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ]
+      },
+      "src/orchestrator/quality-checker.ts": {
+        "exports": [
+          "QualityCheckResult",
+          "QualityIssue",
+          "QualityCheckReport",
+          "QualityChecker"
+        ],
+        "imports": [
+          "./orchestrator",
+          "./project-dependency-graph",
+          "./project-knowledge-base",
+          "../agents/local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "QualityChecker"
+          ],
+          "functions": [],
+          "types": [
+            "QualityCheckResult",
+            "QualityIssue",
+            "QualityCheckReport"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/orchestrator.ts",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ]
+      },
+      "src/orchestrator/rule-generator.ts": {
+        "exports": [
+          "GeneratedRule",
+          "RuleGenerator"
+        ],
+        "imports": [
+          "./project-analyzer"
+        ],
+        "dependencies": {
+          "classes": [
+            "RuleGenerator"
+          ],
+          "functions": [],
+          "types": [
+            "GeneratedRule",
+            "hints"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/orchestrator.ts",
+          "src/storage/rules-integration.ts"
+        ]
+      },
+      "src/orchestrator/self-learning-orchestrator.ts": {
+        "exports": [
+          "SelfLearningOrchestrator"
+        ],
+        "imports": [
+          "./orchestrator",
+          "../integration/settings-manager",
+          "../agents/local-agent",
+          "../agents/backend-agent",
+          "../agents/frontend-agent",
+          "../agents/architect-agent",
+          "../agents/analyst-agent",
+          "../agents/devops-agent",
+          "../agents/qa-agent",
+          "./brainstorming-manager",
+          "./solution-evaluator",
+          "./project-dependency-graph",
+          "./project-knowledge-base",
+          "./learning-engine",
+          "./project-analyzer",
+          "./quality-checker",
+          "../integration/cursor-api",
+          "../ui/agents-status-tree",
+          "./agent-manager"
+        ],
+        "dependencies": {
+          "classes": [
+            "SelfLearningOrchestrator"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/extension.ts"
+        ]
+      },
+      "src/orchestrator/solution-evaluator.ts": {
+        "exports": [
+          "EvaluationResult",
+          "RankedSolutions",
+          "MergedSolution",
+          "SolutionEvaluator"
+        ],
+        "imports": [
+          "../agents/local-agent",
+          "../agents/local-agent",
+          "./project-dependency-graph"
+        ],
+        "dependencies": {
+          "classes": [
+            "SolutionEvaluator"
+          ],
+          "functions": [],
+          "types": [
+            "EvaluationResult",
+            "RankedSolutions",
+            "MergedSolution"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ]
+      },
+      "src/orchestrator/task-analytics.ts": {
+        "exports": [
+          "TaskMetrics",
+          "TaskTypeStatistics",
+          "AgentTaskStatistics",
+          "AnalyticsReport",
+          "TaskAnalytics"
+        ],
+        "imports": [
+          "../integration/settings-manager",
+          "./orchestrator"
+        ],
+        "dependencies": {
+          "classes": [
+            "TaskAnalytics"
+          ],
+          "functions": [],
+          "types": [
+            "TaskMetrics",
+            "TaskTypeStatistics",
+            "AgentTaskStatistics",
+            "AnalyticsReport"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/orchestrator.ts",
+          "src/orchestrator/task-executor.ts",
+          "src/ui/analytics-panel.ts"
+        ]
+      },
+      "src/orchestrator/task-executor.ts": {
+        "exports": [
+          "TaskExecutionResult",
+          "TaskExecutor"
+        ],
+        "imports": [
+          "./orchestrator",
+          "../integration/cursor-api",
+          "./task-analytics"
+        ],
+        "dependencies": {
+          "classes": [
+            "TaskExecutor"
+          ],
+          "functions": [],
+          "types": [
+            "TaskExecutionResult"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/orchestrator.ts"
+        ]
+      },
+      "src/orchestrator/task-planner.ts": {
+        "exports": [
+          "TaskPlanner"
+        ],
+        "imports": [
+          "./orchestrator",
+          "./agent-manager"
+        ],
+        "dependencies": {
+          "classes": [
+            "TaskPlanner"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/orchestrator/orchestrator.ts"
+        ]
+      },
+      "src/self-improvement/agent-optimizer.ts": {
+        "exports": [
+          "AgentOptimization",
+          "AgentOptimizer"
+        ],
+        "imports": [
+          "./performance-monitor",
+          "./knowledge-searcher"
+        ],
+        "dependencies": {
+          "classes": [
+            "AgentOptimizer"
+          ],
+          "functions": [],
+          "types": [
+            "AgentOptimization"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/agents/self-improver.ts"
+        ]
+      },
+      "src/self-improvement/knowledge-searcher.ts": {
+        "exports": [
+          "KnowledgeResult",
+          "KnowledgeSearcher"
+        ],
+        "imports": [
+          "../integration/settings-manager"
+        ],
+        "dependencies": {
+          "classes": [
+            "KnowledgeSearcher"
+          ],
+          "functions": [],
+          "types": [
+            "KnowledgeResult"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/agents/self-improver.ts",
+          "src/self-improvement/agent-optimizer.ts",
+          "src/self-improvement/rule-updater.ts"
+        ]
+      },
+      "src/self-improvement/performance-monitor.ts": {
+        "exports": [
+          "AgentMetrics",
+          "PerformanceMetrics",
+          "PerformanceMonitor"
+        ],
+        "imports": [
+          "../integration/settings-manager"
+        ],
+        "dependencies": {
+          "classes": [
+            "PerformanceMonitor"
+          ],
+          "functions": [],
+          "types": [
+            "AgentMetrics",
+            "PerformanceMetrics"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/agents/self-improver.ts",
+          "src/self-improvement/agent-optimizer.ts",
+          "src/self-improvement/rule-updater.ts"
+        ]
+      },
+      "src/self-improvement/rule-updater.ts": {
+        "exports": [
+          "RuleUpdate",
+          "RuleUpdater"
+        ],
+        "imports": [
+          "./knowledge-searcher",
+          "./performance-monitor"
+        ],
+        "dependencies": {
+          "classes": [
+            "RuleUpdater"
+          ],
+          "functions": [],
+          "types": [
+            "RuleUpdate"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/agents/self-improver.ts"
+        ]
+      },
+      "src/storage/rules-integration.ts": {
+        "exports": [
+          "RulesIntegration"
+        ],
+        "imports": [
+          "../orchestrator/project-analyzer",
+          "../orchestrator/rule-generator",
+          "./rules-versioning"
+        ],
+        "dependencies": {
+          "classes": [
+            "RulesIntegration"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/extension.ts"
+        ]
+      },
+      "src/storage/rules-versioning.ts": {
+        "exports": [
+          "RuleVersion",
+          "VersionHistory",
+          "RulesVersioning"
+        ],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "RulesVersioning"
+          ],
+          "functions": [],
+          "types": [
+            "RuleVersion",
+            "VersionHistory"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/storage/rules-integration.ts"
+        ]
+      },
+      "src/ui/agents-status-tree.ts": {
+        "exports": [
+          "AgentStatus",
+          "AgentDiagnostics",
+          "AgentsStatusTreeProvider"
+        ],
+        "imports": [
+          "../orchestrator/orchestrator",
+          "../agents/local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "AgentsStatusTreeProvider",
+            "AgentTreeItem",
+            "TaskTreeItem"
+          ],
+          "functions": [],
+          "types": [
+            "AgentStatus",
+            "AgentDiagnostics"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "src/extension.ts",
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "src/ui/status-panel.ts"
+        ]
+      },
+      "src/ui/analytics-panel.ts": {
+        "exports": [
+          "AnalyticsPanel"
+        ],
+        "imports": [
+          "../orchestrator/orchestrator",
+          "../orchestrator/task-analytics"
+        ],
+        "dependencies": {
+          "classes": [
+            "AnalyticsPanel"
+          ],
+          "functions": [
+            "refresh",
+            "exportReport"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/extension.ts"
+        ]
+      },
+      "src/ui/quick-access-panel.ts": {
+        "exports": [
+          "QuickAccessPanel"
+        ],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "QuickAccessPanel"
+          ],
+          "functions": [
+            "executeCommand",
+            "updateStatus"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": []
+      },
+      "src/ui/status-panel.ts": {
+        "exports": [
+          "StatusPanel"
+        ],
+        "imports": [
+          "./agents-status-tree",
+          "../orchestrator/orchestrator"
+        ],
+        "dependencies": {
+          "classes": [
+            "StatusPanel"
+          ],
+          "functions": [
+            "refresh",
+            "agentClick"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "src/extension.ts"
+        ]
+      },
+      "out/agents/analyst-agent.js": {
+        "exports": [],
+        "imports": [
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "AnalystAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/agents/architect-agent.js": {
+        "exports": [],
+        "imports": [
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "ArchitectAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/agents/backend-agent.js": {
+        "exports": [],
+        "imports": [
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "BackendAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/agents/devops-agent.js": {
+        "exports": [],
+        "imports": [
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "DevOpsAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/agents/frontend-agent.js": {
+        "exports": [],
+        "imports": [
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "FrontendAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/agents/local-agent.js": {
+        "exports": [],
+        "imports": [
+          "../integration/cursor-api"
+        ],
+        "dependencies": {
+          "classes": [
+            "LocalAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/analyst-agent.js",
+          "out/agents/architect-agent.js",
+          "out/agents/backend-agent.js",
+          "out/agents/devops-agent.js",
+          "out/agents/frontend-agent.js",
+          "out/agents/qa-agent.js"
+        ]
+      },
+      "out/agents/qa-agent.js": {
+        "exports": [],
+        "imports": [
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "QAAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/agents/self-improver.js": {
+        "exports": [],
+        "imports": [
+          "../self-improvement/performance-monitor",
+          "../self-improvement/knowledge-searcher",
+          "../self-improvement/rule-updater",
+          "../self-improvement/agent-optimizer"
+        ],
+        "dependencies": {
+          "classes": [
+            "SelfImprover"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      },
+      "out/agents/virtual-user-decision.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "DecisionMaker"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/virtual-user.js"
+        ]
+      },
+      "out/agents/virtual-user-monitor.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "ProjectMonitor"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/virtual-user.js"
+        ]
+      },
+      "out/agents/virtual-user.js": {
+        "exports": [],
+        "imports": [
+          "../integration/ui-integration",
+          "./virtual-user-monitor",
+          "./virtual-user-decision"
+        ],
+        "dependencies": {
+          "classes": [
+            "VirtualUser"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      },
+      "out/extension.js": {
+        "exports": [],
+        "imports": [
+          "./orchestrator/self-learning-orchestrator",
+          "./integration/settings-manager",
+          "./integration/ui-integration",
+          "./agents/virtual-user",
+          "./agents/self-improver",
+          "./storage/rules-integration",
+          "./integration/cursor-api",
+          "./ui/agents-status-tree",
+          "./ui/status-panel",
+          "./ui/analytics-panel"
+        ],
+        "dependencies": {
+          "classes": [],
+          "functions": [
+            "activate",
+            "sendTaskToChat",
+            "startStatusUpdates",
+            "updateAgentsStatus",
+            "getStatusText",
+            "updateStatusBar",
+            "deactivate"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": []
+      },
+      "out/integration/cursor-api.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "CursorAPI"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/local-agent.js",
+          "out/extension.js",
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/integration/settings-manager.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "SettingsManager"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js",
+          "out/integration/ui-integration.js"
+        ]
+      },
+      "out/integration/ui-integration.js": {
+        "exports": [],
+        "imports": [
+          "./settings-manager"
+        ],
+        "dependencies": {
+          "classes": [
+            "UIIntegration"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/virtual-user.js",
+          "out/extension.js"
+        ]
+      },
+      "out/orchestrator/agent-manager.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "AgentManager"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/orchestrator.js"
+        ]
+      },
+      "out/orchestrator/autonomous-mode.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "AutonomousMode"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": []
+      },
+      "out/orchestrator/brainstorming-manager.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "BrainstormingManager"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/learning-engine.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "LearningEngine"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/orchestrator.js": {
+        "exports": [],
+        "imports": [
+          "./agent-manager",
+          "./task-planner",
+          "./project-analyzer",
+          "./rule-generator",
+          "./task-analytics",
+          "./task-executor"
+        ],
+        "dependencies": {
+          "classes": [
+            "Orchestrator"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/project-analyzer.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "ProjectAnalyzer"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/orchestrator.js",
+          "out/orchestrator/rule-generator.js",
+          "out/storage/rules-integration.js"
+        ]
+      },
+      "out/orchestrator/project-dependency-graph.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "ProjectDependencyGraph"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/project-knowledge-base.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "ProjectKnowledgeBase"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/quality-checker.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "QualityChecker"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/rule-generator.js": {
+        "exports": [],
+        "imports": [
+          "./project-analyzer"
+        ],
+        "dependencies": {
+          "classes": [
+            "RuleGenerator"
+          ],
+          "functions": [],
+          "types": [
+            "hints"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/orchestrator.js",
+          "out/storage/rules-integration.js"
+        ]
+      },
+      "out/orchestrator/self-learning-orchestrator.js": {
+        "exports": [],
+        "imports": [
+          "./orchestrator",
+          "../agents/backend-agent",
+          "../agents/frontend-agent",
+          "../agents/architect-agent",
+          "../agents/analyst-agent",
+          "../agents/devops-agent",
+          "../agents/qa-agent",
+          "./brainstorming-manager",
+          "./solution-evaluator",
+          "./project-dependency-graph",
+          "./project-knowledge-base",
+          "./learning-engine",
+          "./quality-checker",
+          "../integration/cursor-api"
+        ],
+        "dependencies": {
+          "classes": [
+            "SelfLearningOrchestrator"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      },
+      "out/orchestrator/solution-evaluator.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "SolutionEvaluator"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/task-analytics.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "TaskAnalytics"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/orchestrator.js"
+        ]
+      },
+      "out/orchestrator/task-executor.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "TaskExecutor"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/orchestrator.js"
+        ]
+      },
+      "out/orchestrator/task-planner.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "TaskPlanner"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/orchestrator.js"
+        ]
+      },
+      "out/self-improvement/agent-optimizer.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "AgentOptimizer"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/self-improver.js"
+        ]
+      },
+      "out/self-improvement/knowledge-searcher.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "KnowledgeSearcher"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/self-improver.js"
+        ]
+      },
+      "out/self-improvement/performance-monitor.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "PerformanceMonitor"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/self-improver.js"
+        ]
+      },
+      "out/self-improvement/rule-updater.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "RuleUpdater"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/self-improver.js"
+        ]
+      },
+      "out/storage/rules-integration.js": {
+        "exports": [],
+        "imports": [
+          "../orchestrator/project-analyzer",
+          "../orchestrator/rule-generator",
+          "./rules-versioning"
+        ],
+        "dependencies": {
+          "classes": [
+            "RulesIntegration"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      },
+      "out/storage/rules-versioning.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "RulesVersioning"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/storage/rules-integration.js"
+        ]
+      },
+      "out/ui/agents-status-tree.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "AgentsStatusTreeProvider",
+            "AgentTreeItem",
+            "TaskTreeItem"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      },
+      "out/ui/analytics-panel.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "AnalyticsPanel"
+          ],
+          "functions": [
+            "refresh",
+            "exportReport"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      },
+      "out/ui/quick-access-panel.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "QuickAccessPanel"
+          ],
+          "functions": [
+            "executeCommand",
+            "updateStatus"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": []
+      },
+      "out/ui/status-panel.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "StatusPanel"
+          ],
+          "functions": [
+            "refresh",
+            "agentClick"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      }
+    },
+    "indexes": {
+      "byExport": {
+        "AnalystAgent": [
+          "src/agents/analyst-agent.ts"
+        ],
+        "ArchitectAgent": [
+          "src/agents/architect-agent.ts"
+        ],
+        "BackendAgent": [
+          "src/agents/backend-agent.ts"
+        ],
+        "DevOpsAgent": [
+          "src/agents/devops-agent.ts"
+        ],
+        "FrontendAgent": [
+          "src/agents/frontend-agent.ts"
+        ],
+        "ProjectContext": [
+          "src/agents/local-agent.ts"
+        ],
+        "SolutionOption": [
+          "src/agents/local-agent.ts"
+        ],
+        "AgentThoughts": [
+          "src/agents/local-agent.ts"
+        ],
+        "AgentSolution": [
+          "src/agents/local-agent.ts"
+        ],
+        "ExecutionResult": [
+          "src/agents/local-agent.ts"
+        ],
+        "QAAgent": [
+          "src/agents/qa-agent.ts"
+        ],
+        "SelfImprover": [
+          "src/agents/self-improver.ts"
+        ],
+        "Decision": [
+          "src/agents/virtual-user-decision.ts"
+        ],
+        "DecisionMaker": [
+          "src/agents/virtual-user-decision.ts"
+        ],
+        "ProjectState": [
+          "src/agents/virtual-user-monitor.ts"
+        ],
+        "ProjectMonitor": [
+          "src/agents/virtual-user-monitor.ts"
+        ],
+        "ProjectGoal": [
+          "src/agents/virtual-user.ts"
+        ],
+        "Proposal": [
+          "src/agents/virtual-user.ts"
+        ],
+        "VirtualUser": [
+          "src/agents/virtual-user.ts"
+        ],
+        "CursorAgent": [
+          "src/integration/cursor-api.ts"
+        ],
+        "CursorModel": [
+          "src/integration/cursor-api.ts"
+        ],
+        "BackgroundAgentConfig": [
+          "src/integration/cursor-api.ts"
+        ],
+        "CursorAPI": [
+          "src/integration/cursor-api.ts"
+        ],
+        "SettingsManager": [
+          "src/integration/settings-manager.ts"
+        ],
+        "UIIntegration": [
+          "src/integration/ui-integration.ts"
+        ],
+        "AutonomousMode": [
+          "src/orchestrator/autonomous-mode.ts"
+        ],
+        "BrainstormingSession": [
+          "src/orchestrator/brainstorming-manager.ts"
+        ],
+        "ConsolidatedSolution": [
+          "src/orchestrator/brainstorming-manager.ts"
+        ],
+        "BrainstormingManager": [
+          "src/orchestrator/brainstorming-manager.ts"
+        ],
+        "AgentSelectionStrategy": [
+          "src/orchestrator/learning-engine.ts"
+        ],
+        "EvaluationWeights": [
+          "src/orchestrator/learning-engine.ts"
+        ],
+        "LearningEngine": [
+          "src/orchestrator/learning-engine.ts"
+        ],
+        "ProjectProfile": [
+          "src/orchestrator/project-analyzer.ts"
+        ],
+        "ProjectAnalyzer": [
+          "src/orchestrator/project-analyzer.ts"
+        ],
+        "DependencyInfo": [
+          "src/orchestrator/project-dependency-graph.ts"
+        ],
+        "DependencyGraph": [
+          "src/orchestrator/project-dependency-graph.ts"
+        ],
+        "ImpactAnalysis": [
+          "src/orchestrator/project-dependency-graph.ts"
+        ],
+        "FileChange": [
+          "src/orchestrator/project-dependency-graph.ts"
+        ],
+        "ProjectDependencyGraph": [
+          "src/orchestrator/project-dependency-graph.ts"
+        ],
+        "CodePattern": [
+          "src/orchestrator/project-knowledge-base.ts"
+        ],
+        "CodeStandards": [
+          "src/orchestrator/project-knowledge-base.ts"
+        ],
+        "DecisionHistory": [
+          "src/orchestrator/project-knowledge-base.ts"
+        ],
+        "ProjectMetrics": [
+          "src/orchestrator/project-knowledge-base.ts"
+        ],
+        "ProjectKnowledge": [
+          "src/orchestrator/project-knowledge-base.ts"
+        ],
+        "ProjectKnowledgeBase": [
+          "src/orchestrator/project-knowledge-base.ts"
+        ],
+        "QualityCheckResult": [
+          "src/orchestrator/quality-checker.ts"
+        ],
+        "QualityIssue": [
+          "src/orchestrator/quality-checker.ts"
+        ],
+        "QualityCheckReport": [
+          "src/orchestrator/quality-checker.ts"
+        ],
+        "QualityChecker": [
+          "src/orchestrator/quality-checker.ts"
+        ],
+        "GeneratedRule": [
+          "src/orchestrator/rule-generator.ts"
+        ],
+        "RuleGenerator": [
+          "src/orchestrator/rule-generator.ts"
+        ],
+        "EvaluationResult": [
+          "src/orchestrator/solution-evaluator.ts"
+        ],
+        "RankedSolutions": [
+          "src/orchestrator/solution-evaluator.ts"
+        ],
+        "MergedSolution": [
+          "src/orchestrator/solution-evaluator.ts"
+        ],
+        "SolutionEvaluator": [
+          "src/orchestrator/solution-evaluator.ts"
+        ],
+        "TaskMetrics": [
+          "src/orchestrator/task-analytics.ts"
+        ],
+        "TaskTypeStatistics": [
+          "src/orchestrator/task-analytics.ts"
+        ],
+        "AgentTaskStatistics": [
+          "src/orchestrator/task-analytics.ts"
+        ],
+        "AnalyticsReport": [
+          "src/orchestrator/task-analytics.ts"
+        ],
+        "TaskAnalytics": [
+          "src/orchestrator/task-analytics.ts"
+        ],
+        "TaskExecutionResult": [
+          "src/orchestrator/task-executor.ts"
+        ],
+        "TaskExecutor": [
+          "src/orchestrator/task-executor.ts"
+        ],
+        "TaskPlanner": [
+          "src/orchestrator/task-planner.ts"
+        ],
+        "AgentOptimization": [
+          "src/self-improvement/agent-optimizer.ts"
+        ],
+        "AgentOptimizer": [
+          "src/self-improvement/agent-optimizer.ts"
+        ],
+        "KnowledgeResult": [
+          "src/self-improvement/knowledge-searcher.ts"
+        ],
+        "KnowledgeSearcher": [
+          "src/self-improvement/knowledge-searcher.ts"
+        ],
+        "AgentMetrics": [
+          "src/self-improvement/performance-monitor.ts"
+        ],
+        "PerformanceMetrics": [
+          "src/self-improvement/performance-monitor.ts"
+        ],
+        "PerformanceMonitor": [
+          "src/self-improvement/performance-monitor.ts"
+        ],
+        "RuleUpdate": [
+          "src/self-improvement/rule-updater.ts"
+        ],
+        "RuleUpdater": [
+          "src/self-improvement/rule-updater.ts"
+        ],
+        "RulesIntegration": [
+          "src/storage/rules-integration.ts"
+        ],
+        "RuleVersion": [
+          "src/storage/rules-versioning.ts"
+        ],
+        "VersionHistory": [
+          "src/storage/rules-versioning.ts"
+        ],
+        "RulesVersioning": [
+          "src/storage/rules-versioning.ts"
+        ],
+        "AnalyticsPanel": [
+          "src/ui/analytics-panel.ts"
+        ],
+        "QuickAccessPanel": [
+          "src/ui/quick-access-panel.ts"
+        ],
+        "AgentStatus": [
+          "src/ui/agents-status-tree.ts"
+        ],
+        "AgentDiagnostics": [
+          "src/ui/agents-status-tree.ts"
+        ],
+        "AgentsStatusTreeProvider": [
+          "src/ui/agents-status-tree.ts"
+        ],
+        "activate": [
+          "src/extension.ts"
+        ],
+        "deactivate": [
+          "src/extension.ts"
+        ],
+        "AgentInfo": [
+          "src/orchestrator/agent-manager.ts"
+        ],
+        "AgentManager": [
+          "src/orchestrator/agent-manager.ts"
+        ],
+        "Task": [
+          "src/orchestrator/orchestrator.ts"
+        ],
+        "AgentConsultation": [
+          "src/orchestrator/orchestrator.ts"
+        ],
+        "Orchestrator": [
+          "src/orchestrator/orchestrator.ts"
+        ],
+        "SelfLearningOrchestrator": [
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "StatusPanel": [
+          "src/ui/status-panel.ts"
+        ]
+      },
+      "byImport": {
+        "../orchestrator/orchestrator": [
+          "src/agents/analyst-agent.ts",
+          "src/agents/architect-agent.ts",
+          "src/agents/backend-agent.ts",
+          "src/agents/devops-agent.ts",
+          "src/agents/frontend-agent.ts",
+          "src/agents/local-agent.ts",
+          "src/agents/qa-agent.ts",
+          "src/agents/self-improver.ts",
+          "src/agents/virtual-user.ts",
+          "src/ui/analytics-panel.ts",
+          "src/ui/agents-status-tree.ts",
+          "src/ui/status-panel.ts"
+        ],
+        "./local-agent": [
+          "src/agents/analyst-agent.ts",
+          "src/agents/architect-agent.ts",
+          "src/agents/backend-agent.ts",
+          "src/agents/devops-agent.ts",
+          "src/agents/frontend-agent.ts",
+          "src/agents/qa-agent.ts",
+          "out/agents/analyst-agent.js",
+          "out/agents/architect-agent.js",
+          "out/agents/backend-agent.js",
+          "out/agents/devops-agent.js",
+          "out/agents/frontend-agent.js",
+          "out/agents/qa-agent.js"
+        ],
+        "../integration/cursor-api": [
+          "src/agents/local-agent.ts",
+          "src/orchestrator/task-executor.ts",
+          "out/agents/local-agent.js",
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "../integration/settings-manager": [
+          "src/agents/self-improver.ts",
+          "src/agents/virtual-user-decision.ts",
+          "src/agents/virtual-user-monitor.ts",
+          "src/agents/virtual-user.ts",
+          "src/orchestrator/autonomous-mode.ts",
+          "src/orchestrator/task-analytics.ts",
+          "src/self-improvement/knowledge-searcher.ts",
+          "src/self-improvement/performance-monitor.ts",
+          "src/orchestrator/agent-manager.ts",
+          "src/orchestrator/orchestrator.ts",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "../self-improvement/performance-monitor": [
+          "src/agents/self-improver.ts",
+          "out/agents/self-improver.js"
+        ],
+        "../self-improvement/knowledge-searcher": [
+          "src/agents/self-improver.ts",
+          "out/agents/self-improver.js"
+        ],
+        "../self-improvement/rule-updater": [
+          "src/agents/self-improver.ts",
+          "out/agents/self-improver.js"
+        ],
+        "../self-improvement/agent-optimizer": [
+          "src/agents/self-improver.ts",
+          "out/agents/self-improver.js"
+        ],
+        "./virtual-user": [
+          "src/agents/virtual-user-decision.ts"
+        ],
+        "../integration/ui-integration": [
+          "src/agents/virtual-user.ts",
+          "out/agents/virtual-user.js"
+        ],
+        "./virtual-user-monitor": [
+          "src/agents/virtual-user.ts",
+          "out/agents/virtual-user.js"
+        ],
+        "./virtual-user-decision": [
+          "src/agents/virtual-user.ts",
+          "out/agents/virtual-user.js"
+        ],
+        "./settings-manager": [
+          "src/integration/ui-integration.ts",
+          "out/integration/ui-integration.js"
+        ],
+        "./orchestrator": [
+          "src/orchestrator/autonomous-mode.ts",
+          "src/orchestrator/brainstorming-manager.ts",
+          "src/orchestrator/learning-engine.ts",
+          "src/orchestrator/quality-checker.ts",
+          "src/orchestrator/task-analytics.ts",
+          "src/orchestrator/task-executor.ts",
+          "src/orchestrator/task-planner.ts",
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/agent-manager.ts",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "../agents/local-agent": [
+          "src/orchestrator/brainstorming-manager.ts",
+          "src/orchestrator/learning-engine.ts",
+          "src/orchestrator/quality-checker.ts",
+          "src/orchestrator/solution-evaluator.ts",
+          "src/ui/agents-status-tree.ts",
+          "src/orchestrator/agent-manager.ts",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "../agents/virtual-user": [
+          "src/orchestrator/autonomous-mode.ts"
+        ],
+        "../agents/self-improver": [
+          "src/orchestrator/autonomous-mode.ts"
+        ],
+        "./project-knowledge-base": [
+          "src/orchestrator/learning-engine.ts",
+          "src/orchestrator/quality-checker.ts",
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "./agent-manager": [
+          "src/orchestrator/task-planner.ts",
+          "out/orchestrator/orchestrator.js",
+          "src/orchestrator/orchestrator.ts",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "./task-planner": [
+          "out/orchestrator/orchestrator.js",
+          "src/orchestrator/orchestrator.ts"
+        ],
+        "./project-analyzer": [
+          "src/orchestrator/project-knowledge-base.ts",
+          "src/orchestrator/rule-generator.ts",
+          "out/orchestrator/orchestrator.js",
+          "out/orchestrator/rule-generator.js",
+          "src/orchestrator/orchestrator.ts",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "./rule-generator": [
+          "out/orchestrator/orchestrator.js",
+          "src/orchestrator/orchestrator.ts"
+        ],
+        "./task-analytics": [
+          "src/orchestrator/task-executor.ts",
+          "out/orchestrator/orchestrator.js",
+          "src/orchestrator/orchestrator.ts"
+        ],
+        "./task-executor": [
+          "out/orchestrator/orchestrator.js",
+          "src/orchestrator/orchestrator.ts"
+        ],
+        "./quality-checker": [
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/orchestrator.ts",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "./project-dependency-graph": [
+          "src/orchestrator/project-knowledge-base.ts",
+          "src/orchestrator/quality-checker.ts",
+          "src/orchestrator/solution-evaluator.ts",
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "./performance-monitor": [
+          "src/self-improvement/agent-optimizer.ts",
+          "src/self-improvement/rule-updater.ts"
+        ],
+        "./knowledge-searcher": [
+          "src/self-improvement/agent-optimizer.ts",
+          "src/self-improvement/rule-updater.ts"
+        ],
+        "../orchestrator/project-analyzer": [
+          "src/storage/rules-integration.ts",
+          "out/storage/rules-integration.js"
+        ],
+        "../orchestrator/rule-generator": [
+          "src/storage/rules-integration.ts",
+          "out/storage/rules-integration.js"
+        ],
+        "./rules-versioning": [
+          "src/storage/rules-integration.ts",
+          "out/storage/rules-integration.js"
+        ],
+        "../orchestrator/task-analytics": [
+          "src/ui/analytics-panel.ts"
+        ],
+        "../agents/backend-agent": [
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "../agents/frontend-agent": [
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "../agents/architect-agent": [
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "../agents/analyst-agent": [
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "../agents/devops-agent": [
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "../agents/qa-agent": [
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "./brainstorming-manager": [
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "./solution-evaluator": [
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "./learning-engine": [
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "./orchestrator/self-learning-orchestrator": [
+          "out/extension.js",
+          "src/extension.ts"
+        ],
+        "./integration/settings-manager": [
+          "out/extension.js",
+          "src/extension.ts"
+        ],
+        "./integration/ui-integration": [
+          "out/extension.js",
+          "src/extension.ts"
+        ],
+        "./agents/virtual-user": [
+          "out/extension.js",
+          "src/extension.ts"
+        ],
+        "./agents/self-improver": [
+          "out/extension.js",
+          "src/extension.ts"
+        ],
+        "./storage/rules-integration": [
+          "out/extension.js",
+          "src/extension.ts"
+        ],
+        "./integration/cursor-api": [
+          "out/extension.js",
+          "src/extension.ts"
+        ],
+        "./ui/agents-status-tree": [
+          "out/extension.js",
+          "src/extension.ts"
+        ],
+        "./ui/status-panel": [
+          "out/extension.js",
+          "src/extension.ts"
+        ],
+        "./ui/analytics-panel": [
+          "out/extension.js",
+          "src/extension.ts"
+        ],
+        "./orchestrator/orchestrator": [
+          "src/extension.ts"
+        ],
+        "./agents/local-agent": [
+          "src/extension.ts"
+        ],
+        "../ui/agents-status-tree": [
+          "src/orchestrator/self-learning-orchestrator.ts"
+        ],
+        "./agents-status-tree": [
+          "src/ui/status-panel.ts"
+        ]
+      }
+    }
+  },
+  "patterns": [],
+  "standards": {
+    "patterns": [],
+    "conventions": {}
+  },
+  "history": [
+    {
+      "id": "decision-1766986932532",
+      "taskId": "task-1766986932528-h6x9f0ewi",
+      "timestamp": "2025-12-29T05:42:12.532Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766986932532-9nrqs6tru",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Низкое покрытие тестами - требуется добавить тесты\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766986932535",
+      "taskId": "task-1766986932533-hw50l0rxn",
+      "timestamp": "2025-12-29T05:42:12.535Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766986932534-2evb0ecll",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Недостаточная документация - требуется улучшить документацию\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766986932537",
+      "taskId": "task-1766986932535-vp9qjbvj2",
+      "timestamp": "2025-12-29T05:42:12.537Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766986932536-e47cpqnbj",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: и FIXME\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766986932539",
+      "taskId": "task-1766986932537-r5e0eosqo",
+      "timestamp": "2025-12-29T05:42:12.539Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766986932539-6c2twwc2e",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: found');\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766986932541",
+      "taskId": "task-1766986932539-ol94wx918",
+      "timestamp": "2025-12-29T05:42:12.541Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766986932541-iata90bu2",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Увеличить покрытие тестами до 80%+\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766986932543",
+      "taskId": "task-1766986932541-46otrwxwt",
+      "timestamp": "2025-12-29T05:42:12.543Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766986932543-kxy1z5qyf",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Улучшить документацию проекта\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987214442",
+      "taskId": "task-1766987214439-kdmeqrlhb",
+      "timestamp": "2025-12-29T05:46:54.442Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987214442-9mzexexxl",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка качества backend кода: соответствие стандартам, безопасность, производительность\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987214446",
+      "taskId": "task-1766987214443-fnzzcyujo",
+      "timestamp": "2025-12-29T05:46:54.446Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987214446-fhvnblo13",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка качества frontend кода: доступность, производительность, UX\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987214447",
+      "taskId": "task-1766987214446-xc1hbh7hu",
+      "timestamp": "2025-12-29T05:46:54.447Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987214447-gqrlgzefa",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка покрытия тестами и качества тестов\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987214449",
+      "taskId": "task-1766987214448-w13fens5u",
+      "timestamp": "2025-12-29T05:46:54.449Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987214449-spiezdkct",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка архитектуры проекта: соответствие паттернам, масштабируемость, поддерживаемость\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987214451",
+      "taskId": "task-1766987214450-smyd5jie0",
+      "timestamp": "2025-12-29T05:46:54.451Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987214451-juxa4teva",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка производительности: оптимизация запросов, кэширование, нагрузка\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987214453",
+      "taskId": "task-1766987214452-r0h1spfge",
+      "timestamp": "2025-12-29T05:46:54.453Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987214453-967uhxyyg",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка безопасности: уязвимости, SQL injection, XSS, аутентификация\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987214455",
+      "taskId": "task-1766987214454-udeqj9tmd",
+      "timestamp": "2025-12-29T05:46:54.455Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987214455-3ug22x61f",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка безопасности инфраструктуры: конфигурация, доступы, мониторинг\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987214457",
+      "taskId": "task-1766987214455-7wr2tkldo",
+      "timestamp": "2025-12-29T05:46:54.457Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987214457-3me0u8ir9",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка зависимостей проекта: устаревшие пакеты, конфликты, безопасность\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987215466",
+      "taskId": "task-1766987214438-hmkzrysu3",
+      "timestamp": "2025-12-29T05:46:55.466Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987215465-r92k8g89j",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Проверь качество создания агентов, их автозапуск и т.п.\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987434800",
+      "taskId": "task-1766987434794-5mcqps0cc",
+      "timestamp": "2025-12-29T05:50:34.800Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987434800-c6uolgzog",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Низкое покрытие тестами - требуется добавить тесты\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987434806",
+      "taskId": "task-1766987434801-bwvwaodc9",
+      "timestamp": "2025-12-29T05:50:34.806Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987434806-rmes62qo8",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Недостаточная документация - требуется улучшить документацию\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987434809",
+      "taskId": "task-1766987434807-f6lpwhb3r",
+      "timestamp": "2025-12-29T05:50:34.809Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987434809-xo3cqnvon",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Увеличить покрытие тестами до 80%+\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987434812",
+      "taskId": "task-1766987434809-msoeu2crn",
+      "timestamp": "2025-12-29T05:50:34.812Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987434812-1zl3ox1d5",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Улучшить документацию проекта\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987735211",
+      "taskId": "task-1766987735205-qh7fewqs0",
+      "timestamp": "2025-12-29T05:55:35.211Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987735211-gl3tq0elp",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Низкое покрытие тестами - требуется добавить тесты\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987735216",
+      "taskId": "task-1766987735212-jm0bkjg3d",
+      "timestamp": "2025-12-29T05:55:35.216Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987735216-srftxr1wh",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Недостаточная документация - требуется улучшить документацию\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987735219",
+      "taskId": "task-1766987735216-5n7orr781",
+      "timestamp": "2025-12-29T05:55:35.219Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987735219-vn7q7rnnn",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Увеличить покрытие тестами до 80%+\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987735222",
+      "taskId": "task-1766987735220-o9aytaf0m",
+      "timestamp": "2025-12-29T05:55:35.222Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987735222-2j4k2rr7x",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Улучшить документацию проекта\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987861946",
+      "taskId": "task-1766987861927-316i5qusi",
+      "timestamp": "2025-12-29T05:57:41.946Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987861944-bqagxi60u",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка качества backend кода: соответствие стандартам, безопасность, производительность\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987861955",
+      "taskId": "task-1766987861948-w3y8taqzz",
+      "timestamp": "2025-12-29T05:57:41.955Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987861954-3nvu449j2",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка качества frontend кода: доступность, производительность, UX\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987861965",
+      "taskId": "task-1766987861957-6mzlasylx",
+      "timestamp": "2025-12-29T05:57:41.965Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987861963-9lmhapvs6",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка покрытия тестами и качества тестов\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987861974",
+      "taskId": "task-1766987861967-79wximtcg",
+      "timestamp": "2025-12-29T05:57:41.974Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987861973-1fxsm9o59",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка архитектуры проекта: соответствие паттернам, масштабируемость, поддерживаемость\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987861983",
+      "taskId": "task-1766987861976-vvzt87a5u",
+      "timestamp": "2025-12-29T05:57:41.983Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987861982-19yuywfdh",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка производительности: оптимизация запросов, кэширование, нагрузка\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987861992",
+      "taskId": "task-1766987861985-30cedack6",
+      "timestamp": "2025-12-29T05:57:41.992Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987861991-wncktyx3c",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка безопасности: уязвимости, SQL injection, XSS, аутентификация\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987862011",
+      "taskId": "task-1766987861995-h8t1ygxhd",
+      "timestamp": "2025-12-29T05:57:42.011Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987862009-gsiumn4rd",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка безопасности инфраструктуры: конфигурация, доступы, мониторинг\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987862022",
+      "taskId": "task-1766987862014-l8dmu2m30",
+      "timestamp": "2025-12-29T05:57:42.022Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987862021-c1gl2bnhr",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Проверка зависимостей проекта: устаревшие пакеты, конфликты, безопасность\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766987863085",
+      "taskId": "task-1766987861925-05o2rn52s",
+      "timestamp": "2025-12-29T05:57:43.085Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766987863084-jx86b9gm3",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Проверь все\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766988101800",
+      "taskId": "task-1766988101785-koppihxqp",
+      "timestamp": "2025-12-29T06:01:41.800Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766988101795-wwl3dj7hs",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Низкое покрытие тестами - требуется добавить тесты\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 2,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766988101817",
+      "taskId": "task-1766988101802-mmj4tpnlx",
+      "timestamp": "2025-12-29T06:01:41.817Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766988101811-ps2vquduz",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Недостаточная документация - требуется улучшить документацию\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 3,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766988101834",
+      "taskId": "task-1766988101819-9x67uvmzz",
+      "timestamp": "2025-12-29T06:01:41.834Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766988101828-56ccwxc19",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: и FIXME\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 2,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766988101851",
+      "taskId": "task-1766988101835-r1uq91iqn",
+      "timestamp": "2025-12-29T06:01:41.851Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766988101844-beuv0yp3a",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: found');\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 2,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766988101860",
+      "taskId": "task-1766988101853-zmr1dr18f",
+      "timestamp": "2025-12-29T06:01:41.860Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766988101858-uy83h9nak",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Увеличить покрытие тестами до 80%+\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766988101869",
+      "taskId": "task-1766988101862-vmypt2sw5",
+      "timestamp": "2025-12-29T06:01:41.869Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766988101867-go472cyk1",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Улучшить документацию проекта\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766990476295",
+      "taskId": "task-1766990476279-hsxqpdpo1",
+      "timestamp": "2025-12-29T06:41:16.295Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766990476289-zum5ai8g1",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Низкое покрытие тестами - требуется добавить тесты\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 2,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766990476313",
+      "taskId": "task-1766990476297-s3j9ctnwl",
+      "timestamp": "2025-12-29T06:41:16.313Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766990476307-73mhtrg9w",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Недостаточная документация - требуется улучшить документацию\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 2,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766990476324",
+      "taskId": "task-1766990476316-vik4hg5sh",
+      "timestamp": "2025-12-29T06:41:16.324Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766990476322-ut9ova1vl",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Увеличить покрытие тестами до 80%+\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766990476342",
+      "taskId": "task-1766990476331-evcosypb1",
+      "timestamp": "2025-12-29T06:41:16.342Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766990476340-5b4chgew1",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Улучшить документацию проекта\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766990946019",
+      "taskId": "task-1766990946001-clp039zj9",
+      "timestamp": "2025-12-29T06:49:06.019Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766990946010-zyy8bhxjq",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Низкое покрытие тестами - требуется добавить тесты\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 3,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766990946039",
+      "taskId": "task-1766990946022-y9yr62zrw",
+      "timestamp": "2025-12-29T06:49:06.039Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766990946031-b8pw676a9",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Недостаточная документация - требуется улучшить документацию\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 4,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766990946050",
+      "taskId": "task-1766990946041-qjr5osty0",
+      "timestamp": "2025-12-29T06:49:06.050Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766990946048-94aidng4m",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Увеличить покрытие тестами до 80%+\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766990946072",
+      "taskId": "task-1766990946055-70ajqt16a",
+      "timestamp": "2025-12-29T06:49:06.072Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766990946068-o5rpqkptn",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Улучшить документацию проекта\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766991427723",
+      "taskId": "task-1766991427700-tu845fpvv",
+      "timestamp": "2025-12-29T06:57:07.723Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766991427716-f1m29usuw",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Низкое покрытие тестами - требуется добавить тесты\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766991427765",
+      "taskId": "task-1766991427736-g1jqum2z9",
+      "timestamp": "2025-12-29T06:57:07.765Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766991427758-2jkfge2vu",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Недостаточная документация - требуется улучшить документацию\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766991427802",
+      "taskId": "task-1766991427768-u20wh80nu",
+      "timestamp": "2025-12-29T06:57:07.802Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766991427799-kt1ofzd5e",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - Data Analyst. Специализируется на анализе: производительность, оптимизация, метрики, данные\n\nТвоя задача: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Увеличить покрытие тестами до 80%+\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766991427816",
+      "taskId": "task-1766991427804-3zemahc4f",
+      "timestamp": "2025-12-29T06:57:07.816Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766991427814-uh68fqohg",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - Data Analyst. Специализируется на анализе: производительность, оптимизация, метрики, данные\n\nТвоя задача: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Улучшить документацию проекта\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992085420",
+      "taskId": "task-1766992085276-y9w1g1n6o",
+      "timestamp": "2025-12-29T07:08:05.420Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992085393-sin1ap5gg",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Низкое покрытие тестами - требуется добавить тесты\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 5,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992085581",
+      "taskId": "task-1766992085423-8jjsmqff2",
+      "timestamp": "2025-12-29T07:08:05.581Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992085533-eenj0qe2n",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Недостаточная документация - требуется улучшить документацию\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 17,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992085686",
+      "taskId": "task-1766992085583-i1ruon41o",
+      "timestamp": "2025-12-29T07:08:05.686Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992085666-6peretqj2",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - Data Analyst. Специализируется на анализе: производительность, оптимизация, метрики, данные\n\nТвоя задача: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Увеличить покрытие тестами до 80%+\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 2,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992085854",
+      "taskId": "task-1766992085688-xewszbx68",
+      "timestamp": "2025-12-29T07:08:05.854Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992085835-il1675fur",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - Data Analyst. Специализируется на анализе: производительность, оптимизация, метрики, данные\n\nТвоя задача: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Улучшить документацию проекта\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 7,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992385134",
+      "taskId": "task-1766992385085-9r8p9bm0t",
+      "timestamp": "2025-12-29T07:13:05.134Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992385115-phn7wlvwc",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Низкое покрытие тестами - требуется добавить тесты\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 2,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992385290",
+      "taskId": "task-1766992385136-zjbjlrm3y",
+      "timestamp": "2025-12-29T07:13:05.290Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992385209-xhi5bkd6v",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Недостаточная документация - требуется улучшить документацию\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 8,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992385383",
+      "taskId": "task-1766992385292-s11yw7w9z",
+      "timestamp": "2025-12-29T07:13:05.383Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992385363-e8udn95sc",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Интеграция с CursorAI API для регистрации оркестратора\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 4,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992385527",
+      "taskId": "task-1766992385385-sz6z8wv5k",
+      "timestamp": "2025-12-29T07:13:05.527Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992385476-z8h77bgmr",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - Data Analyst. Специализируется на анализе: производительность, оптимизация, метрики, данные\n\nТвоя задача: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Увеличить покрытие тестами до 80%+\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 8,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992385564",
+      "taskId": "task-1766992385530-png7xpauo",
+      "timestamp": "2025-12-29T07:13:05.564Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992385561-ddsbuutnk",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - Data Analyst. Специализируется на анализе: производительность, оптимизация, метрики, данные\n\nТвоя задача: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Улучшить документацию проекта\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 1,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992840211",
+      "taskId": "task-1766992840168-jr6nwmpaq",
+      "timestamp": "2025-12-29T07:20:40.211Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992840192-ujcqxvuar",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Низкое покрытие тестами - требуется добавить тесты\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 8,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992840258",
+      "taskId": "task-1766992840214-9tfgq5w41",
+      "timestamp": "2025-12-29T07:20:40.258Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992840233-tdb0e7fhz",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Недостаточная документация - требуется улучшить документацию\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 6,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992840300",
+      "taskId": "task-1766992840261-tc0u0g2ld",
+      "timestamp": "2025-12-29T07:20:40.300Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992840287-519tampu4",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: и FIXME\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 4,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992840349",
+      "taskId": "task-1766992840302-ovjtm0vcr",
+      "timestamp": "2025-12-29T07:20:40.349Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992840329-q13xe0pym",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: found');\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 3,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992840389",
+      "taskId": "task-1766992840351-6sqlo5mnc",
+      "timestamp": "2025-12-29T07:20:40.389Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992840371-ta079g5q6",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - Data Analyst. Специализируется на анализе: производительность, оптимизация, метрики, данные\n\nТвоя задача: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Увеличить покрытие тестами до 80%+\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 3,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1766992840451",
+      "taskId": "task-1766992840392-lots940sf",
+      "timestamp": "2025-12-29T07:20:40.451Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1766992840445-dv3arnibb",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - Data Analyst. Специализируется на анализе: производительность, оптимизация, метрики, данные\n\nТвоя задача: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Улучшить документацию проекта\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": false,
+        "executionTime": 5,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    }
+  ],
+  "metrics": {
+    "totalTasks": 65,
+    "completedTasks": 23,
+    "averageExecutionTime": 1.7692307692307692,
+    "averageQuality": 0.8524999999999996,
+    "successRate": 0.35384615384615387,
+    "mostEffectiveAgents": [
+      {
+        "agentId": "analyst",
+        "successRate": 0.3888888888888889
+      },
+      {
+        "agentId": "backend",
+        "successRate": 0.3103448275862069
+      }
+    ],
+    "commonPatterns": [],
+    "lastUpdated": "2025-12-29T07:20:40.451Z"
+  },
+  "profile": {
+    "type": "web-application",
+    "languages": [
+      "JavaScript"
+    ],
+    "frameworks": [],
+    "patterns": [],
+    "detectedAt": "2025-12-29T05:57:02.820Z",
+    "lastUpdated": "2025-12-29T05:57:02.820Z",
+    "version": "1.0.0",
+    "configFiles": [
+      "package.json",
+      "tsconfig.json"
+    ],
+    "dependencies": {
+      "axios": "^1.6.0"
+    }
+  },
+  "lastUpdated": "2025-12-29T07:20:40.451Z"
+}

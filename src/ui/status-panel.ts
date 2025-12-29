@@ -1,0 +1,461 @@
+import * as vscode from 'vscode';
+import { AgentsStatusTreeProvider, AgentStatus } from './agents-status-tree';
+import { Task } from '../orchestrator/orchestrator';
+
+export class StatusPanel {
+    private static currentPanel: StatusPanel | undefined;
+    private readonly _panel: vscode.WebviewPanel;
+    private readonly _extensionUri: vscode.Uri;
+    private _disposables: vscode.Disposable[] = [];
+    private agentsTreeProvider: AgentsStatusTreeProvider;
+
+    private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, agentsTreeProvider: AgentsStatusTreeProvider) {
+        this._panel = panel;
+        this._extensionUri = extensionUri;
+        this.agentsTreeProvider = agentsTreeProvider;
+
+        // Обновление содержимого при изменении статуса
+        this.agentsTreeProvider.onDidChangeTreeData(() => {
+            this.update();
+        });
+
+        // Обработка сообщений от webview
+        this._panel.webview.onDidReceiveMessage(
+            message => {
+                switch (message.command) {
+                    case 'refresh':
+                        this.update();
+                        return;
+                    case 'agentClick':
+                        vscode.commands.executeCommand('cursor-autonomous.showAgentDetails', message.agentId);
+                        return;
+                    case 'selectModel':
+                        vscode.commands.executeCommand('cursor-autonomous.selectAgentModel', message.agentId);
+                        return;
+                }
+            },
+            null,
+            this._disposables
+        );
+
+        // Обновление при изменении видимости
+        this._panel.onDidChangeViewState(
+            () => {
+                if (this._panel.visible) {
+                    this.update();
+                }
+            },
+            null,
+            this._disposables
+        );
+
+        // Очистка при закрытии
+        this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+
+        // Первоначальная загрузка
+        this.update();
+    }
+
+    public static createOrShow(extensionUri: vscode.Uri, agentsTreeProvider: AgentsStatusTreeProvider): void {
+        const column = vscode.window.activeTextEditor
+            ? vscode.window.activeTextEditor.viewColumn
+            : undefined;
+
+        // Если панель уже открыта, показываем её
+        if (StatusPanel.currentPanel) {
+            StatusPanel.currentPanel._panel.reveal(column);
+            return;
+        }
+
+        // Создаем новую панель
+        const panel = vscode.window.createWebviewPanel(
+            'agentsStatus',
+            'Статус агентов',
+            column || vscode.ViewColumn.Two,
+            {
+                enableScripts: true,
+                localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media')]
+            }
+        );
+
+        StatusPanel.currentPanel = new StatusPanel(panel, extensionUri, agentsTreeProvider);
+    }
+
+    public static revive(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, agentsTreeProvider: AgentsStatusTreeProvider): void {
+        StatusPanel.currentPanel = new StatusPanel(panel, extensionUri, agentsTreeProvider);
+    }
+
+    public dispose(): void {
+        StatusPanel.currentPanel = undefined;
+
+        // Очистка ресурсов
+        while (this._disposables.length) {
+            const x = this._disposables.pop();
+            if (x) {
+                x.dispose();
+            }
+        }
+    }
+
+    private async update(): Promise<void> {
+        const webview = this._panel.webview;
+        const agents = this.agentsTreeProvider.getAllAgents();
+        this._panel.webview.html = await this.getHtmlForWebview(webview, agents);
+    }
+
+    private async getHtmlForWebview(webview: vscode.Webview, agents: AgentStatus[]): Promise<string> {
+        // Получаем список доступных моделей один раз для всех агентов
+        const { ModelProvider } = await import('../integration/model-provider');
+        const availableModels = await ModelProvider.getAvailableModels();
+        const workingAgents = agents.filter(a => a.status === 'working');
+        const idleAgents = agents.filter(a => a.status === 'idle');
+        const totalTasks = agents.reduce((sum, a) => sum + a.tasksInProgress, 0);
+        const completedTasks = agents.reduce((sum, a) => sum + a.tasksCompleted, 0);
+
+        return `<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статус агентов</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            padding: 20px;
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .agents-list {
+            display: grid;
+            gap: 15px;
+        }
+        .agent-card {
+            background: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .agent-card:hover {
+            border-color: var(--vscode-focusBorder);
+            background: var(--vscode-list-hoverBackground);
+        }
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .agent-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .agent-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status-working {
+            background: var(--vscode-testing-iconPassed);
+            color: white;
+        }
+        .status-idle {
+            background: var(--vscode-descriptionForeground);
+            color: white;
+        }
+        .status-error {
+            background: var(--vscode-testing-iconFailed);
+            color: white;
+        }
+        .agent-task {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--vscode-list-inactiveSelectionBackground);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .agent-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .agent-thoughts {
+            margin-top: 15px;
+            padding: 12px;
+            background: var(--vscode-textBlockQuote-background);
+            border-left: 3px solid var(--vscode-textBlockQuote-border);
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .thoughts-header {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--vscode-textLink-foreground);
+        }
+        .thoughts-phase {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-bottom: 8px;
+            background: var(--vscode-badge-background);
+            color: var(--vscode-badge-foreground);
+        }
+        .thoughts-analysis {
+            margin: 8px 0;
+            padding: 8px;
+            background: var(--vscode-editor-background);
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .thoughts-progress {
+            margin-top: 8px;
+            font-size: 11px;
+            opacity: 0.8;
+        }
+        .refresh-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .refresh-btn:hover {
+            background: var(--vscode-button-hoverBackground);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Статус многоагентной системы</h1>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-label">Активных агентов</div>
+            <div class="stat-value">${workingAgents.length}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Задач в работе</div>
+            <div class="stat-value">${totalTasks}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Задач выполнено</div>
+            <div class="stat-value">${completedTasks}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Всего агентов</div>
+            <div class="stat-value">${agents.length}</div>
+        </div>
+    </div>
+
+    <div class="agents-list">
+        ${(await Promise.all(agents.map(agent => this.getAgentCardHtml(agent, availableModels)))).join('')}
+    </div>
+
+    <button class="refresh-btn" onclick="refresh()">Обновить</button>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+        
+        function refresh() {
+            vscode.postMessage({ command: 'refresh' });
+        }
+
+        function agentClick(agentId) {
+            vscode.postMessage({ command: 'agentClick', agentId: agentId });
+        }
+
+        // Автообновление каждые 5 секунд
+        setInterval(refresh, 5000);
+    </script>
+</body>
+</html>`;
+    }
+
+    private getModelOptions(agent: AgentStatus, availableModels: any[]): string {
+        let options = '';
+        const currentModelId = agent.selectedModel 
+            ? `${agent.selectedModel.vendor || ''}:${agent.selectedModel.id || agent.selectedModel.family || ''}`
+            : '';
+
+        for (const model of availableModels) {
+            const modelId = `${model.vendor || ''}:${model.id || model.family || ''}`;
+            const modelName = model.displayName || `${model.vendor || ''} ${model.family || model.id || ''}`.trim();
+            const selected = modelId === currentModelId ? 'selected' : '';
+            options += `<option value="${this.escapeHtml(JSON.stringify(model))}" ${selected}>${this.escapeHtml(modelName)}</option>`;
+        }
+
+        return options;
+    }
+
+    private async getAgentCardHtml(agent: AgentStatus, availableModels: any[]): Promise<string> {
+        const statusClass = `status-${agent.status}`;
+        const statusText = this.getStatusText(agent.status);
+        
+        return `
+        <div class="agent-card" onclick="agentClick('${agent.id}')">
+            <div class="agent-header">
+                <div class="agent-name">${agent.name}</div>
+                <div class="agent-status ${statusClass}">${statusText}</div>
+            </div>
+            ${agent.currentTask ? `
+                <div class="agent-task">
+                    <strong>Текущая задача:</strong><br>
+                    ${agent.currentTask.description}
+                    ${agent.currentTask.progress ? `
+                        <div style="margin-top: 8px; font-size: 12px; opacity: 0.8;">
+                            📝 Изменено файлов: ${agent.currentTask.progress.filesChanged || 0}<br>
+                            ⏱️ Время: ${Math.round((agent.currentTask.progress.timeElapsed || 0) / 1000)}с
+                            ${agent.currentTask.progress.isActive ? ' ✅ Активна' : ' ⏸️ Ожидает'}
+                        </div>
+                    ` : ''}
+                    ${agent.currentTask.executionResult && !agent.currentTask.executionResult.success ? `
+                        <div style="margin-top: 8px; padding: 8px; background: var(--vscode-inputValidation-errorBackground); border-radius: 4px; font-size: 12px;">
+                            ❌ Ошибка: ${agent.currentTask.executionResult.error || 'Неизвестная ошибка'}
+                        </div>
+                    ` : ''}
+                    ${agent.currentTask.executionResult && agent.currentTask.executionResult.success ? `
+                        <div style="margin-top: 8px; font-size: 12px; opacity: 0.8;">
+                            ✅ Выполнено: ${Array.isArray(agent.currentTask.executionResult.filesChanged) ? agent.currentTask.executionResult.filesChanged.length : 0} файлов изменено
+                        </div>
+                    ` : ''}
+                </div>
+            ` : ''}
+            <div class="agent-model-selector" style="margin-top: 12px; padding: 8px; background: var(--vscode-input-background); border-radius: 4px; border: 1px solid var(--vscode-input-border);">
+                <label style="display: block; margin-bottom: 4px; font-size: 12px; opacity: 0.9;">Модель:</label>
+                <select 
+                    id="model-select-${agent.id}" 
+                    style="width: 100%; padding: 4px; background: var(--vscode-dropdown-background); color: var(--vscode-dropdown-foreground); border: 1px solid var(--vscode-dropdown-border); border-radius: 2px; font-size: 12px;"
+                    onchange="selectModel('${agent.id}', this.value)"
+                >
+                    <option value="">Автоматический выбор</option>
+                    ${this.getModelOptions(agent, availableModels)}
+                </select>
+            </div>
+            ${agent.status === 'error' && agent.errorMessage ? `
+                <div style="margin-top: 12px; padding: 12px; background: var(--vscode-inputValidation-errorBackground); border-radius: 4px; border-left: 4px solid var(--vscode-errorForeground);">
+                    <strong style="color: var(--vscode-errorForeground);">❌ Ошибка:</strong><br>
+                    <div style="margin-top: 4px; font-size: 12px;">${this.escapeHtml(agent.errorMessage)}</div>
+                    ${agent.diagnostics ? `
+                        <div style="margin-top: 8px; font-size: 11px; opacity: 0.9;">
+                            <strong>Диагностика:</strong><br>
+                            LLM: ${agent.diagnostics.llmAvailable ? '✅ Доступен' : '❌ Недоступен'}<br>
+                            ${agent.diagnostics.llmError ? `Ошибка LLM: ${this.escapeHtml(agent.diagnostics.llmError)}<br>` : ''}
+                            Регистрация: ${agent.diagnostics.agentRegistered ? '✅' : '❌'}<br>
+                            Инициализация: ${agent.diagnostics.agentInitialized ? '✅' : '❌'}
+                        </div>
+                    ` : ''}
+                </div>
+            ` : ''}
+            ${this.getAgentThoughtsHtml(agent)}
+            <div class="agent-stats">
+                <span>В работе: ${agent.tasksInProgress}</span>
+                <span>Выполнено: ${agent.tasksCompleted}</span>
+                ${agent.lastActivity ? `<span>Активность: ${agent.lastActivity.toLocaleTimeString()}</span>` : ''}
+            </div>
+        </div>
+        `;
+    }
+
+    private getStatusText(status: string): string {
+        const statuses: { [key: string]: string } = {
+            'working': 'Работает',
+            'idle': 'Ожидает',
+            'error': 'Ошибка',
+            'disabled': 'Отключен'
+        };
+        return statuses[status] || status;
+    }
+
+    private getAgentThoughtsHtml(agent: AgentStatus): string {
+        const thoughts = (agent as any).currentThoughts;
+        if (!thoughts) {
+            return '';
+        }
+
+        const phaseText = this.getPhaseText(thoughts.phase);
+        const progressPercent = thoughts.progress.totalSteps > 0
+            ? Math.round((thoughts.progress.currentStep / thoughts.progress.totalSteps) * 100)
+            : 0;
+
+        return `
+            <div class="agent-thoughts">
+                <div class="thoughts-header">💭 Размышления агента</div>
+                <div class="thoughts-phase">${phaseText}</div>
+                ${thoughts.analysis.problem ? `
+                    <div class="thoughts-analysis">
+                        <strong>Проблема:</strong> ${this.escapeHtml(thoughts.analysis.problem)}
+                    </div>
+                ` : ''}
+                ${thoughts.selectedOption ? `
+                    <div class="thoughts-analysis">
+                        <strong>Выбранное решение:</strong> ${this.escapeHtml(thoughts.selectedOption.title)}<br>
+                        <small>${this.escapeHtml(thoughts.selectedOption.description)}</small>
+                    </div>
+                ` : ''}
+                ${thoughts.reasoning ? `
+                    <div class="thoughts-analysis">
+                        <strong>Обоснование:</strong> ${this.escapeHtml(thoughts.reasoning.substring(0, 200))}${thoughts.reasoning.length > 200 ? '...' : ''}
+                    </div>
+                ` : ''}
+                ${thoughts.progress.totalSteps > 0 ? `
+                    <div class="thoughts-progress">
+                        Прогресс: ${thoughts.progress.currentStep} / ${thoughts.progress.totalSteps} (${progressPercent}%)
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    private getPhaseText(phase: string): string {
+        const phases: { [key: string]: string } = {
+            'analyzing': '🔍 Анализ задачи',
+            'brainstorming': '💡 Генерация вариантов',
+            'evaluating': '⚖️ Оценка решений',
+            'implementing': '⚙️ Реализация'
+        };
+        return phases[phase] || phase;
+    }
+
+    private escapeHtml(text: string): string {
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+}

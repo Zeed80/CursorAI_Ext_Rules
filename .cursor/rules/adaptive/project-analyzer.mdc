@@ -1,0 +1,171 @@
+---
+name: Project Analyzer
+description: Система анализа проектов для автоматической адаптации правил
+globs: ["**/*"]
+alwaysApply: false
+---
+
+# Анализатор проекта
+
+**Твоя роль**: Система анализа проектов для автоматической адаптации правил
+
+## Процесс анализа:
+
+### 1. Определение типа проекта
+
+Используй следующие индикаторы:
+
+**Веб-приложение**:
+- Наличие `package.json` (Node.js)
+- Наличие `composer.json` (PHP)
+- Наличие `requirements.txt` или `Pipfile` (Python)
+- Наличие `Gemfile` (Ruby)
+- Наличие `go.mod` (Go)
+- Наличие веб-сервера конфигурации (nginx, apache)
+
+**Мобильное приложение**:
+- Наличие `package.json` с React Native зависимостями
+- Наличие `pubspec.yaml` (Flutter)
+- Наличие `android/` и `ios/` директорий
+
+**Desktop приложение**:
+- Наличие `electron` в зависимостях
+- Наличие `tauri.conf.json`
+- Наличие `main.py` с GUI библиотеками (PyQt, Tkinter)
+
+**Библиотека/Пакет**:
+- Наличие `setup.py`, `setup.cfg` (Python)
+- Наличие `Cargo.toml` (Rust)
+- Наличие `package.json` без dev сервера
+- Наличие `lib/` или `src/` как основной директории
+
+### 2. Выявление технологий
+
+**Языки программирования**:
+- `package.json` → JavaScript/TypeScript
+- `composer.json` → PHP
+- `requirements.txt`, `Pipfile` → Python
+- `Cargo.toml` → Rust
+- `go.mod` → Go
+- `*.java`, `pom.xml` → Java
+- `*.cs`, `*.csproj` → C#
+
+**Фреймворки**:
+- `react`, `vue`, `angular` в package.json → Frontend фреймворки
+- `laravel`, `symfony` в composer.json → PHP фреймворки
+- `django`, `flask` в requirements.txt → Python фреймворки
+- `express`, `koa` в package.json → Node.js фреймворки
+
+**Базы данных**:
+- `docker-compose.yml` с postgres/mysql/mongodb
+- Конфигурационные файлы с DB подключениями
+- Миграции (migrations/, db/migrate/)
+
+**Инфраструктура**:
+- `docker-compose.yml` → Docker
+- `kubernetes/` → Kubernetes
+- `.github/workflows/` → GitHub Actions
+- `.gitlab-ci.yml` → GitLab CI
+
+### 3. Анализ архитектуры
+
+**Паттерны**:
+- `app/controllers/`, `app/models/`, `app/views/` → MVC
+- `src/domain/`, `src/infrastructure/` → Clean Architecture
+- `src/components/`, `src/containers/` → Component-based
+- `services/`, `repositories/` → Service Layer, Repository Pattern
+
+**Структура проекта**:
+- Monorepo: наличие `packages/`, `apps/`, `workspaces` в package.json
+- Microservices: несколько независимых приложений
+- Monolith: единое приложение
+
+**Стиль кода**:
+- `.php_cs`, `.php_cs.dist` → PHP CS Fixer (PSR-12)
+- `.eslintrc` → ESLint
+- `.prettierrc` → Prettier
+- `pyproject.toml` с black/flake8 → Python style
+
+### 4. Генерация профиля
+
+После анализа сохрани профиль в `.cursor/config/project-profile.json`:
+
+```json
+{
+  "type": "web-application",
+  "languages": ["PHP", "JavaScript"],
+  "frameworks": ["Laravel", "React"],
+  "database": "PostgreSQL",
+  "architecture": "MVC",
+  "codeStyle": "PSR-12",
+  "patterns": ["Repository", "Service Layer"],
+  "detectedAt": "2024-01-15T10:00:00Z",
+  "lastUpdated": "2024-01-15T10:00:00Z",
+  "version": "1.0.0"
+}
+```
+
+## Инструкции для анализа:
+
+1. **Используй `list_dir`** для изучения структуры проекта
+2. **Используй `read_file`** для чтения конфигурационных файлов
+3. **Используй `codebase_search`** для поиска паттернов в коде
+4. **Используй `grep`** для поиска специфичных паттернов
+
+## Примеры анализа:
+
+### PHP проект (Laravel):
+
+```json
+{
+  "type": "web-application",
+  "languages": ["PHP", "JavaScript"],
+  "frameworks": ["Laravel"],
+  "database": "MySQL",
+  "architecture": "MVC",
+  "codeStyle": "PSR-12",
+  "patterns": ["Eloquent ORM", "Service Provider"]
+}
+```
+
+### React проект:
+
+```json
+{
+  "type": "web-application",
+  "languages": ["TypeScript", "JavaScript"],
+  "frameworks": ["React", "Next.js"],
+  "database": null,
+  "architecture": "Component-based",
+  "codeStyle": "ESLint + Prettier",
+  "patterns": ["Hooks", "Context API"]
+}
+```
+
+### Python проект (Django):
+
+```json
+{
+  "type": "web-application",
+  "languages": ["Python"],
+  "frameworks": ["Django"],
+  "database": "PostgreSQL",
+  "architecture": "MVC",
+  "codeStyle": "PEP 8",
+  "patterns": ["Model-View-Template", "ORM"]
+}
+```
+
+## Автоматический запуск:
+
+Анализатор должен запускаться:
+- При первом открытии проекта
+- При изменении конфигурационных файлов (package.json, composer.json, etc.)
+- По запросу пользователя: "Проанализируй проект"
+
+## Обновление профиля:
+
+После каждого анализа обновляй:
+- `lastUpdated` → текущая дата/время
+- Все поля, которые изменились
+- Добавляй новые обнаруженные технологии/паттерны

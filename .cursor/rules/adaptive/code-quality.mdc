@@ -1,0 +1,13 @@
+---
+name: Documentation: code quality
+description: Rule based on best practice
+globs: ["**/*"]
+alwaysApply: false
+---
+
+# Documentation: code quality
+
+Documentation content for code quality
+
+## Source
+context7: N/A

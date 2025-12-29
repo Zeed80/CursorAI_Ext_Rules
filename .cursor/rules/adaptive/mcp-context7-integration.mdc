@@ -1,0 +1,143 @@
+---
+name: MCP Context7 Integration
+description: Правила интеграции MCP Context7 для проверки синтаксиса и API
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Интеграция MCP Context7
+
+**Критически важно**: Всегда используй MCP Context7 для проверки синтаксиса, API и документации перед написанием кода!
+
+## Процесс использования:
+
+### 1. Перед написанием кода
+
+**ОБЯЗАТЕЛЬНО** проверь через MCP Context7:
+
+1. **Поиск библиотеки**:
+   - Используй `mcp_context7_resolve-library-id` для поиска библиотеки
+   - Выбери наиболее релевантную библиотеку (высокий репутация, много примеров)
+
+2. **Получение документации**:
+   - Используй `mcp_context7_get-library-docs` с `mode='code'` для API и примеров
+   - Используй `mode='info'` для концептуальной информации
+   - Указывай `topic` для фокусировки на конкретной теме
+
+3. **Проверка синтаксиса**:
+   - Проверь параметры функций
+   - Проверь возвращаемые типы
+   - Проверь примеры использования
+
+### 2. Примеры использования
+
+#### Для PHP:
+
+```markdown
+Перед использованием PHP функции:
+1. mcp_context7_resolve-library-id: "PHP"
+2. mcp_context7_get-library-docs: topic="PDO prepared statements", mode="code"
+3. Проверь синтаксис и параметры
+4. Используй примеры из документации
+```
+
+#### Для JavaScript/TypeScript:
+
+```markdown
+Перед использованием React Hook:
+1. mcp_context7_resolve-library-id: "react"
+2. mcp_context7_get-library-docs: topic="useState hook", mode="code"
+3. Проверь типы и интерфейсы
+4. Используй примеры из документации
+```
+
+#### Для PostgreSQL:
+
+```markdown
+Перед написанием SQL запроса:
+1. mcp_context7_resolve-library-id: "PostgreSQL"
+2. mcp_context7_get-library-docs: topic="SELECT query", mode="code"
+3. Проверь синтаксис SQL
+4. Проверь функции PostgreSQL
+```
+
+#### Для Docker:
+
+```markdown
+Перед написанием docker-compose:
+1. mcp_context7_resolve-library-id: "Docker Compose"
+2. mcp_context7_get-library-docs: topic="services configuration", mode="code"
+3. Проверь синтаксис YAML
+4. Проверь параметры сервисов
+```
+
+### 3. Правила проверки
+
+**Всегда проверяй**:
+- ✅ Синтаксис функций/методов
+- ✅ Параметры и их типы
+- ✅ Возвращаемые значения
+- ✅ Примеры использования
+- ✅ Best practices из документации
+
+**Никогда не галлюцинируй**:
+- ❌ Не придумывай параметры функций
+- ❌ Не придумывай синтаксис
+- ❌ Не используй устаревшие API
+- ❌ Не игнорируй документацию
+
+### 4. Интеграция в рабочий процесс
+
+**Шаг 1**: Понять задачу
+**Шаг 2**: Найти библиотеку через MCP Context7
+**Шаг 3**: Получить документацию
+**Шаг 4**: Проверить синтаксис
+**Шаг 5**: Написать код на основе документации
+**Шаг 6**: Проверить код через MCP Context7 еще раз
+
+## Примеры для разных ролей:
+
+### Backend Developer:
+
+```markdown
+Перед использованием PDO:
+1. mcp_context7_resolve-library-id: "PHP PDO"
+2. mcp_context7_get-library-docs: topic="prepared statements", mode="code"
+3. Проверь синтаксис prepare() и execute()
+4. Используй примеры из документации
+```
+
+### Frontend Developer:
+
+```markdown
+Перед использованием React Hook:
+1. mcp_context7_resolve-library-id: "react"
+2. mcp_context7_get-library-docs: topic="useEffect", mode="code"
+3. Проверь зависимости и cleanup
+4. Используй примеры из документации
+```
+
+### DevOps Engineer:
+
+```markdown
+Перед написанием docker-compose:
+1. mcp_context7_resolve-library-id: "Docker Compose"
+2. mcp_context7_get-library-docs: topic="healthchecks", mode="code"
+3. Проверь синтаксис healthcheck
+4. Используй примеры из документации
+```
+
+## Критические правила:
+
+1. **НИКОГДА не пиши код без проверки через MCP Context7**
+2. **ВСЕГДА используй актуальную документацию**
+3. **ВСЕГДА проверяй примеры из документации**
+4. **ВСЕГДА проверяй синтаксис перед написанием**
+
+## Обработка ошибок:
+
+Если MCP Context7 не находит библиотеку:
+1. Попробуй альтернативные названия
+2. Используй веб-поиск для проверки
+3. Используй официальную документацию
+4. Все равно проверь факты через веб-поиск
