@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-29T07:24:02.208Z",
+  "lastUpdated": "2025-12-29T07:34:39.060Z",
   "files": {
     "build-standalone.js": {
       "exports": [],
@@ -1827,38 +1827,6 @@
         "out/extension.js",
         "out/ui/status-panel.js"
       ]
-    },
-    "publish.js": {
-      "exports": [],
-      "imports": [],
-      "dependencies": {
-        "classes": [],
-        "functions": [
-          "log",
-          "logStep",
-          "logSuccess",
-          "logError",
-          "logWarning",
-          "logInfo",
-          "exec",
-          "askQuestion",
-          "checkGit",
-          "checkGitStatus",
-          "checkDependencies",
-          "updateVersion",
-          "runTests",
-          "compileProject",
-          "buildExtension",
-          "createChangelog",
-          "createGitCommitAndTag",
-          "publishToGitHub",
-          "publishToMarketplace",
-          "main"
-        ],
-        "types": [],
-        "variables": []
-      },
-      "dependents": []
     }
   },
   "indexes": {

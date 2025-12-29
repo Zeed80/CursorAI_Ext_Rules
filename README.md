@@ -2,10 +2,12 @@
 
 <div align="center">
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/yourusername/cursor-ai-autonomous-extension)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/Zeed80/CursorAI_Ext_Rules)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/Zeed80/CursorAI_Ext_Rules/blob/main/LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![VS Code](https://img.shields.io/badge/VS%20Code-1.80+-blue)](https://code.visualstudio.com/)
+[![GitHub](https://img.shields.io/badge/GitHub-Zeed80/CursorAI__Ext__Rules-blue)](https://github.com/Zeed80/CursorAI_Ext_Rules)
+[![GitHub stars](https://img.shields.io/github/stars/Zeed80/CursorAI_Ext_Rules?style=social)](https://github.com/Zeed80/CursorAI_Ext_Rules/stargazers)
 
 **Автономное расширение для CursorAI с виртуальным пользователем и системой самосовершенствования**
 
@@ -143,8 +145,8 @@ npm run install
 
 1. Клонируйте репозиторий:
    ```bash
-   git clone https://github.com/yourusername/cursor-ai-autonomous-extension.git
-   cd cursor-ai-autonomous-extension
+   git clone https://github.com/Zeed80/CursorAI_Ext_Rules.git
+   cd CursorAI_Ext_Rules
    ```
 
 2. Установите зависимости:
@@ -268,7 +270,7 @@ npm run install
 ### Структура проекта
 
 ```
-cursor-ai-autonomous-extension/
+CursorAI_Ext_Rules/
 ├── src/
 │   ├── extension.ts              # Точка входа
 │   ├── orchestrator/             # Оркестратор
@@ -404,6 +406,7 @@ npm test
 - [QUICK_ACCESS.md](QUICK_ACCESS.md) — Быстрый доступ
 - [UI_FEATURES.md](UI_FEATURES.md) — Описание UI функций
 - [IMPROVEMENTS.md](IMPROVEMENTS.md) — Улучшения интеграции
+- [CHANGELOG.md](CHANGELOG.md) — История изменений
 
 ## 🤝 Вклад в проект
 
@@ -424,20 +427,20 @@ npm test
 
 ## 📝 Лицензия
 
-Этот проект распространяется под лицензией MIT. См. [LICENSE](LICENSE) для подробностей.
+Этот проект распространяется под лицензией MIT.
 
 ## 🆘 Поддержка
 
 ### Сообщить о проблеме
 
 Если вы нашли ошибку или у вас есть предложение, пожалуйста:
-1. Проверьте существующие [Issues](https://github.com/yourusername/cursor-ai-autonomous-extension/issues)
+1. Проверьте существующие [Issues](https://github.com/Zeed80/CursorAI_Ext_Rules/issues)
 2. Создайте новый Issue с подробным описанием проблемы
 
 ### Задать вопрос
 
 Для вопросов и обсуждений:
-- Создайте [Discussion](https://github.com/yourusername/cursor-ai-autonomous-extension/discussions)
+- Создайте [Discussion](https://github.com/Zeed80/CursorAI_Ext_Rules/discussions)
 - Или свяжитесь с нами через Issues
 
 ### Устранение проблем
@@ -486,9 +489,9 @@ npm test
 
 ## 📞 Контакты
 
-- **GitHub**: [@yourusername](https://github.com/yourusername)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/cursor-ai-autonomous-extension/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/cursor-ai-autonomous-extension/discussions)
+- **GitHub**: [@Zeed80](https://github.com/Zeed80)
+- **Issues**: [GitHub Issues](https://github.com/Zeed80/CursorAI_Ext_Rules/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Zeed80/CursorAI_Ext_Rules/discussions)
 
 ---
 
@@ -496,7 +499,4 @@ npm test
 
 **Сделано с ❤️ для сообщества разработчиков**
 
-⭐ Если проект полезен, поставьте звезду!
-
 </div>
-# CursorAI_Ext_Rules
