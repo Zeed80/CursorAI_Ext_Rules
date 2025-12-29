@@ -11,3 +11,13 @@ vsc-extension-quickstart.md
 !out/**/*.js
 node_modules/**
 *.vsix
+# Файлы для standalone сборки
+build-standalone.js
+# Бэкап файлы
+*.bak
+# Техническое задание
+ТЗ.txt
+# Скрипты установки (расширение устанавливается через VSIX)
+install.js
+install.bat
+install.sh

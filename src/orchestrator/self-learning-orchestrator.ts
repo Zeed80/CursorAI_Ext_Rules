@@ -105,28 +105,16 @@ export class SelfLearningOrchestrator extends Orchestrator {
                 const agentInstructions = `Ты - ${agent.getName()}. ${agent.getDescription()}\n\n` +
                     `Твоя задача - помогать пользователю в разработке, предоставляя детальные и точные ответы.`;
                 
-                // Если нет сохраненной модели, получаем доступные модели и используем первую
+                // Если нет сохраненной модели, используем автоматический выбор (режим auto)
+                // CursorAI сам выберет подходящую модель, как в чате
                 let modelId = savedModel ? savedModel.id : undefined;
                 
+                // Если modelId не указан, передаем undefined для автоматического выбора CursorAI
+                // Не выбираем модель по умолчанию - пусть CursorAI сам решает
                 if (!modelId) {
-                    try {
-                        const { ModelProvider } = await import('../integration/model-provider');
-                        const availableModels = await ModelProvider.getAvailableModels();
-                        
-                        // Используем первую доступную модель или пустую строку для автоматического выбора
-                        if (availableModels.length > 0) {
-                            modelId = availableModels[0].id;
-                            console.log(`Using default model ${modelId} for agent ${agent.getId()}`);
-                        } else {
-                            // Пустая строка означает автоматический выбор модели CursorAI
-                            modelId = '';
-                            console.log(`No saved model, using auto-selection for agent ${agent.getId()}`);
-                        }
-                    } catch (modelError) {
-                        // Если не удалось получить модели, используем авто-выбор
-                        console.debug(`Could not fetch models, using auto-selection for agent ${agent.getId()}`);
-                        modelId = '';
-                    }
+                    console.log(`No saved model for agent ${agent.getId()}, using auto mode (CursorAI will select model)`);
+                } else {
+                    console.log(`Using saved model ${modelId} for agent ${agent.getId()}`);
                 }
                 
                 const backgroundAgentId = await CursorAPI.createOrUpdateBackgroundAgent(
@@ -134,7 +122,7 @@ export class SelfLearningOrchestrator extends Orchestrator {
                     agent.getName(),
                     agent.getDescription(),
                     agentInstructions,
-                    modelId || undefined  // Передаем undefined если пустая строка для авто-выбора
+                    modelId  // undefined = автоматический выбор CursorAI (режим auto)
                 );
 
                 // Проверяем явно на null/undefined, а не на falsy (handle может быть 0!)

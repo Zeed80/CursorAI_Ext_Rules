@@ -818,6 +818,36 @@ ${agent.description}
             combined.includes(pattern));
     }
     /**
+     * Проверка, является ли модель платной/дорогой
+     * Исключаем модели типа max, premium, opus, o1 и т.д.
+     */
+    static isPremiumModel(modelId, modelName) {
+        if (!modelId && !modelName) {
+            return false;
+        }
+        const id = (modelId || '').toLowerCase();
+        const name = (modelName || '').toLowerCase();
+        const combined = `${id} ${name}`.toLowerCase();
+        // Паттерны платных/дорогих моделей
+        const premiumPatterns = [
+            'max', // gpt-4o-max, claude-max
+            'premium', // premium модели
+            'opus', // Claude Opus - самый дорогой
+            'o1', // OpenAI o1, o1-preview - очень дорогой reasoning model
+            'o3', // OpenAI o3
+            'advanced', // advanced модели
+            'pro', // pro модели
+            'ultra', // ultra модели
+            'thinking', // thinking модели (обычно дорогие)
+            'claude-4', // Claude 4 (если есть, обычно дороже чем 3.5)
+            'gpt-4-turbo', // GPT-4 Turbo может быть дороже
+            'gpt-4-32k' // GPT-4 с большим контекстом
+        ];
+        return premiumPatterns.some(pattern => id.includes(pattern) ||
+            name.includes(pattern) ||
+            combined.includes(pattern));
+    }
+    /**
      * Определение провайдера модели по её имени
      */
     static getProviderFromModelName(modelName) {
@@ -839,6 +869,60 @@ ${agent.description}
             return 'cursor';
         }
         return 'unknown';
+    }
+    /**
+     * Фильтрация моделей, исключая платные/дорогие
+     */
+    static filterFreeModels(models) {
+        return models.filter(model => {
+            const modelId = model.id || '';
+            const modelName = model.name || model.displayName || '';
+            return !this.isPremiumModel(modelId, modelName);
+        });
+    }
+    /**
+     * Выбор бесплатной/дешевой модели по умолчанию
+     * Приоритет: Cursor Small/Fast > Claude Sonnet/Haiku > GPT-4o (не max) > другие
+     */
+    static selectDefaultFreeModel(models) {
+        const freeModels = this.filterFreeModels(models);
+        if (freeModels.length === 0) {
+            return undefined;
+        }
+        // Приоритет 1: Cursor Small/Fast (обычно бесплатные или очень дешевые)
+        const cursorModel = freeModels.find(m => {
+            const id = (m.id || '').toLowerCase();
+            return id.includes('cursor-small') || id.includes('cursor-fast') || id.includes('cursor-small') || id.includes('small');
+        });
+        if (cursorModel) {
+            return cursorModel;
+        }
+        // Приоритет 2: Claude Sonnet или Haiku (дешевле чем Opus)
+        const claudeModel = freeModels.find(m => {
+            const id = (m.id || '').toLowerCase();
+            return (id.includes('sonnet') || id.includes('haiku')) && !id.includes('opus');
+        });
+        if (claudeModel) {
+            return claudeModel;
+        }
+        // Приоритет 3: GPT-4o (но не max)
+        const gpt4oModel = freeModels.find(m => {
+            const id = (m.id || '').toLowerCase();
+            return id.includes('gpt-4o') && !id.includes('max');
+        });
+        if (gpt4oModel) {
+            return gpt4oModel;
+        }
+        // Приоритет 4: GPT-3.5 (обычно дешевле)
+        const gpt35Model = freeModels.find(m => {
+            const id = (m.id || '').toLowerCase();
+            return id.includes('gpt-3.5') || id.includes('gpt3.5');
+        });
+        if (gpt35Model) {
+            return gpt35Model;
+        }
+        // Приоритет 5: Любая другая бесплатная модель
+        return freeModels[0];
     }
     /**
      * Установка модели для агента
@@ -1064,10 +1148,11 @@ ${agent.description}
                 const apiVersion = await this.getApiVersion();
                 if (apiVersion === 'v0') {
                     // v0 API: используем POST /v0/agents для создания агента
-                    // Если агент существует, отправляем followup для обновления модели
+                    // Если агент существует и указана модель, отправляем followup для обновления модели
+                    // Если модель не указана (undefined), не обновляем - используем режим auto
                     if (existingBackgroundAgentId && modelId) {
                         try {
-                            // Отправляем followup с новой моделью
+                            // Отправляем followup с новой моделью только если модель указана
                             await this.request(`/v0/agents/${existingBackgroundAgentId}/followup`, {
                                 method: 'POST',
                                 body: {
@@ -1084,6 +1169,12 @@ ${agent.description}
                             console.debug(`Failed to update v0 agent model:`, error.message);
                             // Продолжаем создание нового агента
                         }
+                    }
+                    else if (existingBackgroundAgentId && !modelId) {
+                        // Если агент существует, но модель не указана - используем режим auto
+                        // Не обновляем агента, просто возвращаем существующий ID
+                        console.log(`v0 Agent ${existingBackgroundAgentId} using auto mode (no model specified)`);
+                        return existingBackgroundAgentId;
                     }
                     // Создаем нового агента через v0 API
                     try {
@@ -1123,7 +1214,12 @@ ${agent.description}
                         }, 'v0');
                         if (response && response.id) {
                             this.backgroundAgentIds.set(agentId, response.id);
-                            console.log(`v0 Agent ${response.id} created for agent ${agentId} with model ${modelId || 'auto'}`);
+                            if (modelId) {
+                                console.log(`v0 Agent ${response.id} created for agent ${agentId} with model ${modelId}`);
+                            }
+                            else {
+                                console.log(`v0 Agent ${response.id} created for agent ${agentId} with auto mode (CursorAI will select model)`);
+                            }
                             // Сохраняем ID в настройках
                             const config = vscode.workspace.getConfiguration('cursor-autonomous');
                             await config.update(`agents.${agentId}.backgroundAgentId`, response.id, vscode.ConfigurationTarget.Global);
@@ -1164,7 +1260,12 @@ ${agent.description}
                         }, 'cloud-agents');
                         if (response && response.agent_id) {
                             this.backgroundAgentIds.set(agentId, response.agent_id);
-                            console.log(`Cloud Agent ${response.agent_id} launched for agent ${agentId} with model ${modelId || 'auto'}`);
+                            if (modelId) {
+                                console.log(`Cloud Agent ${response.agent_id} launched for agent ${agentId} with model ${modelId}`);
+                            }
+                            else {
+                                console.log(`Cloud Agent ${response.agent_id} launched for agent ${agentId} with auto mode (CursorAI will select model)`);
+                            }
                             // Сохраняем ID в настройках
                             const config = vscode.workspace.getConfiguration('cursor-autonomous');
                             await config.update(`agents.${agentId}.backgroundAgentId`, response.agent_id, vscode.ConfigurationTarget.Global);

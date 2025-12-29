@@ -19,21 +19,40 @@ class ModelProvider {
             // Получаем модели из CursorAI API
             const cursorModels = await cursor_api_1.CursorAPI.getAvailableModels();
             // Преобразуем в формат LanguageModelInfo
-            // КРИТИЧЕСКИ ВАЖНО: Дополнительная фильтрация GitHub Copilot моделей
+            // КРИТИЧЕСКИ ВАЖНО: Фильтрация GitHub Copilot и платных моделей (max, premium, opus, o1)
             const filteredModels = cursorModels
                 .filter(model => {
                 // Исключаем модели GitHub Copilot
                 const modelId = (model.id || '').toLowerCase();
                 const modelName = (model.name || model.displayName || '').toLowerCase();
                 const provider = (model.provider || '').toLowerCase();
-                return !modelId.includes('github') &&
-                    !modelId.includes('copilot') &&
-                    !modelId.includes('gh-') &&
-                    !modelName.includes('github') &&
-                    !modelName.includes('copilot') &&
-                    !modelName.includes('gh-') &&
-                    !provider.includes('github') &&
-                    !provider.includes('copilot');
+                const isCopilot = modelId.includes('github') ||
+                    modelId.includes('copilot') ||
+                    modelId.includes('gh-') ||
+                    modelName.includes('github') ||
+                    modelName.includes('copilot') ||
+                    modelName.includes('gh-') ||
+                    provider.includes('github') ||
+                    provider.includes('copilot');
+                if (isCopilot) {
+                    return false;
+                }
+                // Исключаем платные/дорогие модели (max, premium, opus, o1 и т.д.)
+                const isPremium = modelId.includes('max') ||
+                    modelId.includes('premium') ||
+                    modelId.includes('opus') ||
+                    modelId.includes('o1') ||
+                    modelId.includes('o3') ||
+                    modelId.includes('advanced') ||
+                    modelId.includes('pro') ||
+                    modelId.includes('ultra') ||
+                    modelId.includes('thinking') ||
+                    modelName.includes('max') ||
+                    modelName.includes('premium') ||
+                    modelName.includes('opus') ||
+                    modelName.includes('o1') ||
+                    modelName.includes('o3');
+                return !isPremium;
             })
                 .map(model => ({
                 vendor: model.vendor || model.provider,

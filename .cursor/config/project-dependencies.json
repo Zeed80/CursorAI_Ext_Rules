@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-29T10:34:31.183Z",
+  "lastUpdated": "2025-12-29T10:47:10.795Z",
   "files": {
     "build-standalone.js": {
       "exports": [],
@@ -1595,7 +1595,6 @@
         "./learning-engine",
         "./quality-checker",
         "../integration/cursor-api",
-        "../integration/model-provider",
         "../integration/model-provider"
       ],
       "dependencies": {
@@ -2101,9 +2100,6 @@
       "ModelProvider": [
         "src/integration/model-provider.ts"
       ],
-      "SelfLearningOrchestrator": [
-        "src/orchestrator/self-learning-orchestrator.ts"
-      ],
       "CursorAgent": [
         "src/integration/cursor-api.ts"
       ],
@@ -2118,6 +2114,9 @@
       ],
       "CursorAPI": [
         "src/integration/cursor-api.ts"
+      ],
+      "SelfLearningOrchestrator": [
+        "src/orchestrator/self-learning-orchestrator.ts"
       ]
     },
     "byImport": {
