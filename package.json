@@ -4,6 +4,7 @@
   "description": "Автономное расширение CursorAI с виртуальным пользователем и системой самосовершенствования",
   "version": "0.2.0",
   "publisher": "cursor-autonomous",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/Zeed80/CursorAI_Ext_Rules.git"
