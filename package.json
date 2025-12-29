@@ -122,10 +122,18 @@
     "configuration": {
       "title": "Cursor Autonomous",
       "properties": {
+        "cursor-autonomous.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API ключ CursorAI для доступа к Cloud Agents API (v0) и Background Agents API. Получить можно в настройках команды Cursor. Используется для Basic Auth (v0) и Bearer Auth (v1).",
+          "markdownDescription": "API ключ CursorAI для доступа к Cloud Agents API (v0) и Background Agents API.\n\n**Как получить:**\n1. Откройте настройки команды в Cursor\n2. Перейдите в раздел API\n3. Создайте новый API ключ\n\n**Использование:**\n- Для v0 API используется Basic Auth: `curl -u YOUR_API_KEY: https://api.cursor.com/v0/models`\n- Для v1 API используется Bearer Auth: `Authorization: Bearer API_KEY`\n\n**Безопасность:**\nКлюч хранится в настройках VS Code и используется только для запросов к CursorAI API.",
+          "order": 1
+        },
         "cursor-autonomous.enableVirtualUser": {
           "type": "boolean",
           "default": false,
-          "description": "Enable virtual user agent mode for autonomous operation"
+          "description": "Enable virtual user agent mode for autonomous operation",
+          "order": 2
         },
         "cursor-autonomous.autoImprove": {
           "type": "boolean",
@@ -170,14 +178,14 @@
         "key": "ctrl+shift+v",
         "mac": "cmd+shift+v"
       },
-        {
-          "command": "cursor-autonomous.showStatusPanel",
-          "key": "ctrl+shift+s",
-          "mac": "cmd+shift+s"
-        },
-        {
-          "command": "cursor-autonomous.analyzeProject",
-          "key": "ctrl+shift+p",
+      {
+        "command": "cursor-autonomous.showStatusPanel",
+        "key": "ctrl+shift+s",
+        "mac": "cmd+shift+s"
+      },
+      {
+        "command": "cursor-autonomous.analyzeProject",
+        "key": "ctrl+shift+p",
         "mac": "cmd+shift+p",
         "when": "editorTextFocus"
       }
@@ -245,20 +253,28 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
+    "test:jest": "jest",
+    "test:jest:watch": "jest --watch",
+    "test:jest:coverage": "jest --coverage",
+    "test:api": "jest src/integration/__tests__/cursor-api-models.test.ts",
     "package": "vsce package --no-dependencies",
     "build": "npm run compile && npm run package",
     "install:auto": "node install.js",
     "build:standalone": "node build-standalone.js",
-    "build:all": "npm run build && npm run build:standalone"
+    "build:all": "npm run compile && npm run package"
   },
   "devDependencies": {
+    "@jest/globals": "^30.2.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.80.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "@vscode/vsce": "^2.22.0",
     "eslint": "^8.0.0",
+    "jest": "^30.2.0",
     "pkg": "^5.8.1",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.0.0"
   },
   "dependencies": {

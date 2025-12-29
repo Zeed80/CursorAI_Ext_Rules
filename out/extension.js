@@ -473,7 +473,7 @@ function activate(context) {
             // Получаем текущую модель агента
             const { SettingsManager } = await Promise.resolve().then(() => __importStar(require('./integration/settings-manager')));
             const settingsManager = new SettingsManager();
-            const currentModel = settingsManager.getAgentModel(agentId);
+            const currentModel = await settingsManager.getAgentModel(agentId);
             // Формируем список для выбора
             const modelItems = [
                 {
@@ -790,6 +790,20 @@ function activate(context) {
     // Обновление статус-бара при изменении настроек
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
         if (e.affectsConfiguration('cursor-autonomous')) {
+            // Обновление API ключа при изменении настройки
+            if (e.affectsConfiguration('cursor-autonomous.apiKey')) {
+                const newApiKey = settingsManager.getSetting('apiKey', undefined);
+                // Обновляем API ключ только если он не пустой
+                if (newApiKey && newApiKey.trim().length > 0) {
+                    cursor_api_1.CursorAPI.initialize(newApiKey.trim());
+                    console.log('CursorAI API key updated from settings');
+                }
+                else {
+                    // Если ключ пустой, сбрасываем инициализацию
+                    cursor_api_1.CursorAPI.initialize(undefined);
+                    console.log('CursorAI API key cleared');
+                }
+            }
             updateStatusBar();
         }
     }));

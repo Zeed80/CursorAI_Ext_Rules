@@ -43,28 +43,57 @@ export class SettingsManager {
 
     /**
      * Получение выбранной модели для агента
+     * Восстанавливает объект LanguageModelInfo из сохраненного modelId
      */
-    getAgentModel(agentId: string): LanguageModelInfo | undefined {
-        const agentsConfig = this.config.get<{ [key: string]: { selectedModel?: LanguageModelInfo } }>('agents', {});
-        return agentsConfig[agentId]?.selectedModel;
+    async getAgentModel(agentId: string): Promise<LanguageModelInfo | undefined> {
+        const agentsConfig = this.config.get<{ [key: string]: { selectedModelId?: string } }>('agents', {});
+        const modelId = agentsConfig[agentId]?.selectedModelId;
+        
+        if (!modelId) {
+            return undefined;
+        }
+
+        // Восстанавливаем объект модели из modelId
+        try {
+            const { ModelProvider } = await import('./model-provider');
+            const model = await ModelProvider.getModelById(modelId);
+            return model;
+        } catch (error) {
+            console.warn(`Failed to restore model for agent ${agentId} from modelId ${modelId}:`, error);
+            // Возвращаем минимальный объект с modelId
+            return { id: modelId };
+        }
+    }
+
+    /**
+     * Синхронная версия getAgentModel (для обратной совместимости)
+     * Возвращает только modelId, если нужно полный объект - используйте async версию
+     */
+    getAgentModelSync(agentId: string): string | undefined {
+        const agentsConfig = this.config.get<{ [key: string]: { selectedModelId?: string } }>('agents', {});
+        return agentsConfig[agentId]?.selectedModelId;
     }
 
     /**
      * Установка модели для агента
+     * Сохраняет только modelId (строку) вместо всего объекта для совместимости с VS Code Settings Tree
      */
     async setAgentModel(agentId: string, model: LanguageModelInfo | undefined): Promise<void> {
-        const agentsConfig = this.config.get<{ [key: string]: { selectedModel?: LanguageModelInfo } }>('agents', {});
+        const agentsConfig = this.config.get<{ [key: string]: { selectedModelId?: string } }>('agents', {});
         
         if (!agentsConfig[agentId]) {
             agentsConfig[agentId] = {};
         }
 
-        if (model) {
-            agentsConfig[agentId].selectedModel = model;
+        if (model && model.id) {
+            // Сохраняем только modelId (строку) для совместимости с VS Code Settings Tree
+            agentsConfig[agentId].selectedModelId = model.id;
         } else {
-            delete agentsConfig[agentId].selectedModel;
+            // Удаляем модель (автоматический выбор)
+            delete agentsConfig[agentId].selectedModelId;
         }
 
+        // Обновляем настройки - сохраняем только примитивные значения
         await this.config.update('agents', agentsConfig, vscode.ConfigurationTarget.Global);
         this.config = vscode.workspace.getConfiguration('cursor-autonomous');
     }

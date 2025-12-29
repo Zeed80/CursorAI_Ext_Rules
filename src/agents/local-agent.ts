@@ -609,7 +609,7 @@ ${existingCode}
     protected async callLLM(prompt: string): Promise<string> {
         try {
             // Получаем выбранную модель для агента
-            const selectedModelConfig = this.settingsManager.getAgentModel(this.id);
+            const selectedModelConfig = await this.settingsManager.getAgentModel(this.id);
             
             // Убеждаемся, что фоновый агент создан/обновлен
             try {

@@ -5,8 +5,8 @@
   ],
   "frameworks": [],
   "patterns": [],
-  "detectedAt": "2025-12-29T10:59:00.037Z",
-  "lastUpdated": "2025-12-29T10:59:00.037Z",
+  "detectedAt": "2025-12-29T12:20:41.927Z",
+  "lastUpdated": "2025-12-29T12:20:41.927Z",
   "version": "1.0.0",
   "configFiles": [
     "package.json",
@@ -14,5 +14,75 @@
   ],
   "dependencies": {
     "axios": "^1.6.0"
+  },
+  "codeMetrics": {
+    "totalFiles": 47,
+    "totalLines": 16572,
+    "averageFileSize": 353,
+    "complexity": "medium"
+  },
+  "codePatterns": {
+    "namingConvention": "camelCase",
+    "errorHandling": [
+      "error-objects",
+      "try-catch"
+    ],
+    "asyncPatterns": [],
+    "importPatterns": []
+  },
+  "structure": {
+    "directories": [
+      ".cursor",
+      "agents",
+      "config",
+      "rules-versions",
+      "j__Project_CursorAI_Ext_Rules__cursor_rules_adaptive_javascript_project_mdc",
+      "rules",
+      "adaptive",
+      "roles",
+      "src",
+      "integration",
+      "__tests__",
+      "orchestrator",
+      "self-improvement",
+      "storage",
+      "ui",
+      "__mocks__"
+    ],
+    "entryPoints": [],
+    "mainModules": [
+      "jest.config.js",
+      "tsconfig.json"
+    ]
+  },
+  "bestPractices": {
+    "used": [
+      "documentation",
+      "git-ignore"
+    ],
+    "missing": [
+      "unit-testing",
+      "code-linting"
+    ],
+    "recommendations": [
+      "Добавьте unit-тесты для улучшения качества кода",
+      "Настройте линтер для обеспечения единого стиля кода"
+    ]
+  },
+  "agentRecommendations": {
+    "recommendedAgents": [
+      "qa",
+      "devops"
+    ],
+    "agentConfig": {
+      "qa": {
+        "focus": "unit, integration, e2e",
+        "priority": "high"
+      },
+      "devops": {
+        "focus": "Docker, deployment, CI/CD",
+        "priority": "medium"
+      }
+    }
   }
 }

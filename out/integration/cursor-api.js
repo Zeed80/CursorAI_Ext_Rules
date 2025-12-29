@@ -51,17 +51,33 @@ class CursorAPI {
     static initialize(apiKey, baseUrl, apiVersion) {
         // Пробуем получить API ключ из разных источников (синхронно)
         // Асинхронный поиск будет выполнен при первом запросе
-        this.apiKey = apiKey || process.env.CURSOR_API_KEY;
+        // Проверяем, что ключ не пустой
+        if (apiKey && apiKey.trim().length > 0) {
+            this.apiKey = apiKey.trim();
+        }
+        else {
+            this.apiKey = process.env.CURSOR_API_KEY && process.env.CURSOR_API_KEY.trim().length > 0
+                ? process.env.CURSOR_API_KEY.trim()
+                : undefined;
+        }
         // Также пробуем синхронные источники
         if (!this.apiKey) {
             const config = vscode.workspace.getConfiguration('cursor-autonomous');
-            this.apiKey = config.get('apiKey');
+            const configApiKey = config.get('apiKey');
+            // Проверяем, что ключ не пустой
+            if (configApiKey && configApiKey.trim().length > 0) {
+                this.apiKey = configApiKey.trim();
+            }
         }
         if (!this.apiKey) {
             const cursorConfig = vscode.workspace.getConfiguration('cursor');
-            this.apiKey = cursorConfig.get('apiKey') ||
+            const cursorApiKey = cursorConfig.get('apiKey') ||
                 cursorConfig.get('api.apiKey') ||
                 cursorConfig.get('auth.apiKey');
+            // Проверяем, что ключ не пустой
+            if (cursorApiKey && cursorApiKey.trim().length > 0) {
+                this.apiKey = cursorApiKey.trim();
+            }
         }
         if (baseUrl) {
             this.apiBaseUrl = baseUrl;
@@ -89,25 +105,25 @@ class CursorAPI {
      */
     static async getApiKeyFromAllSources() {
         // 1. Переменная окружения
-        if (process.env.CURSOR_API_KEY) {
+        if (process.env.CURSOR_API_KEY && process.env.CURSOR_API_KEY.trim().length > 0) {
             console.log('Found CURSOR_API_KEY in environment variables');
-            return process.env.CURSOR_API_KEY;
+            return process.env.CURSOR_API_KEY.trim();
         }
         // 2. Настройки расширения
         const config = vscode.workspace.getConfiguration('cursor-autonomous');
         const extensionApiKey = config.get('apiKey');
-        if (extensionApiKey) {
+        if (extensionApiKey && extensionApiKey.trim().length > 0) {
             console.log('Found API key in extension settings');
-            return extensionApiKey;
+            return extensionApiKey.trim();
         }
         // 3. Настройки Cursor IDE (пробуем разные возможные ключи)
         const cursorConfig = vscode.workspace.getConfiguration('cursor');
         const cursorApiKey = cursorConfig.get('apiKey') ||
             cursorConfig.get('api.apiKey') ||
             cursorConfig.get('auth.apiKey');
-        if (cursorApiKey) {
+        if (cursorApiKey && cursorApiKey.trim().length > 0) {
             console.log('Found API key in Cursor IDE settings');
-            return cursorApiKey;
+            return cursorApiKey.trim();
         }
         // 4. Пробуем прочитать из файла настроек Cursor напрямую
         try {
@@ -235,18 +251,26 @@ class CursorAPI {
         };
         // Аутентификация в зависимости от версии API
         // Обновляем API ключ перед запросом, если он еще не установлен
-        if (!this.apiKey) {
+        if (!this.apiKey || this.apiKey.trim().length === 0) {
             // Пробуем получить из синхронных источников
             const config = vscode.workspace.getConfiguration('cursor-autonomous');
-            this.apiKey = config.get('apiKey');
+            const configApiKey = config.get('apiKey');
+            // Проверяем, что ключ не пустой
+            if (configApiKey && configApiKey.trim().length > 0) {
+                this.apiKey = configApiKey.trim();
+            }
             if (!this.apiKey) {
                 const cursorConfig = vscode.workspace.getConfiguration('cursor');
-                this.apiKey = cursorConfig.get('apiKey') ||
+                const cursorApiKey = cursorConfig.get('apiKey') ||
                     cursorConfig.get('api.apiKey') ||
                     cursorConfig.get('auth.apiKey');
+                // Проверяем, что ключ не пустой
+                if (cursorApiKey && cursorApiKey.trim().length > 0) {
+                    this.apiKey = cursorApiKey.trim();
+                }
             }
-            if (!this.apiKey && process.env.CURSOR_API_KEY) {
-                this.apiKey = process.env.CURSOR_API_KEY;
+            if (!this.apiKey && process.env.CURSOR_API_KEY && process.env.CURSOR_API_KEY.trim().length > 0) {
+                this.apiKey = process.env.CURSOR_API_KEY.trim();
             }
             if (this.apiKey) {
                 this.isInitialized = true;
@@ -866,9 +890,11 @@ ${agent.description}
                 console.debug('Language Model API check failed:', lmApiError.message);
             }
             // Если модели не найдены, возвращаем пустой массив
-            console.warn('No models found in CursorAI. Models will be selected automatically by CursorAI.');
-            console.warn('Tried methods: Cursor IDE API, CursorAI commands, settings file, VS Code settings, Language Model API');
-            console.warn('This is normal if using Cursor AI - it will auto-select models.');
+            // Это нормально - CursorAI будет автоматически выбирать модели
+            console.log('No models found in CursorAI via API or settings. This is normal.');
+            console.log('CursorAI will automatically select appropriate models for agents.');
+            console.log('Tried methods: Cursor IDE API, CursorAI commands, settings file, VS Code settings');
+            console.log('Note: Warnings about "chat.*", "mcp", "GitHub.copilot" patterns are from other extensions/Cursor IDE, not this extension.');
             return [];
         }
         catch (error) {
@@ -1433,20 +1459,28 @@ ${agent.description}
      */
     static getApiKey() {
         // Если ключ уже есть, возвращаем его
-        if (this.apiKey) {
+        if (this.apiKey && this.apiKey.trim().length > 0) {
             return this.apiKey;
         }
         // Пробуем получить из синхронных источников
         const config = vscode.workspace.getConfiguration('cursor-autonomous');
-        this.apiKey = config.get('apiKey');
+        const configApiKey = config.get('apiKey');
+        // Проверяем, что ключ не пустой
+        if (configApiKey && configApiKey.trim().length > 0) {
+            this.apiKey = configApiKey.trim();
+        }
         if (!this.apiKey) {
             const cursorConfig = vscode.workspace.getConfiguration('cursor');
-            this.apiKey = cursorConfig.get('apiKey') ||
+            const cursorApiKey = cursorConfig.get('apiKey') ||
                 cursorConfig.get('api.apiKey') ||
                 cursorConfig.get('auth.apiKey');
+            // Проверяем, что ключ не пустой
+            if (cursorApiKey && cursorApiKey.trim().length > 0) {
+                this.apiKey = cursorApiKey.trim();
+            }
         }
-        if (!this.apiKey && process.env.CURSOR_API_KEY) {
-            this.apiKey = process.env.CURSOR_API_KEY;
+        if (!this.apiKey && process.env.CURSOR_API_KEY && process.env.CURSOR_API_KEY.trim().length > 0) {
+            this.apiKey = process.env.CURSOR_API_KEY.trim();
         }
         if (this.apiKey) {
             this.isInitialized = true;

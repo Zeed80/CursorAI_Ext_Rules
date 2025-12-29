@@ -101,7 +101,7 @@ export class SelfLearningOrchestrator extends Orchestrator {
             this.localAgents.set(agent.getId(), agent);
             
             // Загружаем сохраненную модель для агента
-            const savedModel = this.settingsManager.getAgentModel(agent.getId());
+            const savedModel = await this.settingsManager.getAgentModel(agent.getId());
             if (savedModel) {
                 agent.setSelectedModel(savedModel);
             }
