@@ -47,6 +47,7 @@ const solution_evaluator_1 = require("./solution-evaluator");
 const project_dependency_graph_1 = require("./project-dependency-graph");
 const project_knowledge_base_1 = require("./project-knowledge-base");
 const learning_engine_1 = require("./learning-engine");
+const project_analyzer_1 = require("./project-analyzer");
 const quality_checker_1 = require("./quality-checker");
 const cursor_api_1 = require("../integration/cursor-api");
 /**
@@ -78,14 +79,34 @@ class SelfLearningOrchestrator extends orchestrator_1.Orchestrator {
      * Инициализация локальных агентов
      */
     async initializeLocalAgents(context) {
-        const agents = [
-            new backend_agent_1.BackendAgent(context),
-            new frontend_agent_1.FrontendAgent(context),
-            new architect_agent_1.ArchitectAgent(context),
-            new analyst_agent_1.AnalystAgent(context),
-            new devops_agent_1.DevOpsAgent(context),
-            new qa_agent_1.QAAgent(context)
+        // Загружаем профиль проекта для получения рекомендаций по агентам
+        const projectAnalyzer = new project_analyzer_1.ProjectAnalyzer();
+        const profile = await projectAnalyzer.loadProfile();
+        // Определяем, каких агентов нужно инициализировать
+        const allAgents = [
+            { id: 'backend', agent: new backend_agent_1.BackendAgent(context) },
+            { id: 'frontend', agent: new frontend_agent_1.FrontendAgent(context) },
+            { id: 'architect', agent: new architect_agent_1.ArchitectAgent(context) },
+            { id: 'analyst', agent: new analyst_agent_1.AnalystAgent(context) },
+            { id: 'devops', agent: new devops_agent_1.DevOpsAgent(context) },
+            { id: 'qa', agent: new qa_agent_1.QAAgent(context) }
         ];
+        // Если есть рекомендации из профиля, используем их
+        let agentsToInitialize = allAgents;
+        if (profile?.agentRecommendations?.recommendedAgents) {
+            const recommendedIds = profile.agentRecommendations.recommendedAgents;
+            agentsToInitialize = allAgents.filter(a => recommendedIds.includes(a.id));
+            // Всегда добавляем QA, если его нет в рекомендациях (для качества кода)
+            if (!recommendedIds.includes('qa')) {
+                agentsToInitialize.push(allAgents.find(a => a.id === 'qa'));
+            }
+            console.log(`Initializing recommended agents: ${agentsToInitialize.map(a => a.id).join(', ')}`);
+        }
+        else {
+            // Если профиля нет, инициализируем всех агентов
+            console.log('No project profile found, initializing all agents');
+        }
+        const agents = agentsToInitialize.map(a => a.agent);
         // Регистрируем всех агентов параллельно
         await Promise.all(agents.map(async (agent) => {
             this.localAgents.set(agent.getId(), agent);

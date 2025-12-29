@@ -67,19 +67,42 @@ class ProjectAnalyzer {
         const configFiles = await this.findConfigFiles(workspacePath);
         // Анализ зависимостей
         const dependencies = await this.analyzeDependencies(workspacePath);
+        // Глубокий анализ кода
+        console.log('Project Analyzer: Starting deep code analysis...');
+        const codeMetrics = await this.analyzeCodeMetrics(workspacePath);
+        const codePatterns = await this.analyzeCodePatterns(workspacePath, technologies.languages);
+        const structure = await this.analyzeStructure(workspacePath);
+        const bestPractices = await this.analyzeBestPractices(workspacePath, technologies, architecture);
+        // Улучшенное определение архитектуры на основе кода
+        const enhancedArchitecture = architecture || await this.detectArchitectureFromCode(workspacePath);
+        // Улучшенное определение стиля кода на основе реального кода
+        const enhancedCodeStyle = codeStyle || await this.detectCodeStyleFromCode(workspacePath, technologies.languages);
+        // Рекомендации по агентам
+        const agentRecommendations = await this.generateAgentRecommendations({
+            type: projectType,
+            languages: technologies.languages,
+            frameworks: technologies.frameworks,
+            architecture: enhancedArchitecture,
+            patterns
+        });
         const profile = {
             type: projectType,
             languages: technologies.languages,
             frameworks: technologies.frameworks,
             database: technologies.database,
-            architecture,
-            codeStyle,
+            architecture: enhancedArchitecture,
+            codeStyle: enhancedCodeStyle,
             patterns,
             detectedAt: new Date().toISOString(),
             lastUpdated: new Date().toISOString(),
             version: '1.0.0',
             configFiles,
-            dependencies
+            dependencies,
+            codeMetrics,
+            codePatterns,
+            structure,
+            bestPractices,
+            agentRecommendations
         };
         // Сохранение профиля
         await this.saveProfile(profile);
@@ -380,6 +403,434 @@ class ProjectAnalyzer {
         };
         await this.saveProfile(updatedProfile);
         return updatedProfile;
+    }
+    /**
+     * Анализ метрик кода
+     */
+    async analyzeCodeMetrics(workspacePath) {
+        let totalFiles = 0;
+        let totalLines = 0;
+        const fileSizes = [];
+        const analyzeDirectory = (dir, depth = 0) => {
+            if (depth > 10)
+                return; // Ограничение глубины для производительности
+            try {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    const fullPath = path.join(dir, entry.name);
+                    // Пропускаем node_modules, .git, out, dist и другие служебные папки
+                    if (entry.isDirectory()) {
+                        if (['node_modules', '.git', 'out', 'dist', 'build', '.vscode', 'vendor', '__pycache__'].includes(entry.name)) {
+                            continue;
+                        }
+                        analyzeDirectory(fullPath, depth + 1);
+                    }
+                    else if (entry.isFile()) {
+                        const ext = path.extname(entry.name);
+                        // Анализируем только исходные файлы
+                        if (['.ts', '.js', '.php', '.py', '.java', '.cs', '.go', '.rs'].includes(ext)) {
+                            totalFiles++;
+                            try {
+                                const content = fs.readFileSync(fullPath, 'utf-8');
+                                const lines = content.split('\n').length;
+                                totalLines += lines;
+                                fileSizes.push(lines);
+                            }
+                            catch (error) {
+                                // Игнорируем ошибки чтения
+                            }
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки доступа
+            }
+        };
+        analyzeDirectory(workspacePath);
+        const averageFileSize = fileSizes.length > 0
+            ? Math.round(fileSizes.reduce((a, b) => a + b, 0) / fileSizes.length)
+            : 0;
+        // Определение сложности на основе размера проекта
+        let complexity = 'low';
+        if (totalFiles > 1000 || totalLines > 100000) {
+            complexity = 'high';
+        }
+        else if (totalFiles > 100 || totalLines > 10000) {
+            complexity = 'medium';
+        }
+        return {
+            totalFiles,
+            totalLines,
+            averageFileSize,
+            complexity
+        };
+    }
+    /**
+     * Анализ паттернов кода
+     */
+    async analyzeCodePatterns(workspacePath, languages) {
+        const patterns = {
+            namingConvention: 'mixed',
+            errorHandling: [],
+            asyncPatterns: [],
+            importPatterns: []
+        };
+        // Анализ только для основных языков
+        const extensions = {
+            'JavaScript': ['.js', '.jsx'],
+            'TypeScript': ['.ts', '.tsx'],
+            'PHP': ['.php'],
+            'Python': ['.py']
+        };
+        const filesToAnalyze = [];
+        const analyzeDir = (dir, depth = 0) => {
+            if (depth > 5)
+                return;
+            try {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    if (entry.isDirectory()) {
+                        if (['node_modules', '.git', 'out', 'dist', 'build', '.vscode', 'vendor'].includes(entry.name)) {
+                            continue;
+                        }
+                        analyzeDir(path.join(dir, entry.name), depth + 1);
+                    }
+                    else if (entry.isFile()) {
+                        const ext = path.extname(entry.name);
+                        for (const lang of languages) {
+                            if (extensions[lang]?.includes(ext)) {
+                                filesToAnalyze.push(path.join(dir, entry.name));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        };
+        analyzeDir(workspacePath);
+        // Анализируем первые 50 файлов для производительности
+        const sampleFiles = filesToAnalyze.slice(0, 50);
+        let camelCase = 0;
+        let snakeCase = 0;
+        let PascalCase = 0;
+        const errorHandlingPatterns = new Set();
+        const asyncPatterns = new Set();
+        const importPatterns = new Set();
+        for (const filePath of sampleFiles) {
+            try {
+                const content = fs.readFileSync(filePath, 'utf-8');
+                const lines = content.split('\n');
+                for (const line of lines) {
+                    // Анализ именования
+                    if (line.match(/\b[a-z][a-zA-Z0-9]*\s*[=:]/))
+                        camelCase++;
+                    if (line.match(/\b[a-z_][a-z0-9_]*\s*[=:]/))
+                        snakeCase++;
+                    if (line.match(/\b[A-Z][a-zA-Z0-9]*\s*[=:]/))
+                        PascalCase++;
+                    // Анализ обработки ошибок
+                    if (line.includes('try') || line.includes('catch'))
+                        errorHandlingPatterns.add('try-catch');
+                    if (line.includes('throw'))
+                        errorHandlingPatterns.add('throw');
+                    if (line.includes('error') || line.includes('Error'))
+                        errorHandlingPatterns.add('error-objects');
+                    // Анализ асинхронности
+                    if (line.includes('async') || line.includes('await'))
+                        asyncPatterns.add('async-await');
+                    if (line.includes('.then(') || line.includes('.catch('))
+                        asyncPatterns.add('promises');
+                    if (line.includes('callback') || line.includes('cb('))
+                        asyncPatterns.add('callbacks');
+                    // Анализ импортов
+                    if (line.match(/^(import|require|use|from)\s+/)) {
+                        if (line.includes('import'))
+                            importPatterns.add('es6-imports');
+                        if (line.includes('require'))
+                            importPatterns.add('commonjs-require');
+                        if (line.includes('use '))
+                            importPatterns.add('php-use');
+                    }
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки чтения
+            }
+        }
+        // Определение соглашения об именовании
+        if (camelCase > snakeCase && camelCase > PascalCase) {
+            patterns.namingConvention = 'camelCase';
+        }
+        else if (snakeCase > camelCase && snakeCase > PascalCase) {
+            patterns.namingConvention = 'snake_case';
+        }
+        else if (PascalCase > camelCase && PascalCase > snakeCase) {
+            patterns.namingConvention = 'PascalCase';
+        }
+        patterns.errorHandling = Array.from(errorHandlingPatterns);
+        patterns.asyncPatterns = Array.from(asyncPatterns);
+        patterns.importPatterns = Array.from(importPatterns);
+        return patterns;
+    }
+    /**
+     * Анализ структуры проекта
+     */
+    async analyzeStructure(workspacePath) {
+        const directories = [];
+        const entryPoints = [];
+        const mainModules = [];
+        const analyzeDir = (dir, depth = 0) => {
+            if (depth > 3)
+                return;
+            try {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    if (entry.isDirectory()) {
+                        if (['node_modules', '.git', 'out', 'dist', 'build', '.vscode', 'vendor'].includes(entry.name)) {
+                            continue;
+                        }
+                        directories.push(entry.name);
+                        analyzeDir(path.join(dir, entry.name), depth + 1);
+                    }
+                    else {
+                        const fileName = entry.name;
+                        // Поиск точек входа
+                        if (['index.js', 'index.ts', 'main.js', 'main.ts', 'app.js', 'app.ts', 'index.php', 'main.php', '__main__.py', 'main.py'].includes(fileName)) {
+                            entryPoints.push(path.relative(workspacePath, path.join(dir, fileName)));
+                        }
+                        // Поиск основных модулей
+                        if (fileName.includes('config') || fileName.includes('bootstrap') || fileName.includes('app')) {
+                            mainModules.push(path.relative(workspacePath, path.join(dir, fileName)));
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        };
+        analyzeDir(workspacePath);
+        return {
+            directories: [...new Set(directories)],
+            entryPoints: [...new Set(entryPoints)],
+            mainModules: [...new Set(mainModules)]
+        };
+    }
+    /**
+     * Анализ best practices
+     */
+    async analyzeBestPractices(workspacePath, technologies, architecture) {
+        const used = [];
+        const missing = [];
+        const recommendations = [];
+        // Проверка наличия тестов
+        const testDirs = ['tests', 'test', '__tests__', 'spec', 'tests/unit', 'tests/integration'];
+        const hasTests = testDirs.some(dir => fs.existsSync(path.join(workspacePath, dir)));
+        if (hasTests) {
+            used.push('unit-testing');
+        }
+        else {
+            missing.push('unit-testing');
+            recommendations.push('Добавьте unit-тесты для улучшения качества кода');
+        }
+        // Проверка наличия линтера
+        const hasLinter = fs.existsSync(path.join(workspacePath, '.eslintrc')) ||
+            fs.existsSync(path.join(workspacePath, '.eslintrc.js')) ||
+            fs.existsSync(path.join(workspacePath, '.php_cs')) ||
+            fs.existsSync(path.join(workspacePath, 'pyproject.toml'));
+        if (hasLinter) {
+            used.push('code-linting');
+        }
+        else {
+            missing.push('code-linting');
+            recommendations.push('Настройте линтер для обеспечения единого стиля кода');
+        }
+        // Проверка наличия README
+        if (fs.existsSync(path.join(workspacePath, 'README.md'))) {
+            used.push('documentation');
+        }
+        else {
+            missing.push('documentation');
+            recommendations.push('Добавьте README.md с описанием проекта');
+        }
+        // Проверка наличия .gitignore
+        if (fs.existsSync(path.join(workspacePath, '.gitignore'))) {
+            used.push('git-ignore');
+        }
+        else {
+            missing.push('git-ignore');
+            recommendations.push('Добавьте .gitignore для исключения служебных файлов');
+        }
+        // Рекомендации на основе технологий
+        if (technologies.languages.includes('PHP')) {
+            if (!fs.existsSync(path.join(workspacePath, 'composer.json'))) {
+                recommendations.push('Используйте Composer для управления зависимостями PHP');
+            }
+        }
+        if (technologies.languages.includes('JavaScript') || technologies.languages.includes('TypeScript')) {
+            if (!fs.existsSync(path.join(workspacePath, 'package.json'))) {
+                recommendations.push('Используйте npm/yarn для управления зависимостями');
+            }
+        }
+        return {
+            used,
+            missing,
+            recommendations
+        };
+    }
+    /**
+     * Определение архитектуры на основе кода
+     */
+    async detectArchitectureFromCode(workspacePath) {
+        // Более глубокий анализ структуры кода
+        const srcPath = path.join(workspacePath, 'src');
+        const appPath = path.join(workspacePath, 'app');
+        if (fs.existsSync(srcPath)) {
+            const srcDirs = fs.readdirSync(srcPath, { withFileTypes: true })
+                .filter(e => e.isDirectory())
+                .map(e => e.name);
+            if (srcDirs.includes('domain') && srcDirs.includes('infrastructure')) {
+                return 'Clean Architecture';
+            }
+            if (srcDirs.includes('components') || srcDirs.includes('containers')) {
+                return 'Component-based';
+            }
+            if (srcDirs.includes('controllers') || srcDirs.includes('models') || srcDirs.includes('views')) {
+                return 'MVC';
+            }
+        }
+        if (fs.existsSync(appPath)) {
+            const appDirs = fs.readdirSync(appPath, { withFileTypes: true })
+                .filter(e => e.isDirectory())
+                .map(e => e.name);
+            if (appDirs.includes('controllers') && appDirs.includes('models')) {
+                return 'MVC';
+            }
+            if (appDirs.includes('services') && appDirs.includes('repositories')) {
+                return 'Service Layer';
+            }
+        }
+        return undefined;
+    }
+    /**
+     * Определение стиля кода на основе реального кода
+     */
+    async detectCodeStyleFromCode(workspacePath, languages) {
+        // Анализ реального кода для определения стиля
+        const extensions = {
+            'JavaScript': ['.js', '.jsx'],
+            'TypeScript': ['.ts', '.tsx'],
+            'PHP': ['.php'],
+            'Python': ['.py']
+        };
+        const sampleFiles = [];
+        const findSampleFiles = (dir, depth = 0) => {
+            if (depth > 3 || sampleFiles.length >= 10)
+                return;
+            try {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    if (entry.isDirectory() && !['node_modules', '.git', 'out', 'dist', 'build', '.vscode', 'vendor'].includes(entry.name)) {
+                        findSampleFiles(path.join(dir, entry.name), depth + 1);
+                    }
+                    else if (entry.isFile() && sampleFiles.length < 10) {
+                        const ext = path.extname(entry.name);
+                        for (const lang of languages) {
+                            if (extensions[lang]?.includes(ext)) {
+                                sampleFiles.push(path.join(dir, entry.name));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        };
+        findSampleFiles(workspacePath);
+        // Анализ стиля на основе примеров кода
+        for (const filePath of sampleFiles) {
+            try {
+                const content = fs.readFileSync(filePath, 'utf-8');
+                // Проверка на TypeScript
+                if (filePath.endsWith('.ts') || filePath.endsWith('.tsx')) {
+                    if (content.includes('interface ') || content.includes('type ') || content.includes(': ')) {
+                        return 'TypeScript';
+                    }
+                }
+                // Проверка на PSR-12 для PHP
+                if (filePath.endsWith('.php')) {
+                    if (content.includes('declare(strict_types=1)')) {
+                        return 'PSR-12';
+                    }
+                }
+                // Проверка на PEP 8 для Python
+                if (filePath.endsWith('.py')) {
+                    if (content.match(/def\s+\w+\([^)]*:\s*\w+/)) {
+                        return 'PEP 8';
+                    }
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        }
+        return undefined;
+    }
+    /**
+     * Генерация рекомендаций по агентам
+     */
+    async generateAgentRecommendations(profile) {
+        const recommendedAgents = [];
+        const agentConfig = {};
+        // Рекомендации на основе языков
+        if (profile.languages.includes('PHP')) {
+            recommendedAgents.push('backend');
+            agentConfig.backend = {
+                focus: 'PHP, PostgreSQL, API',
+                priority: 'high'
+            };
+        }
+        if (profile.languages.includes('JavaScript') || profile.languages.includes('TypeScript')) {
+            if (profile.frameworks.some(f => ['React', 'Vue', 'Angular'].includes(f))) {
+                recommendedAgents.push('frontend');
+                agentConfig.frontend = {
+                    focus: profile.frameworks.join(', '),
+                    priority: 'high'
+                };
+            }
+        }
+        // Рекомендации на основе архитектуры
+        if (profile.architecture === 'MVC' || profile.architecture === 'Service Layer') {
+            recommendedAgents.push('architect');
+            agentConfig.architect = {
+                focus: profile.architecture,
+                priority: 'medium'
+            };
+        }
+        // Всегда рекомендуем QA для тестирования
+        recommendedAgents.push('qa');
+        agentConfig.qa = {
+            focus: 'unit, integration, e2e',
+            priority: 'high'
+        };
+        // Рекомендации на основе типа проекта
+        if (profile.type === 'web-application') {
+            recommendedAgents.push('devops');
+            agentConfig.devops = {
+                focus: 'Docker, deployment, CI/CD',
+                priority: 'medium'
+            };
+        }
+        return {
+            recommendedAgents,
+            agentConfig
+        };
     }
     /**
      * Инкремент версии

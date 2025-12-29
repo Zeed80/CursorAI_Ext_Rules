@@ -94,7 +94,7 @@ class RuleGenerator {
         const rulePath = path.join(this.rulesPath, 'adaptive', `${language.toLowerCase()}-project.mdc`);
         let content = `---
 name: ${language} Project Rules
-description: Автоматически сгенерированные правила для ${language} проекта
+description: Автоматически сгенерированные правила для ${language} проекта на основе глубокого анализа
 globs: ["**/*.${this.getLanguageExtension(language)}"]
 alwaysApply: true
 ---
@@ -108,6 +108,26 @@ alwaysApply: true
 - Стиль кода: ${profile.codeStyle || 'Не определен'}
 
 `;
+        // Добавление информации о метриках кода
+        if (profile.codeMetrics) {
+            content += `## Метрики проекта
+- Всего файлов: ${profile.codeMetrics.totalFiles}
+- Всего строк кода: ${profile.codeMetrics.totalLines}
+- Средний размер файла: ${profile.codeMetrics.averageFileSize} строк
+- Сложность проекта: ${profile.codeMetrics.complexity}
+
+`;
+        }
+        // Добавление информации о паттернах кода
+        if (profile.codePatterns) {
+            content += `## Паттерны кода в проекте
+- Соглашение об именовании: ${profile.codePatterns.namingConvention}
+- Обработка ошибок: ${profile.codePatterns.errorHandling.join(', ') || 'Не обнаружена'}
+- Асинхронные паттерны: ${profile.codePatterns.asyncPatterns.join(', ') || 'Не обнаружены'}
+- Паттерны импорта: ${profile.codePatterns.importPatterns.join(', ') || 'Не обнаружены'}
+
+`;
+        }
         // Добавление специфичных правил для языка
         switch (language.toLowerCase()) {
             case 'javascript':
@@ -254,7 +274,7 @@ alwaysApply: false
      * Генерация правил для JavaScript/TypeScript
      */
     generateJavaScriptRules(profile) {
-        return `## JavaScript/TypeScript правила
+        let rules = `## JavaScript/TypeScript правила
 
 ### Стиль кода
 - Используй const/let, избегай var
@@ -262,21 +282,76 @@ alwaysApply: false
 - Async/await вместо Promises callbacks
 - Модули (import/export)
 
-### Типизация
+### Соглашение об именовании
+`;
+        // Используем реальное соглашение об именовании из анализа
+        if (profile.codePatterns?.namingConvention) {
+            rules += `- **Используй ${profile.codePatterns.namingConvention}** (обнаружено в проекте)\n`;
+            if (profile.codePatterns.namingConvention === 'camelCase') {
+                rules += `  - Переменные и функции: \`camelCase\`\n`;
+                rules += `  - Классы: \`PascalCase\`\n`;
+                rules += `  - Константы: \`UPPER_SNAKE_CASE\`\n`;
+            }
+            else if (profile.codePatterns.namingConvention === 'snake_case') {
+                rules += `  - Переменные и функции: \`snake_case\`\n`;
+                rules += `  - Классы: \`PascalCase\`\n`;
+            }
+        }
+        else {
+            rules += `- Переменные и функции: \`camelCase\`\n`;
+            rules += `- Классы: \`PascalCase\`\n`;
+            rules += `- Константы: \`UPPER_SNAKE_CASE\`\n`;
+        }
+        rules += `\n### Типизация
 ${profile.languages.includes('TypeScript') ? '- Всегда используй типы\n- Избегай any\n- Используй интерфейсы для объектов' : '- Используй JSDoc для типизации'}
 
 ### Обработка ошибок
-- Используй try-catch для async операций
-- Обрабатывай все ошибки
-- Логируй ошибки с контекстом
-
 `;
+        // Используем реальные паттерны обработки ошибок из анализа
+        if (profile.codePatterns?.errorHandling && profile.codePatterns.errorHandling.length > 0) {
+            rules += `- **Используй паттерны, обнаруженные в проекте:**\n`;
+            for (const pattern of profile.codePatterns.errorHandling) {
+                if (pattern === 'try-catch') {
+                    rules += `  - Используй try-catch для обработки ошибок\n`;
+                }
+                else if (pattern === 'throw') {
+                    rules += `  - Используй throw для проброса ошибок\n`;
+                }
+                else if (pattern === 'error-objects') {
+                    rules += `  - Используй объекты Error для представления ошибок\n`;
+                }
+            }
+        }
+        else {
+            rules += `- Используй try-catch для async операций\n`;
+            rules += `- Обрабатывай все ошибки\n`;
+            rules += `- Логируй ошибки с контекстом\n`;
+        }
+        // Добавление правил для асинхронности на основе анализа
+        if (profile.codePatterns?.asyncPatterns && profile.codePatterns.asyncPatterns.length > 0) {
+            rules += `\n### Асинхронность\n`;
+            if (profile.codePatterns.asyncPatterns.includes('async-await')) {
+                rules += `- **Используй async/await** (обнаружено в проекте)\n`;
+            }
+            else if (profile.codePatterns.asyncPatterns.includes('promises')) {
+                rules += `- Используй Promises с .then()/.catch()\n`;
+            }
+        }
+        // Добавление рекомендаций из bestPractices
+        if (profile.bestPractices?.recommendations && profile.bestPractices.recommendations.length > 0) {
+            rules += `\n### Рекомендации по улучшению\n`;
+            for (const recommendation of profile.bestPractices.recommendations.slice(0, 3)) {
+                rules += `- ${recommendation}\n`;
+            }
+        }
+        rules += `\n`;
+        return rules;
     }
     /**
      * Генерация правил для PHP
      */
     generatePHPRules(profile) {
-        return `## PHP правила
+        let rules = `## PHP правила
 
 ### Стиль кода
 - Соблюдение PSR-12
@@ -284,17 +359,62 @@ ${profile.languages.includes('TypeScript') ? '- Всегда используй 
 - Strict mode: declare(strict_types=1);
 - Null-безопасность
 
-### Безопасность
+### Соглашение об именовании
+`;
+        if (profile.codePatterns?.namingConvention) {
+            if (profile.codePatterns.namingConvention === 'camelCase') {
+                rules += `- Переменные и функции: \`camelCase\`\n`;
+                rules += `- Классы: \`PascalCase\`\n`;
+            }
+            else if (profile.codePatterns.namingConvention === 'snake_case') {
+                rules += `- Переменные и функции: \`snake_case\`\n`;
+                rules += `- Классы: \`PascalCase\`\n`;
+            }
+        }
+        else {
+            rules += `- Переменные и функции: \`camelCase\` (PSR-12)\n`;
+            rules += `- Классы: \`PascalCase\`\n`;
+        }
+        rules += `\n### Безопасность
 - Используй параметризованные запросы (prepared statements)
 - Экранируй вывод (htmlspecialchars, json_encode)
 - Валидируй все входные данные
-
-### Обработка ошибок
-- Используй try-catch для критических операций
-- Логируй все исключения
-- Предоставляй информативные сообщения
-
 `;
+        // Добавление правил для базы данных, если обнаружена
+        if (profile.database) {
+            rules += `\n### Работа с базой данных (${profile.database})
+- **ВСЕГДА используй параметризованные запросы** (PDO::prepare)
+- Никогда не используй прямую интерполяцию строк в SQL
+- Используй транзакции для связанных операций
+`;
+        }
+        rules += `\n### Обработка ошибок
+`;
+        if (profile.codePatterns?.errorHandling && profile.codePatterns.errorHandling.length > 0) {
+            rules += `- **Используй паттерны, обнаруженные в проекте:**\n`;
+            for (const pattern of profile.codePatterns.errorHandling) {
+                if (pattern === 'try-catch') {
+                    rules += `  - Используй try-catch для критических операций\n`;
+                }
+                else if (pattern === 'throw') {
+                    rules += `  - Используй throw для проброса исключений\n`;
+                }
+            }
+        }
+        else {
+            rules += `- Используй try-catch для критических операций\n`;
+            rules += `- Логируй все исключения\n`;
+            rules += `- Предоставляй информативные сообщения\n`;
+        }
+        // Добавление рекомендаций
+        if (profile.bestPractices?.recommendations && profile.bestPractices.recommendations.length > 0) {
+            rules += `\n### Рекомендации по улучшению\n`;
+            for (const recommendation of profile.bestPractices.recommendations.slice(0, 3)) {
+                rules += `- ${recommendation}\n`;
+            }
+        }
+        rules += `\n`;
+        return rules;
     }
     /**
      * Генерация правил для Python

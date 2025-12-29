@@ -63,14 +63,38 @@ export class SelfLearningOrchestrator extends Orchestrator {
      * Инициализация локальных агентов
      */
     private async initializeLocalAgents(context: vscode.ExtensionContext): Promise<void> {
-        const agents = [
-            new BackendAgent(context),
-            new FrontendAgent(context),
-            new ArchitectAgent(context),
-            new AnalystAgent(context),
-            new DevOpsAgent(context),
-            new QAAgent(context)
+        // Загружаем профиль проекта для получения рекомендаций по агентам
+        const projectAnalyzer = new ProjectAnalyzer();
+        const profile = await projectAnalyzer.loadProfile();
+        
+        // Определяем, каких агентов нужно инициализировать
+        const allAgents = [
+            { id: 'backend', agent: new BackendAgent(context) },
+            { id: 'frontend', agent: new FrontendAgent(context) },
+            { id: 'architect', agent: new ArchitectAgent(context) },
+            { id: 'analyst', agent: new AnalystAgent(context) },
+            { id: 'devops', agent: new DevOpsAgent(context) },
+            { id: 'qa', agent: new QAAgent(context) }
         ];
+
+        // Если есть рекомендации из профиля, используем их
+        let agentsToInitialize = allAgents;
+        if (profile?.agentRecommendations?.recommendedAgents) {
+            const recommendedIds = profile.agentRecommendations.recommendedAgents;
+            agentsToInitialize = allAgents.filter(a => recommendedIds.includes(a.id));
+            
+            // Всегда добавляем QA, если его нет в рекомендациях (для качества кода)
+            if (!recommendedIds.includes('qa')) {
+                agentsToInitialize.push(allAgents.find(a => a.id === 'qa')!);
+            }
+            
+            console.log(`Initializing recommended agents: ${agentsToInitialize.map(a => a.id).join(', ')}`);
+        } else {
+            // Если профиля нет, инициализируем всех агентов
+            console.log('No project profile found, initializing all agents');
+        }
+
+        const agents = agentsToInitialize.map(a => a.agent);
 
         // Регистрируем всех агентов параллельно
         await Promise.all(agents.map(async (agent) => {
