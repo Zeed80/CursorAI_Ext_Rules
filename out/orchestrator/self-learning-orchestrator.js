@@ -113,9 +113,33 @@ class SelfLearningOrchestrator extends orchestrator_1.Orchestrator {
             try {
                 const agentInstructions = `Ты - ${agent.getName()}. ${agent.getDescription()}\n\n` +
                     `Твоя задача - помогать пользователю в разработке, предоставляя детальные и точные ответы.`;
-                const modelId = savedModel ? savedModel.id : undefined;
-                const backgroundAgentId = await cursor_api_1.CursorAPI.createOrUpdateBackgroundAgent(agent.getId(), agent.getName(), agent.getDescription(), agentInstructions, modelId);
-                if (backgroundAgentId) {
+                // Если нет сохраненной модели, получаем доступные модели и используем первую
+                let modelId = savedModel ? savedModel.id : undefined;
+                if (!modelId) {
+                    try {
+                        const { ModelProvider } = await Promise.resolve().then(() => __importStar(require('../integration/model-provider')));
+                        const availableModels = await ModelProvider.getAvailableModels();
+                        // Используем первую доступную модель или пустую строку для автоматического выбора
+                        if (availableModels.length > 0) {
+                            modelId = availableModels[0].id;
+                            console.log(`Using default model ${modelId} for agent ${agent.getId()}`);
+                        }
+                        else {
+                            // Пустая строка означает автоматический выбор модели CursorAI
+                            modelId = '';
+                            console.log(`No saved model, using auto-selection for agent ${agent.getId()}`);
+                        }
+                    }
+                    catch (modelError) {
+                        // Если не удалось получить модели, используем авто-выбор
+                        console.debug(`Could not fetch models, using auto-selection for agent ${agent.getId()}`);
+                        modelId = '';
+                    }
+                }
+                const backgroundAgentId = await cursor_api_1.CursorAPI.createOrUpdateBackgroundAgent(agent.getId(), agent.getName(), agent.getDescription(), agentInstructions, modelId || undefined // Передаем undefined если пустая строка для авто-выбора
+                );
+                // Проверяем явно на null/undefined, а не на falsy (handle может быть 0!)
+                if (backgroundAgentId !== null && backgroundAgentId !== undefined) {
                     console.log(`Background agent ${backgroundAgentId} created/updated for agent ${agent.getId()} during initialization`);
                 }
                 else {
@@ -205,21 +229,19 @@ class SelfLearningOrchestrator extends orchestrator_1.Orchestrator {
             agentInitialized: false,
             lastCheckTime: new Date()
         };
-        // Проверка доступности LLM
+        // Проверка доступности LLM через ModelProvider
         try {
-            const [model] = await vscode.lm.selectChatModels({
-                vendor: 'copilot',
-                family: 'gpt-4o'
-            });
-            if (model) {
+            const { ModelProvider } = await Promise.resolve().then(() => __importStar(require('../integration/model-provider')));
+            const availableModels = await ModelProvider.getAvailableModels();
+            if (availableModels.length > 0) {
                 diagnostics.llmAvailable = true;
             }
             else {
-                diagnostics.llmError = 'Не найдена подходящая языковая модель. Убедитесь, что установлен GitHub Copilot или другой провайдер LLM.';
+                diagnostics.llmError = 'Нет доступных моделей CursorAI. Убедитесь, что CursorAI настроен и модели доступны.';
             }
         }
         catch (error) {
-            diagnostics.llmError = `Ошибка доступа к LLM: ${error.message}. Возможно, API vscode.lm недоступен или не настроен.`;
+            diagnostics.llmError = `Ошибка доступа к моделям: ${error.message}`;
         }
         // Проверка регистрации агента
         const registeredAgent = this.getAgentManager().getLocalAgent(agentId);

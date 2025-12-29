@@ -40,28 +40,29 @@ class ArchitectAgent extends local_agent_1.LocalAgent {
         };
     }
     async generateOptions(task, projectContext, analysis) {
-        const prompt = `Ты - опытный Software Architect. Предложи 3 архитектурных варианта решения следующей задачи:
+        const prompt = `Ты - опытный Software Architect. Предложи 3 архитектурных варианта решения следующей задачи.
 
 ПРОБЛЕМА: ${analysis.problem}
 КОНТЕКСТ: ${analysis.context}
 ОГРАНИЧЕНИЯ:
 ${analysis.constraints.map(c => `- ${c}`).join('\n')}
 
-Тип задачи: ${task.type}
-Приоритет: ${task.priority}
+ВАЖНО: Верни ТОЛЬКО валидный JSON массив без дополнительных комментариев и объяснений. Не добавляй никакого текста перед или после JSON.
 
-Для каждого варианта укажи:
-1. Название архитектурного подхода
-2. Описание архитектурного решения
-3. Преимущества (масштабируемость, поддерживаемость, гибкость)
-4. Недостатки
-5. Оценка сложности (low/medium/high)
-6. Оценка уверенности (0-1)
-7. Оценка времени (в миллисекундах)
-8. Файлы/модули, которые нужно изменить
-9. Архитектурные риски
-
-Верни ответ в формате JSON массив.`;
+[
+  {
+    "title": "Название архитектурного подхода",
+    "description": "Описание архитектурного решения",
+    "approach": "Подробный архитектурный подход",
+    "pros": ["преимущество 1", "преимущество 2"],
+    "cons": ["недостаток 1", "недостаток 2"],
+    "complexity": "low",
+    "confidence": 0.8,
+    "estimatedTime": 7200000,
+    "filesToModify": ["src/module1.ts", "src/module2.ts"],
+    "risks": ["риск 1", "риск 2"]
+  }
+]`;
         const response = await this.callLLM(prompt);
         const options = this.parseOptions(response);
         return options.map((opt, index) => ({
@@ -118,14 +119,30 @@ ${analysis.constraints.map(c => `- ${c}`).join('\n')}
     }
     parseOptions(text) {
         try {
+            // Логируем полный ответ для отладки
+            console.log('ArchitectAgent parseOptions - Raw response:', text);
+            // Пытаемся распарсить весь текст как JSON
+            try {
+                const parsed = JSON.parse(text.trim());
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+            }
+            catch (e) {
+                // Если не сработало, пробуем найти JSON массив в тексте
+            }
+            // Ищем JSON массив в тексте
             const jsonMatch = text.match(/\[[\s\S]*\]/);
             if (jsonMatch) {
                 const parsed = JSON.parse(jsonMatch[0]);
-                return Array.isArray(parsed) ? parsed : [];
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed;
+                }
             }
         }
         catch (error) {
-            console.error('Error parsing options:', error);
+            console.error('ArchitectAgent: Error parsing options:', error);
+            console.error('ArchitectAgent: Response text was:', text.substring(0, 500));
         }
         return [{
                 title: 'Базовое архитектурное решение',

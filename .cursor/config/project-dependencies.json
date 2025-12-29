@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-29T08:04:17.183Z",
+  "lastUpdated": "2025-12-29T10:34:31.183Z",
   "files": {
     "build-standalone.js": {
       "exports": [],
@@ -349,6 +349,7 @@
         "CursorAgent",
         "CursorModel",
         "BackgroundAgentConfig",
+        "ApiVersion",
         "CursorAPI"
       ],
       "imports": [],
@@ -361,7 +362,8 @@
           "CursorAgent",
           "CursorModel",
           "BackgroundAgentConfig",
-          "ApiRequestOptions"
+          "ApiRequestOptions",
+          "ApiVersion"
         ],
         "variables": []
       },
@@ -1375,6 +1377,7 @@
       },
       "dependents": [
         "out/extension.js",
+        "out/orchestrator/self-learning-orchestrator.js",
         "out/ui/status-panel.js"
       ]
     },
@@ -1591,7 +1594,9 @@
         "./project-knowledge-base",
         "./learning-engine",
         "./quality-checker",
-        "../integration/cursor-api"
+        "../integration/cursor-api",
+        "../integration/model-provider",
+        "../integration/model-provider"
       ],
       "dependencies": {
         "classes": [
@@ -1835,39 +1840,6 @@
   },
   "indexes": {
     "byExport": {
-      "AnalystAgent": [
-        "src/agents/analyst-agent.ts"
-      ],
-      "ArchitectAgent": [
-        "src/agents/architect-agent.ts"
-      ],
-      "BackendAgent": [
-        "src/agents/backend-agent.ts"
-      ],
-      "DevOpsAgent": [
-        "src/agents/devops-agent.ts"
-      ],
-      "FrontendAgent": [
-        "src/agents/frontend-agent.ts"
-      ],
-      "ProjectContext": [
-        "src/agents/local-agent.ts"
-      ],
-      "SolutionOption": [
-        "src/agents/local-agent.ts"
-      ],
-      "AgentThoughts": [
-        "src/agents/local-agent.ts"
-      ],
-      "AgentSolution": [
-        "src/agents/local-agent.ts"
-      ],
-      "ExecutionResult": [
-        "src/agents/local-agent.ts"
-      ],
-      "QAAgent": [
-        "src/agents/qa-agent.ts"
-      ],
       "SelfImprover": [
         "src/agents/self-improver.ts"
       ],
@@ -1891,24 +1863,6 @@
       ],
       "VirtualUser": [
         "src/agents/virtual-user.ts"
-      ],
-      "CursorAgent": [
-        "src/integration/cursor-api.ts"
-      ],
-      "CursorModel": [
-        "src/integration/cursor-api.ts"
-      ],
-      "BackgroundAgentConfig": [
-        "src/integration/cursor-api.ts"
-      ],
-      "CursorAPI": [
-        "src/integration/cursor-api.ts"
-      ],
-      "LanguageModelInfo": [
-        "src/integration/model-provider.ts"
-      ],
-      "ModelProvider": [
-        "src/integration/model-provider.ts"
       ],
       "SettingsManager": [
         "src/integration/settings-manager.ts"
@@ -2009,9 +1963,6 @@
       "RuleGenerator": [
         "src/orchestrator/rule-generator.ts"
       ],
-      "SelfLearningOrchestrator": [
-        "src/orchestrator/self-learning-orchestrator.ts"
-      ],
       "EvaluationResult": [
         "src/orchestrator/solution-evaluator.ts"
       ],
@@ -2087,6 +2038,12 @@
       "RulesVersioning": [
         "src/storage/rules-versioning.ts"
       ],
+      "activate": [
+        "src/extension.ts"
+      ],
+      "deactivate": [
+        "src/extension.ts"
+      ],
       "AgentStatus": [
         "src/ui/agents-status-tree.ts"
       ],
@@ -2095,6 +2052,21 @@
       ],
       "AgentsStatusTreeProvider": [
         "src/ui/agents-status-tree.ts"
+      ],
+      "ProjectContext": [
+        "src/agents/local-agent.ts"
+      ],
+      "SolutionOption": [
+        "src/agents/local-agent.ts"
+      ],
+      "AgentThoughts": [
+        "src/agents/local-agent.ts"
+      ],
+      "AgentSolution": [
+        "src/agents/local-agent.ts"
+      ],
+      "ExecutionResult": [
+        "src/agents/local-agent.ts"
       ],
       "AnalyticsPanel": [
         "src/ui/analytics-panel.ts"
@@ -2105,32 +2077,68 @@
       "StatusPanel": [
         "src/ui/status-panel.ts"
       ],
-      "activate": [
-        "src/extension.ts"
+      "BackendAgent": [
+        "src/agents/backend-agent.ts"
       ],
-      "deactivate": [
-        "src/extension.ts"
+      "AnalystAgent": [
+        "src/agents/analyst-agent.ts"
+      ],
+      "ArchitectAgent": [
+        "src/agents/architect-agent.ts"
+      ],
+      "DevOpsAgent": [
+        "src/agents/devops-agent.ts"
+      ],
+      "FrontendAgent": [
+        "src/agents/frontend-agent.ts"
+      ],
+      "QAAgent": [
+        "src/agents/qa-agent.ts"
+      ],
+      "LanguageModelInfo": [
+        "src/integration/model-provider.ts"
+      ],
+      "ModelProvider": [
+        "src/integration/model-provider.ts"
+      ],
+      "SelfLearningOrchestrator": [
+        "src/orchestrator/self-learning-orchestrator.ts"
+      ],
+      "CursorAgent": [
+        "src/integration/cursor-api.ts"
+      ],
+      "CursorModel": [
+        "src/integration/cursor-api.ts"
+      ],
+      "BackgroundAgentConfig": [
+        "src/integration/cursor-api.ts"
+      ],
+      "ApiVersion": [
+        "src/integration/cursor-api.ts"
+      ],
+      "CursorAPI": [
+        "src/integration/cursor-api.ts"
       ]
     },
     "byImport": {
       "../orchestrator/orchestrator": [
-        "src/agents/analyst-agent.ts",
-        "src/agents/architect-agent.ts",
-        "src/agents/backend-agent.ts",
-        "src/agents/devops-agent.ts",
-        "src/agents/frontend-agent.ts",
-        "src/agents/local-agent.ts",
-        "src/agents/qa-agent.ts",
         "src/agents/self-improver.ts",
         "src/agents/virtual-user.ts",
         "src/ui/agents-status-tree.ts",
+        "src/agents/local-agent.ts",
         "src/ui/analytics-panel.ts",
-        "src/ui/status-panel.ts"
-      ],
-      "./local-agent": [
+        "src/ui/status-panel.ts",
+        "src/agents/backend-agent.ts",
         "src/agents/analyst-agent.ts",
         "src/agents/architect-agent.ts",
+        "src/agents/devops-agent.ts",
+        "src/agents/frontend-agent.ts",
+        "src/agents/qa-agent.ts"
+      ],
+      "./local-agent": [
         "src/agents/backend-agent.ts",
+        "src/agents/analyst-agent.ts",
+        "src/agents/architect-agent.ts",
         "src/agents/devops-agent.ts",
         "src/agents/frontend-agent.ts",
         "src/agents/qa-agent.ts",
@@ -2142,20 +2150,20 @@
         "out/agents/qa-agent.js"
       ],
       "../integration/cursor-api": [
+        "src/orchestrator/task-executor.ts",
         "src/agents/local-agent.ts",
         "src/orchestrator/self-learning-orchestrator.ts",
-        "src/orchestrator/task-executor.ts",
         "out/agents/local-agent.js",
         "out/orchestrator/self-learning-orchestrator.js"
       ],
       "../integration/model-provider": [
-        "src/agents/local-agent.ts",
         "src/orchestrator/agent-manager.ts",
         "src/ui/agents-status-tree.ts",
+        "src/agents/local-agent.ts",
+        "out/orchestrator/self-learning-orchestrator.js",
         "out/ui/status-panel.js"
       ],
       "../integration/settings-manager": [
-        "src/agents/local-agent.ts",
         "src/agents/self-improver.ts",
         "src/agents/virtual-user-decision.ts",
         "src/agents/virtual-user-monitor.ts",
@@ -2163,10 +2171,11 @@
         "src/orchestrator/agent-manager.ts",
         "src/orchestrator/autonomous-mode.ts",
         "src/orchestrator/orchestrator.ts",
-        "src/orchestrator/self-learning-orchestrator.ts",
         "src/orchestrator/task-analytics.ts",
         "src/self-improvement/knowledge-searcher.ts",
         "src/self-improvement/performance-monitor.ts",
+        "src/agents/local-agent.ts",
+        "src/orchestrator/self-learning-orchestrator.ts",
         "out/agents/local-agent.js"
       ],
       "../self-improvement/performance-monitor": [
@@ -2217,10 +2226,10 @@
         "src/orchestrator/brainstorming-manager.ts",
         "src/orchestrator/learning-engine.ts",
         "src/orchestrator/quality-checker.ts",
-        "src/orchestrator/self-learning-orchestrator.ts",
         "src/orchestrator/task-analytics.ts",
         "src/orchestrator/task-executor.ts",
         "src/orchestrator/task-planner.ts",
+        "src/orchestrator/self-learning-orchestrator.ts",
         "out/orchestrator/self-learning-orchestrator.js"
       ],
       "../agents/local-agent": [
@@ -2228,9 +2237,9 @@
         "src/orchestrator/brainstorming-manager.ts",
         "src/orchestrator/learning-engine.ts",
         "src/orchestrator/quality-checker.ts",
-        "src/orchestrator/self-learning-orchestrator.ts",
         "src/orchestrator/solution-evaluator.ts",
-        "src/ui/agents-status-tree.ts"
+        "src/ui/agents-status-tree.ts",
+        "src/orchestrator/self-learning-orchestrator.ts"
       ],
       "../agents/virtual-user": [
         "src/orchestrator/autonomous-mode.ts"
@@ -2246,8 +2255,8 @@
       ],
       "./agent-manager": [
         "src/orchestrator/orchestrator.ts",
-        "src/orchestrator/self-learning-orchestrator.ts",
         "src/orchestrator/task-planner.ts",
+        "src/orchestrator/self-learning-orchestrator.ts",
         "out/orchestrator/orchestrator.js"
       ],
       "./task-planner": [
@@ -2283,8 +2292,8 @@
       "./project-dependency-graph": [
         "src/orchestrator/project-knowledge-base.ts",
         "src/orchestrator/quality-checker.ts",
-        "src/orchestrator/self-learning-orchestrator.ts",
         "src/orchestrator/solution-evaluator.ts",
+        "src/orchestrator/self-learning-orchestrator.ts",
         "out/orchestrator/self-learning-orchestrator.js"
       ],
       "../agents/backend-agent": [
@@ -2323,9 +2332,6 @@
         "src/orchestrator/self-learning-orchestrator.ts",
         "out/orchestrator/self-learning-orchestrator.js"
       ],
-      "../ui/agents-status-tree": [
-        "src/orchestrator/self-learning-orchestrator.ts"
-      ],
       "./performance-monitor": [
         "src/self-improvement/agent-optimizer.ts",
         "src/self-improvement/rule-updater.ts"
@@ -2346,53 +2352,44 @@
         "src/storage/rules-integration.ts",
         "out/storage/rules-integration.js"
       ],
-      "../orchestrator/task-analytics": [
-        "src/ui/analytics-panel.ts"
-      ],
-      "./agents-status-tree": [
-        "src/ui/status-panel.ts"
-      ],
       "./orchestrator/self-learning-orchestrator": [
-        "out/extension.js",
-        "src/extension.ts"
+        "src/extension.ts",
+        "out/extension.js"
       ],
       "./integration/settings-manager": [
-        "out/extension.js",
-        "src/extension.ts"
+        "src/extension.ts",
+        "out/extension.js"
       ],
       "./integration/ui-integration": [
-        "out/extension.js",
-        "src/extension.ts"
+        "src/extension.ts",
+        "out/extension.js"
       ],
       "./agents/virtual-user": [
-        "out/extension.js",
-        "src/extension.ts"
+        "src/extension.ts",
+        "out/extension.js"
       ],
       "./agents/self-improver": [
-        "out/extension.js",
-        "src/extension.ts"
+        "src/extension.ts",
+        "out/extension.js"
       ],
       "./storage/rules-integration": [
-        "out/extension.js",
-        "src/extension.ts"
+        "src/extension.ts",
+        "out/extension.js"
       ],
       "./integration/cursor-api": [
-        "out/extension.js",
-        "src/extension.ts"
+        "src/extension.ts",
+        "out/extension.js"
       ],
       "./ui/agents-status-tree": [
-        "out/extension.js",
-        "src/extension.ts"
+        "src/extension.ts",
+        "out/extension.js"
       ],
       "./ui/status-panel": [
-        "out/extension.js",
-        "src/extension.ts"
+        "src/extension.ts",
+        "out/extension.js"
       ],
       "./ui/analytics-panel": [
-        "out/extension.js",
-        "src/extension.ts"
-      ],
-      "./integration/model-provider": [
+        "src/extension.ts",
         "out/extension.js"
       ],
       "./orchestrator/orchestrator": [
@@ -2400,6 +2397,18 @@
       ],
       "./agents/local-agent": [
         "src/extension.ts"
+      ],
+      "../orchestrator/task-analytics": [
+        "src/ui/analytics-panel.ts"
+      ],
+      "./agents-status-tree": [
+        "src/ui/status-panel.ts"
+      ],
+      "../ui/agents-status-tree": [
+        "src/orchestrator/self-learning-orchestrator.ts"
+      ],
+      "./integration/model-provider": [
+        "out/extension.js"
       ]
     }
   }

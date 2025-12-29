@@ -149,6 +149,25 @@ export class AgentsStatusTreeProvider implements vscode.TreeDataProvider<vscode.
     getAllAgents(): AgentStatus[] {
         return Array.from(this.agents.values());
     }
+
+    /**
+     * Получение задач агента (любого статуса)
+     */
+    getAgentTasks(agentId: string): Task[] {
+        return this.tasks.filter(t => t.assignedAgent === agentId);
+    }
+
+    /**
+     * Получение первой задачи агента (для передачи в чат)
+     */
+    getFirstAgentTask(agentId: string): Task | undefined {
+        const agentTasks = this.getAgentTasks(agentId);
+        // Приоритет: pending > in-progress > blocked > completed
+        return agentTasks.find(t => t.status === 'pending') ||
+               agentTasks.find(t => t.status === 'in-progress') ||
+               agentTasks.find(t => t.status === 'blocked') ||
+               agentTasks[0];
+    }
 }
 
 class AgentTreeItem extends vscode.TreeItem {

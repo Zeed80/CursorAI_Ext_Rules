@@ -297,8 +297,8 @@ class AnalyticsPanel {
     <div class="header">
         <h1>📊 Аналитика задач</h1>
         <div>
-            <button class="btn btn-secondary" onclick="refresh()">Обновить</button>
-            <button class="btn" onclick="exportReport()">Экспорт отчета</button>
+            <button class="btn btn-secondary" id="btnRefresh">Обновить</button>
+            <button class="btn" id="btnExportReport">Экспорт отчета</button>
         </div>
     </div>
 
@@ -450,7 +450,15 @@ class AnalyticsPanel {
         }
 
         // Автообновление каждые 10 секунд
-        setInterval(refresh, 10000);
+        let refreshInterval = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('btnRefresh')?.addEventListener('click', refresh);
+            document.getElementById('btnExportReport')?.addEventListener('click', exportReport);
+
+            // Автообновление каждые 10 секунд
+            refreshInterval = setInterval(refresh, 10000);
+        });
     </script>
 </body>
 </html>`;

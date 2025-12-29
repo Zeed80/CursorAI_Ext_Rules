@@ -144,12 +144,19 @@ class LocalAgent {
         const filesChanged = [];
         try {
             const edit = new vscode.WorkspaceEdit();
+            // Проверяем workspace folder перед началом обработки изменений
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            if (!workspaceFolder) {
+                console.error('No workspace folder found - cannot apply edits');
+                throw new Error('Рабочая область не открыта. Откройте папку проекта в Cursor IDE для применения изменений.');
+            }
+            // Проверяем, что URI workspace folder существует
+            if (!workspaceFolder.uri) {
+                console.error('Workspace folder URI is undefined');
+                throw new Error('Рабочая область недоступна. Проверьте, что папка проекта открыта корректно.');
+            }
             // Обрабатываем каждое изменение кода
             for (const change of solution.solution.codeChanges) {
-                const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-                if (!workspaceFolder) {
-                    throw new Error('No workspace folder found');
-                }
                 const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, change.file);
                 if (change.type === 'create') {
                     // Генерируем код для нового файла через LLM
@@ -195,10 +202,48 @@ class LocalAgent {
                     filesChanged.push(change.file);
                 }
             }
+            // Проверяем, есть ли изменения для применения
+            if (filesChanged.length === 0) {
+                console.warn('No files to modify in solution');
+                return {
+                    success: true,
+                    message: 'Решение не требует изменений файлов',
+                    filesChanged: [],
+                    codeChanges: 0,
+                    executionTime: Date.now() - startTime
+                };
+            }
             // Применяем все изменения
             const success = await vscode.workspace.applyEdit(edit);
             if (!success) {
-                throw new Error('Failed to apply workspace edits');
+                // Получаем более детальную информацию об ошибке
+                const editSize = filesChanged.length;
+                const errorDetails = {
+                    filesCount: editSize,
+                    files: filesChanged,
+                    editSize: JSON.stringify(edit).length
+                };
+                console.error('Failed to apply workspace edits:', errorDetails);
+                // Пытаемся получить дополнительную информацию об ошибке
+                try {
+                    // Проверяем, может быть проблема с правами доступа
+                    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+                    if (workspaceFolder) {
+                        for (const file of filesChanged) {
+                            try {
+                                const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, file);
+                                await vscode.workspace.fs.stat(fileUri);
+                            }
+                            catch (statError) {
+                                console.error(`File access issue for ${file}:`, statError.message);
+                            }
+                        }
+                    }
+                }
+                catch (diagnosticError) {
+                    console.debug('Diagnostic check failed:', diagnosticError);
+                }
+                throw new Error(`Не удалось применить изменения к ${editSize} файл(ам). Возможно, файлы заблокированы или нет прав доступа.`);
             }
             return {
                 success: true,

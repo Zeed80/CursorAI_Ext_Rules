@@ -125,6 +125,23 @@ class AgentsStatusTreeProvider {
     getAllAgents() {
         return Array.from(this.agents.values());
     }
+    /**
+     * Получение задач агента (любого статуса)
+     */
+    getAgentTasks(agentId) {
+        return this.tasks.filter(t => t.assignedAgent === agentId);
+    }
+    /**
+     * Получение первой задачи агента (для передачи в чат)
+     */
+    getFirstAgentTask(agentId) {
+        const agentTasks = this.getAgentTasks(agentId);
+        // Приоритет: pending > in-progress > blocked > completed
+        return agentTasks.find(t => t.status === 'pending') ||
+            agentTasks.find(t => t.status === 'in-progress') ||
+            agentTasks.find(t => t.status === 'blocked') ||
+            agentTasks[0];
+    }
 }
 exports.AgentsStatusTreeProvider = AgentsStatusTreeProvider;
 class AgentTreeItem extends vscode.TreeItem {

@@ -269,6 +269,8 @@ export class StatusPanel {
             font-size: 12px;
             width: 100%;
             transition: all 0.2s;
+            display: block;
+            text-align: center;
         }
         .send-to-chat-btn:hover {
             background: var(--vscode-button-secondaryHoverBackground);
@@ -307,7 +309,7 @@ export class StatusPanel {
         ${(await Promise.all(agents.map(agent => this.getAgentCardHtml(agent, availableModels)))).join('')}
     </div>
 
-    <button class="refresh-btn" onclick="refresh()">Обновить</button>
+    <button class="refresh-btn" id="btnRefresh">Обновить</button>
 
     <script>
         const vscode = acquireVsCodeApi();
@@ -333,7 +335,40 @@ export class StatusPanel {
         }
 
         // Автообновление каждые 5 секунд
-        setInterval(refresh, 5000);
+        let refreshInterval = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('btnRefresh')?.addEventListener('click', refresh);
+
+            // Добавляем обработчики для карточек агентов
+            document.querySelectorAll('.agent-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    const agentId = this.getAttribute('data-agent-id');
+                    if (agentId) agentClick(agentId);
+                });
+            });
+
+            // Добавляем обработчики для кнопок "Передать в чат"
+            document.querySelectorAll('.send-to-chat-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const agentId = this.getAttribute('data-agent-id');
+                    const taskId = this.getAttribute('data-task-id');
+                    if (agentId && taskId) sendTaskToChat(agentId, taskId, e);
+                });
+            });
+
+            // Добавляем обработчики для select моделей
+            document.querySelectorAll('select[id^="model-select-"]').forEach(select => {
+                select.addEventListener('change', function() {
+                    const agentId = this.getAttribute('data-agent-id');
+                    if (agentId) selectModel(agentId, this.value);
+                });
+            });
+
+            // Автообновление каждые 5 секунд
+            refreshInterval = setInterval(refresh, 5000);
+        });
     </script>
 </body>
 </html>`;
@@ -359,48 +394,58 @@ export class StatusPanel {
         const statusClass = `status-${agent.status}`;
         const statusText = this.getStatusText(agent.status);
         
+        // Получаем первую задачу агента (любого статуса)
+        const agentTask = this.agentsTreeProvider.getFirstAgentTask(agent.id);
+        const hasTask = !!agentTask;
+        
         return `
-        <div class="agent-card" onclick="agentClick('${agent.id}')">
+        <div class="agent-card" data-agent-id="${agent.id}">
             <div class="agent-header">
                 <div class="agent-name">${agent.name}</div>
                 <div class="agent-status ${statusClass}">${statusText}</div>
             </div>
-            ${agent.currentTask ? `
+            ${agentTask ? `
                 <div class="agent-task">
-                    <strong>Текущая задача:</strong><br>
-                    ${agent.currentTask.description}
-                    ${agent.currentTask.progress ? `
+                    <strong>Задача:</strong><br>
+                    ${this.escapeHtml(agentTask.description)}
+                    <div style="margin-top: 4px; font-size: 11px; opacity: 0.8;">
+                        Статус: ${this.getTaskStatusText(agentTask.status)} | Приоритет: ${this.getTaskPriorityText(agentTask.priority)}
+                    </div>
+                    ${agentTask.progress ? `
                         <div style="margin-top: 8px; font-size: 12px; opacity: 0.8;">
-                            📝 Изменено файлов: ${agent.currentTask.progress.filesChanged || 0}<br>
-                            ⏱️ Время: ${Math.round((agent.currentTask.progress.timeElapsed || 0) / 1000)}с
-                            ${agent.currentTask.progress.isActive ? ' ✅ Активна' : ' ⏸️ Ожидает'}
+                            📝 Изменено файлов: ${agentTask.progress.filesChanged || 0}<br>
+                            ⏱️ Время: ${Math.round((agentTask.progress.timeElapsed || 0) / 1000)}с
+                            ${agentTask.progress.isActive ? ' ✅ Активна' : ' ⏸️ Ожидает'}
                         </div>
                     ` : ''}
-                    ${agent.currentTask.executionResult && !agent.currentTask.executionResult.success ? `
+                    ${agentTask.executionResult && !agentTask.executionResult.success ? `
                         <div style="margin-top: 8px; padding: 8px; background: var(--vscode-inputValidation-errorBackground); border-radius: 4px; font-size: 12px;">
-                            ❌ Ошибка: ${agent.currentTask.executionResult.error || 'Неизвестная ошибка'}
+                            ❌ Ошибка: ${this.escapeHtml(agentTask.executionResult.error || 'Неизвестная ошибка')}
                         </div>
                     ` : ''}
-                    ${agent.currentTask.executionResult && agent.currentTask.executionResult.success ? `
+                    ${agentTask.executionResult && agentTask.executionResult.success ? `
                         <div style="margin-top: 8px; font-size: 12px; opacity: 0.8;">
-                            ✅ Выполнено: ${Array.isArray(agent.currentTask.executionResult.filesChanged) ? agent.currentTask.executionResult.filesChanged.length : 0} файлов изменено
+                            ✅ Выполнено: ${Array.isArray(agentTask.executionResult.filesChanged) ? agentTask.executionResult.filesChanged.length : 0} файлов изменено
                         </div>
                     ` : ''}
-                    <button 
-                        class="send-to-chat-btn" 
-                        onclick="sendTaskToChat('${agent.id}', '${agent.currentTask.id}', event)"
-                        title="Передать задачу в чат CursorAI для ручной обработки"
-                    >
-                        💬 Передать в чат
-                    </button>
                 </div>
             ` : ''}
+            <button 
+                class="send-to-chat-btn"
+                data-agent-id="${this.escapeHtml(agent.id)}"
+                data-task-id="${hasTask ? this.escapeHtml(agentTask!.id) : ''}"
+                title="${hasTask ? 'Передать задачу в чат CursorAI для ручной обработки' : 'Нет задачи для передачи в чат'}"
+                style="margin-top: 12px; display: block; width: 100%;"
+                ${hasTask ? '' : 'disabled'}
+            >
+                💬 Передать в чат
+            </button>
             <div class="agent-model-selector" style="margin-top: 12px; padding: 8px; background: var(--vscode-input-background); border-radius: 4px; border: 1px solid var(--vscode-input-border);">
                 <label style="display: block; margin-bottom: 4px; font-size: 12px; opacity: 0.9;">Модель:</label>
-                <select 
-                    id="model-select-${agent.id}" 
+                <select
+                    id="model-select-${agent.id}"
+                    data-agent-id="${agent.id}"
                     style="width: 100%; padding: 4px; background: var(--vscode-dropdown-background); color: var(--vscode-dropdown-foreground); border: 1px solid var(--vscode-dropdown-border); border-radius: 2px; font-size: 12px;"
-                    onchange="selectModel('${agent.id}', this.value)"
                 >
                     <option value="">Автоматический выбор</option>
                     ${this.getModelOptions(agent, availableModels)}
@@ -439,6 +484,25 @@ export class StatusPanel {
             'disabled': 'Отключен'
         };
         return statuses[status] || status;
+    }
+
+    private getTaskStatusText(status: string): string {
+        const statuses: { [key: string]: string } = {
+            'pending': 'Ожидает',
+            'in-progress': 'В работе',
+            'completed': 'Завершена',
+            'blocked': 'Заблокирована'
+        };
+        return statuses[status] || status;
+    }
+
+    private getTaskPriorityText(priority: string): string {
+        const priorities: { [key: string]: string } = {
+            'high': 'Высокий',
+            'medium': 'Средний',
+            'low': 'Низкий'
+        };
+        return priorities[priority] || priority;
     }
 
     private getAgentThoughtsHtml(agent: AgentStatus): string {
@@ -502,12 +566,19 @@ export class StatusPanel {
 
     private async sendTaskToChat(agentId: string, taskId: string): Promise<void> {
         const agent = this.agentsTreeProvider.getAgentStatus(agentId);
-        if (!agent || !agent.currentTask || agent.currentTask.id !== taskId) {
-            vscode.window.showWarningMessage('Задача не найдена или больше не активна');
+        if (!agent) {
+            vscode.window.showWarningMessage('Агент не найден');
             return;
         }
 
-        const task = agent.currentTask;
+        // Получаем задачу из списка задач агента
+        const agentTasks = this.agentsTreeProvider.getAgentTasks(agentId);
+        const task = agentTasks.find(t => t.id === taskId);
+        
+        if (!task) {
+            vscode.window.showWarningMessage('Задача не найдена или больше не назначена агенту');
+            return;
+        }
         
         // Формируем сообщение для чата
         const taskTypeEmoji: { [key: string]: string } = {

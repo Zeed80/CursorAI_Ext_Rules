@@ -116,14 +116,14 @@ export class QuickAccessPanel {
 
     <div class="button-group">
         <h3>Основные действия</h3>
-        <button class="button" onclick="executeCommand('cursor-autonomous.startOrchestrator')">
+        <button class="button" id="btnStartOrchestrator">
             ▶ Запустить оркестратор
             <span class="shortcut">Ctrl+Shift+A</span>
         </button>
-        <button class="button" onclick="executeCommand('cursor-autonomous.stopOrchestrator')">
+        <button class="button" id="btnStopOrchestrator">
             ⏹ Остановить оркестратор
         </button>
-        <button class="button" onclick="executeCommand('cursor-autonomous.toggleVirtualUser')">
+        <button class="button" id="btnToggleVirtualUser">
             👤 Переключить виртуального пользователя
             <span class="shortcut">Ctrl+Shift+V</span>
         </button>
@@ -131,18 +131,18 @@ export class QuickAccessPanel {
 
     <div class="button-group">
         <h3>Анализ и улучшение</h3>
-        <button class="button" onclick="executeCommand('cursor-autonomous.analyzeProject')">
+        <button class="button" id="btnAnalyzeProject">
             🔍 Анализ проекта
             <span class="shortcut">Ctrl+Shift+P</span>
         </button>
-        <button class="button" onclick="executeCommand('cursor-autonomous.showStatus')">
+        <button class="button" id="btnShowStatus">
             ℹ Статус системы
         </button>
     </div>
 
     <div class="button-group">
         <h3>Настройки</h3>
-        <button class="button" onclick="executeCommand('workbench.action.openSettings', '@ext:cursor-autonomous.cursor-ai-autonomous-extension')">
+        <button class="button" id="btnOpenSettings">
             ⚙ Настройки расширения
         </button>
     </div>
@@ -164,8 +164,37 @@ export class QuickAccessPanel {
         }
 
         // Обновление статуса каждые 5 секунд
-        setInterval(updateStatus, 5000);
-        updateStatus();
+        const statusInterval = setInterval(updateStatus, 5000);
+
+        // Добавляем обработчики событий после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('btnStartOrchestrator')?.addEventListener('click', function() {
+                executeCommand('cursor-autonomous.startOrchestrator');
+            });
+
+            document.getElementById('btnStopOrchestrator')?.addEventListener('click', function() {
+                executeCommand('cursor-autonomous.stopOrchestrator');
+            });
+
+            document.getElementById('btnToggleVirtualUser')?.addEventListener('click', function() {
+                executeCommand('cursor-autonomous.toggleVirtualUser');
+            });
+
+            document.getElementById('btnAnalyzeProject')?.addEventListener('click', function() {
+                executeCommand('cursor-autonomous.analyzeProject');
+            });
+
+            document.getElementById('btnShowStatus')?.addEventListener('click', function() {
+                executeCommand('cursor-autonomous.showStatus');
+            });
+
+            document.getElementById('btnOpenSettings')?.addEventListener('click', function() {
+                executeCommand('workbench.action.openSettings', '@ext:cursor-autonomous.cursor-ai-autonomous-extension');
+            });
+
+            // Начальное обновление статуса
+            updateStatus();
+        });
     </script>
 </body>
 </html>`;

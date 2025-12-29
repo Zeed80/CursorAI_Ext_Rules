@@ -105,16 +105,40 @@ export class SelfLearningOrchestrator extends Orchestrator {
                 const agentInstructions = `Ты - ${agent.getName()}. ${agent.getDescription()}\n\n` +
                     `Твоя задача - помогать пользователю в разработке, предоставляя детальные и точные ответы.`;
                 
-                const modelId = savedModel ? savedModel.id : undefined;
+                // Если нет сохраненной модели, получаем доступные модели и используем первую
+                let modelId = savedModel ? savedModel.id : undefined;
+                
+                if (!modelId) {
+                    try {
+                        const { ModelProvider } = await import('../integration/model-provider');
+                        const availableModels = await ModelProvider.getAvailableModels();
+                        
+                        // Используем первую доступную модель или пустую строку для автоматического выбора
+                        if (availableModels.length > 0) {
+                            modelId = availableModels[0].id;
+                            console.log(`Using default model ${modelId} for agent ${agent.getId()}`);
+                        } else {
+                            // Пустая строка означает автоматический выбор модели CursorAI
+                            modelId = '';
+                            console.log(`No saved model, using auto-selection for agent ${agent.getId()}`);
+                        }
+                    } catch (modelError) {
+                        // Если не удалось получить модели, используем авто-выбор
+                        console.debug(`Could not fetch models, using auto-selection for agent ${agent.getId()}`);
+                        modelId = '';
+                    }
+                }
+                
                 const backgroundAgentId = await CursorAPI.createOrUpdateBackgroundAgent(
                     agent.getId(),
                     agent.getName(),
                     agent.getDescription(),
                     agentInstructions,
-                    modelId
+                    modelId || undefined  // Передаем undefined если пустая строка для авто-выбора
                 );
-                
-                if (backgroundAgentId) {
+
+                // Проверяем явно на null/undefined, а не на falsy (handle может быть 0!)
+                if (backgroundAgentId !== null && backgroundAgentId !== undefined) {
                     console.log(`Background agent ${backgroundAgentId} created/updated for agent ${agent.getId()} during initialization`);
                 } else {
                     console.debug(`Background agent not created for agent ${agent.getId()} (API may not be available)`);
@@ -217,20 +241,18 @@ export class SelfLearningOrchestrator extends Orchestrator {
             lastCheckTime: new Date()
         };
 
-        // Проверка доступности LLM
+        // Проверка доступности LLM через ModelProvider
         try {
-            const [model] = await vscode.lm.selectChatModels({
-                vendor: 'copilot',
-                family: 'gpt-4o'
-            });
+            const { ModelProvider } = await import('../integration/model-provider');
+            const availableModels = await ModelProvider.getAvailableModels();
             
-            if (model) {
+            if (availableModels.length > 0) {
                 diagnostics.llmAvailable = true;
             } else {
-                diagnostics.llmError = 'Не найдена подходящая языковая модель. Убедитесь, что установлен GitHub Copilot или другой провайдер LLM.';
+                diagnostics.llmError = 'Нет доступных моделей CursorAI. Убедитесь, что CursorAI настроен и модели доступны.';
             }
         } catch (error: any) {
-            diagnostics.llmError = `Ошибка доступа к LLM: ${error.message}. Возможно, API vscode.lm недоступен или не настроен.`;
+            diagnostics.llmError = `Ошибка доступа к моделям: ${error.message}`;
         }
 
         // Проверка регистрации агента

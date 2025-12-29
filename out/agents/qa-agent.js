@@ -35,25 +35,29 @@ class QAAgent extends local_agent_1.LocalAgent {
         };
     }
     async generateOptions(task, projectContext, analysis) {
-        const prompt = `Ты - опытный QA Engineer. Предложи 3 варианта решения следующей задачи:
+        const prompt = `Ты - опытный QA Engineer. Предложи 3 варианта решения следующей задачи.
 
 ПРОБЛЕМА: ${analysis.problem}
 КОНТЕКСТ: ${analysis.context}
 ОГРАНИЧЕНИЯ:
 ${analysis.constraints.map(c => `- ${c}`).join('\n')}
 
-Для каждого варианта укажи:
-1. Название подхода к тестированию
-2. Описание решения
-3. Преимущества (покрытие, качество)
-4. Недостатки
-5. Оценка сложности (low/medium/high)
-6. Оценка уверенности (0-1)
-7. Оценка времени (в миллисекундах)
-8. Файлы тестов, которые нужно создать/изменить
-9. Риски тестирования
+ВАЖНО: Верни ТОЛЬКО валидный JSON массив без дополнительных комментариев и объяснений. Не добавляй никакого текста перед или после JSON.
 
-Верни ответ в формате JSON массив.`;
+[
+  {
+    "title": "Название подхода к тестированию",
+    "description": "Описание решения",
+    "approach": "Подробный подход к тестированию",
+    "pros": ["преимущество 1", "преимущество 2"],
+    "cons": ["недостаток 1", "недостаток 2"],
+    "complexity": "low",
+    "confidence": 0.8,
+    "estimatedTime": 3600000,
+    "filesToModify": ["tests/test1.php", "tests/test2.php"],
+    "risks": ["риск 1", "риск 2"]
+  }
+]`;
         const response = await this.callLLM(prompt);
         const options = this.parseOptions(response);
         return options.map((opt, index) => ({
@@ -109,14 +113,30 @@ ${analysis.constraints.map(c => `- ${c}`).join('\n')}
     }
     parseOptions(text) {
         try {
+            // Логируем полный ответ для отладки
+            console.log('QAAgent parseOptions - Raw response:', text);
+            // Пытаемся распарсить весь текст как JSON
+            try {
+                const parsed = JSON.parse(text.trim());
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+            }
+            catch (e) {
+                // Если не сработало, пробуем найти JSON массив в тексте
+            }
+            // Ищем JSON массив в тексте
             const jsonMatch = text.match(/\[[\s\S]*\]/);
             if (jsonMatch) {
                 const parsed = JSON.parse(jsonMatch[0]);
-                return Array.isArray(parsed) ? parsed : [];
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed;
+                }
             }
         }
         catch (error) {
-            console.error('Error parsing options:', error);
+            console.error('QAAgent: Error parsing options:', error);
+            console.error('QAAgent: Response text was:', text.substring(0, 500));
         }
         return [{
                 title: 'Базовое QA решение',

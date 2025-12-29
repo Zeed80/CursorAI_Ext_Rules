@@ -48,14 +48,23 @@ class CursorAPI {
     /**
      * Инициализация API
      */
-    static initialize(apiKey, baseUrl) {
+    static initialize(apiKey, baseUrl, apiVersion) {
         this.apiKey = apiKey || process.env.CURSOR_API_KEY;
         if (baseUrl) {
             this.apiBaseUrl = baseUrl;
         }
+        if (apiVersion) {
+            this.apiVersion = apiVersion;
+        }
+        else {
+            // Получаем из настроек
+            const config = vscode.workspace.getConfiguration('cursor-autonomous');
+            const configVersion = config.get('apiVersion', 'auto');
+            this.apiVersion = configVersion;
+        }
         if (this.apiKey) {
             this.isInitialized = true;
-            console.log('CursorAPI initialized with API key');
+            console.log(`CursorAPI initialized with API key, version: ${this.apiVersion}`);
         }
         else {
             this.isInitialized = false;
@@ -63,17 +72,103 @@ class CursorAPI {
         }
     }
     /**
+     * Автоматическое определение версии API
+     */
+    static async detectApiVersion() {
+        if (this.detectedApiVersion) {
+            return this.detectedApiVersion;
+        }
+        // Пробуем Cloud Agents API
+        try {
+            const testUrl = `${this.apiBaseUrl}/cloud-agents/models`;
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+            if (this.apiKey) {
+                headers['Authorization'] = `Bearer ${this.apiKey}`;
+            }
+            if (typeof fetch !== 'undefined') {
+                const response = await fetch(testUrl, {
+                    method: 'GET',
+                    headers
+                });
+                if (response.ok) {
+                    this.detectedApiVersion = 'cloud-agents';
+                    console.log('Detected Cloud Agents API');
+                    return 'cloud-agents';
+                }
+            }
+        }
+        catch (error) {
+            // Продолжаем проверку v0
+        }
+        // Пробуем v0 API
+        try {
+            const testUrl = `${this.apiBaseUrl}/v0/models`;
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+            if (this.apiKey) {
+                // Basic Auth для v0
+                headers['Authorization'] = `Basic ${Buffer.from(`${this.apiKey}:`).toString('base64')}`;
+            }
+            if (typeof fetch !== 'undefined') {
+                const response = await fetch(testUrl, {
+                    method: 'GET',
+                    headers
+                });
+                if (response.ok) {
+                    this.detectedApiVersion = 'v0';
+                    console.log('Detected v0 API');
+                    return 'v0';
+                }
+            }
+        }
+        catch (error) {
+            // API недоступен
+        }
+        // По умолчанию используем v0
+        this.detectedApiVersion = 'v0';
+        return 'v0';
+    }
+    /**
+     * Получение текущей версии API
+     */
+    static async getApiVersion() {
+        if (this.apiVersion === 'auto') {
+            return await this.detectApiVersion();
+        }
+        return this.apiVersion;
+    }
+    /**
      * Выполнение HTTP запроса
      * Использует fetch если доступен, иначе fallback на https модуль
      */
-    static async request(endpoint, options = {}) {
-        const url = `${this.apiBaseUrl}${endpoint}`;
+    static async request(endpoint, options = {}, useApiVersion) {
+        const apiVersion = useApiVersion || await this.getApiVersion();
+        // Определяем базовый URL в зависимости от версии API
+        let baseUrl = this.apiBaseUrl;
+        if (apiVersion === 'v0' && !endpoint.startsWith('/v0/')) {
+            baseUrl = `${this.apiBaseUrl}/v0`;
+        }
+        else if (apiVersion === 'cloud-agents' && !endpoint.startsWith('/cloud-agents/')) {
+            baseUrl = `${this.apiBaseUrl}`;
+        }
+        const url = `${baseUrl}${endpoint}`;
         const headers = {
             'Content-Type': 'application/json',
             ...options.headers
         };
+        // Аутентификация в зависимости от версии API
         if (this.apiKey) {
-            headers['Authorization'] = `Bearer ${this.apiKey}`;
+            if (apiVersion === 'v0') {
+                // Basic Auth для v0 API
+                headers['Authorization'] = `Basic ${Buffer.from(`${this.apiKey}:`).toString('base64')}`;
+            }
+            else {
+                // Bearer Auth для Cloud Agents API
+                headers['Authorization'] = `Bearer ${this.apiKey}`;
+            }
         }
         // Используем fetch если доступен (Node.js 18+)
         if (typeof fetch !== 'undefined') {
@@ -99,13 +194,23 @@ class CursorAPI {
         }
         else {
             // Fallback на https модуль для старых версий Node.js
-            return this.requestWithHttps(url, options, headers);
+            return this.requestWithHttps(url, options, headers, apiVersion);
         }
     }
     /**
      * Fallback метод для HTTP запросов через https модуль
      */
-    static requestWithHttps(url, options, headers) {
+    static async requestWithHttps(url, options, headers, apiVersion) {
+        const version = apiVersion || await this.getApiVersion();
+        // Обновляем аутентификацию если нужно
+        if (this.apiKey && !headers['Authorization']) {
+            if (version === 'v0') {
+                headers['Authorization'] = `Basic ${Buffer.from(`${this.apiKey}:`).toString('base64')}`;
+            }
+            else {
+                headers['Authorization'] = `Bearer ${this.apiKey}`;
+            }
+        }
         return new Promise((resolve, reject) => {
             try {
                 const urlObj = new url_1.URL(url);
@@ -158,19 +263,32 @@ class CursorAPI {
      */
     static async registerAgent(agent) {
         console.log(`Registering agent: ${agent.name}`);
-        // Попытка регистрации через Background Agents API
+        // Попытка регистрации через API
         if (this.isInitialized) {
             try {
-                const response = await this.request('/agents', {
-                    method: 'POST',
-                    body: {
-                        name: agent.name,
-                        description: agent.description,
-                        enabled: agent.enabled
-                    }
-                });
-                console.log('Agent registered via API:', response);
-                return true;
+                const apiVersion = await this.getApiVersion();
+                if (apiVersion === 'v0') {
+                    // v0 API использует /v0/agents
+                    const response = await this.request('/v0/agents', {
+                        method: 'POST',
+                        body: {
+                            prompt: {
+                                text: agent.description
+                            },
+                            source: {
+                                repository: '', // Будет заполнено при создании агента
+                                ref: 'main'
+                            },
+                            enabled: agent.enabled
+                        }
+                    }, 'v0');
+                    console.log('Agent registered via v0 API:', response);
+                    return true;
+                }
+                else {
+                    // Cloud Agents API - регистрация через правила (Cloud Agents запускается через launch)
+                    console.log('Cloud Agents API: registration via rules');
+                }
             }
             catch (error) {
                 console.warn('Failed to register agent via API, using fallback:', error.message);
@@ -346,11 +464,104 @@ ${agent.description}
             .map(name => name.trim());
     }
     /**
+     * Получение списка моделей через API
+     * Использует правильные endpoints согласно документации
+     */
+    static async getModelsViaAPI() {
+        if (!this.isInitialized) {
+            return [];
+        }
+        const apiVersion = await this.getApiVersion();
+        // Пробуем Cloud Agents API
+        if (apiVersion === 'cloud-agents') {
+            try {
+                const response = await this.request('/cloud-agents/models', {}, 'cloud-agents');
+                if (response && response.models && Array.isArray(response.models)) {
+                    return response.models.map(m => ({
+                        id: m.id,
+                        name: m.id,
+                        provider: m.provider || this.getProviderFromModelName(m.id),
+                        displayName: m.id
+                    }));
+                }
+            }
+            catch (error) {
+                console.debug('Cloud Agents API models request failed:', error.message);
+            }
+        }
+        // Fallback на v0 API
+        try {
+            const response = await this.request('/v0/models', {}, 'v0');
+            if (response && response.models && Array.isArray(response.models)) {
+                return response.models
+                    .filter(id => !this.isGitHubCopilotModel(id, id))
+                    .map(id => ({
+                    id,
+                    name: id,
+                    provider: this.getProviderFromModelName(id),
+                    displayName: id
+                }));
+            }
+        }
+        catch (error) {
+            console.debug('v0 API models request failed:', error.message);
+        }
+        return [];
+    }
+    /**
      * Получение списка доступных моделей из CursorAI
      * Использует ТОЛЬКО модели CursorAI, исключает модели GitHub Copilot
+     * Сначала пробует API, потом fallback на IDE настройки
      */
     static async getAvailableModels() {
         try {
+            console.log('CursorAPI.getAvailableModels() called');
+            console.log('Environment:', {
+                hasCursorGlobal: typeof global.cursor !== 'undefined',
+                hasVscodeLM: typeof vscode.lm !== 'undefined',
+                workspaceFolders: vscode.workspace.workspaceFolders?.length
+            });
+            // ПРИОРИТЕТ 1: Получение моделей через API
+            if (this.isInitialized) {
+                const apiModels = await this.getModelsViaAPI();
+                if (apiModels.length > 0) {
+                    console.log(`Found ${apiModels.length} models via API`);
+                    return apiModels;
+                }
+            }
+            // ПРИОРИТЕТ 2: Пробуем Cursor IDE API (если запущены в Cursor IDE)
+            const cursorIDEModels = await this.getCursorIDEModels();
+            if (cursorIDEModels.length > 0) {
+                const filteredModels = [];
+                for (const model of cursorIDEModels) {
+                    // Получаем id и name из модели (может быть строкой или объектом)
+                    let modelId;
+                    let modelName;
+                    if (typeof model === 'string') {
+                        const trimmedName = model.trim();
+                        modelId = trimmedName;
+                        modelName = trimmedName;
+                    }
+                    else {
+                        // Уже объект CursorModel, используем его данные
+                        modelId = model.id || model.name || '';
+                        modelName = model.name || model.displayName || model.id || '';
+                    }
+                    // Проверяем, что это не GitHub Copilot модель
+                    if (!this.isGitHubCopilotModel(modelId, modelName)) {
+                        filteredModels.push({
+                            id: modelId,
+                            name: modelName,
+                            displayName: modelName,
+                            provider: typeof model === 'string' ? this.getProviderFromModelName(modelId) : (model.provider || this.getProviderFromModelName(modelId))
+                        });
+                    }
+                }
+                if (filteredModels.length > 0) {
+                    console.log(`Found ${filteredModels.length} CursorAI models from Cursor IDE API`);
+                    return filteredModels;
+                }
+            }
             // НЕ используем Language Model API VS Code, так как он может возвращать модели GitHub Copilot
             // Используем только команды CursorAI и настройки CursorAI
             // Вариант 1: Пробуем получить через команды CursorAI (только CursorAI модели)
@@ -381,13 +592,8 @@ ${agent.description}
                         if (modelNames.length > 0) {
                             const models = modelNames
                                 .filter(name => name && typeof name === 'string' && name.trim().length > 0)
-                                // Исключаем модели GitHub Copilot
-                                .filter(name => {
-                                const lowerName = name.toLowerCase();
-                                return !lowerName.includes('github') &&
-                                    !lowerName.includes('copilot') &&
-                                    !lowerName.includes('gh-');
-                            })
+                                // КРИТИЧЕСКИ ВАЖНО: Исключаем модели GitHub Copilot - используем только модели CursorAI
+                                .filter(name => !this.isGitHubCopilotModel(name, name))
                                 .map(name => {
                                 const trimmedName = name.trim();
                                 return {
@@ -418,13 +624,8 @@ ${agent.description}
                     const modelNames = this.parseModelsFromSettings(settings);
                     if (modelNames.length > 0) {
                         const models = modelNames
-                            // Исключаем модели GitHub Copilot
-                            .filter(name => {
-                            const lowerName = name.toLowerCase();
-                            return !lowerName.includes('github') &&
-                                !lowerName.includes('copilot') &&
-                                !lowerName.includes('gh-');
-                        })
+                            // КРИТИЧЕСКИ ВАЖНО: Исключаем модели GitHub Copilot - используем только модели CursorAI
+                            .filter(name => !this.isGitHubCopilotModel(name, name))
                             .map(name => {
                             return {
                                 id: name,
@@ -485,13 +686,8 @@ ${agent.description}
             if (modelNames.length > 0) {
                 const models = modelNames
                     .filter(name => name && typeof name === 'string' && name.trim().length > 0)
-                    // Исключаем модели GitHub Copilot
-                    .filter(name => {
-                    const lowerName = name.toLowerCase();
-                    return !lowerName.includes('github') &&
-                        !lowerName.includes('copilot') &&
-                        !lowerName.includes('gh-');
-                })
+                    // КРИТИЧЕСКИ ВАЖНО: Исключаем модели GitHub Copilot - используем только модели CursorAI
+                    .filter(name => !this.isGitHubCopilotModel(name, name))
                     .map(name => {
                     const trimmedName = name.trim();
                     return {
@@ -506,20 +702,130 @@ ${agent.description}
                     return models;
                 }
             }
+            // Вариант 4: Fallback на Language Model API VS Code (с фильтрацией GitHub Copilot)
+            try {
+                // Проверяем доступность Language Model API
+                if (vscode.lm && typeof vscode.lm.selectChatModels === 'function') {
+                    try {
+                        // Пытаемся получить модели через Language Model API
+                        const lmModels = await vscode.lm.selectChatModels({});
+                        if (lmModels && lmModels.length > 0) {
+                            const models = lmModels
+                                // КРИТИЧЕСКИ ВАЖНО: Исключаем модели GitHub Copilot - используем только модели CursorAI
+                                .filter(model => !this.isGitHubCopilotModel(model.id, model.name))
+                                .map(model => {
+                                const modelId = model.id || model.name || 'unknown';
+                                const modelName = model.name || model.id || 'unknown';
+                                return {
+                                    id: modelId,
+                                    name: modelName,
+                                    displayName: modelName,
+                                    provider: this.getProviderFromModelName(modelId)
+                                };
+                            });
+                            if (models.length > 0) {
+                                console.log(`Found ${models.length} models via Language Model API (filtered):`, models.map(m => m.id));
+                                return models;
+                            }
+                        }
+                    }
+                    catch (lmError) {
+                        console.debug('Language Model API not available or failed:', lmError.message);
+                    }
+                }
+            }
+            catch (lmApiError) {
+                console.debug('Language Model API check failed:', lmApiError.message);
+            }
             // Если модели не найдены, возвращаем пустой массив
             console.warn('No models found in CursorAI. Models will be selected automatically by CursorAI.');
+            console.warn('Tried methods: Cursor IDE API, CursorAI commands, settings file, VS Code settings, Language Model API');
+            console.warn('This is normal if using Cursor AI - it will auto-select models.');
             return [];
         }
         catch (error) {
             console.error('Failed to get models from CursorAI:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack
+            });
             return [];
         }
+    }
+    /**
+     * Получение моделей через Cursor IDE API
+     * Используется если расширение запущено в Cursor IDE
+     * Возвращает массив строк или массив объектов CursorModel
+     */
+    static async getCursorIDEModels() {
+        try {
+            // Проверяем наличие глобального объекта Cursor
+            if (typeof global.cursor !== 'undefined') {
+                const cursorApi = global.cursor;
+                // Пытаемся получить модели через Cursor API
+                if (typeof cursorApi.getAvailableModels === 'function') {
+                    const models = await cursorApi.getAvailableModels();
+                    if (Array.isArray(models) && models.length > 0) {
+                        console.log(`Got ${models.length} models from Cursor IDE API`);
+                        return models;
+                    }
+                }
+                // Пробуем через cursor.chat
+                if (cursorApi.chat && typeof cursorApi.chat.getAvailableModels === 'function') {
+                    const models = await cursorApi.chat.getAvailableModels();
+                    if (Array.isArray(models) && models.length > 0) {
+                        console.log(`Got ${models.length} models from Cursor IDE Chat API`);
+                        return models;
+                    }
+                }
+            }
+            return [];
+        }
+        catch (error) {
+            console.debug('Cursor IDE API not available:', error.message);
+            return [];
+        }
+    }
+    /**
+     * Проверка, является ли модель GitHub Copilot
+     * КРИТИЧЕСКИ ВАЖНО: GitHub Copilot модели НИКОГДА не должны использоваться
+     * Используем только модели активные в CursorAI
+     */
+    static isGitHubCopilotModel(modelId, modelName) {
+        if (!modelId && !modelName) {
+            return false;
+        }
+        const id = (modelId || '').toLowerCase();
+        const name = (modelName || '').toLowerCase();
+        const combined = `${id} ${name}`.toLowerCase();
+        // Строгая фильтрация всех возможных вариантов GitHub Copilot
+        const copilotPatterns = [
+            'github',
+            'copilot',
+            'gh-',
+            'gh_',
+            'github-copilot',
+            'github_copilot',
+            'copilot-chat',
+            'copilot_chat',
+            'githubcopilot',
+            'ghcopilot',
+            'microsoft-github',
+            'microsoft_github'
+        ];
+        return copilotPatterns.some(pattern => id.includes(pattern) ||
+            name.includes(pattern) ||
+            combined.includes(pattern));
     }
     /**
      * Определение провайдера модели по её имени
      */
     static getProviderFromModelName(modelName) {
         const lowerName = modelName.toLowerCase();
+        // Исключаем GitHub Copilot
+        if (this.isGitHubCopilotModel(modelName, modelName)) {
+            return 'github-copilot-excluded';
+        }
         if (lowerName.includes('gpt') || lowerName.includes('openai')) {
             return 'openai';
         }
@@ -540,13 +846,42 @@ ${agent.description}
     static async setAgentModel(agentId, modelId) {
         if (this.isInitialized) {
             try {
-                await this.request(`/agents/${agentId}`, {
-                    method: 'PATCH',
-                    body: {
-                        model: modelId
+                const apiVersion = await this.getApiVersion();
+                const backgroundAgentId = this.backgroundAgentIds.get(agentId) ||
+                    vscode.workspace.getConfiguration('cursor-autonomous').get(`agents.${agentId}.backgroundAgentId`);
+                if (backgroundAgentId) {
+                    if (apiVersion === 'v0') {
+                        // v0 API: отправляем followup с новой моделью
+                        try {
+                            await this.request(`/v0/agents/${backgroundAgentId}/followup`, {
+                                method: 'POST',
+                                body: {
+                                    prompt: {
+                                        text: 'Update model'
+                                    },
+                                    model: modelId
+                                }
+                            }, 'v0');
+                            console.log(`v0 Agent ${backgroundAgentId} model updated to ${modelId}`);
+                            return true;
+                        }
+                        catch (error) {
+                            console.warn('Failed to update model via v0 API:', error.message);
+                        }
                     }
-                });
-                return true;
+                    else {
+                        // Cloud Agents API: пересоздаем агента с новой моделью
+                        // Получаем информацию об агенте из настроек
+                        const config = vscode.workspace.getConfiguration('cursor-autonomous');
+                        const agentConfig = config.get(`agents.${agentId}`, {});
+                        if (agentConfig.name && agentConfig.description) {
+                            const newAgentId = await this.createOrUpdateBackgroundAgent(agentId, agentConfig.name, agentConfig.description, agentConfig.instructions || agentConfig.description, modelId);
+                            if (newAgentId) {
+                                return true;
+                            }
+                        }
+                    }
+                }
             }
             catch (error) {
                 console.warn('Failed to set model via API:', error.message);
@@ -575,33 +910,42 @@ ${agent.description}
         // Если есть фоновый агент, используем его для отправки сообщения
         if (backgroundAgentId && this.isInitialized) {
             try {
-                const requestBody = { message: message };
-                const response = await this.request(`/background-agents/${backgroundAgentId}/messages`, {
-                    method: 'POST',
-                    body: requestBody
-                });
-                return response.response || '';
+                const apiVersion = await this.getApiVersion();
+                if (apiVersion === 'v0') {
+                    // v0 API: используем followup для отправки сообщения
+                    const requestBody = {
+                        prompt: {
+                            text: message
+                        }
+                    };
+                    if (modelId) {
+                        requestBody.model = modelId;
+                    }
+                    const response = await this.request(`/v0/agents/${backgroundAgentId}/followup`, {
+                        method: 'POST',
+                        body: requestBody
+                    }, 'v0');
+                    // Парсим ответ из разных возможных форматов
+                    if (response.response) {
+                        return response.response;
+                    }
+                    else if (response.messages && response.messages.length > 0) {
+                        return response.messages[response.messages.length - 1].text;
+                    }
+                }
+                else {
+                    // Cloud Agents API: используем conversation endpoint
+                    const requestBody = { message: message };
+                    const response = await this.request(`/cloud-agents/${backgroundAgentId}/conversation`, {
+                        method: 'POST',
+                        body: requestBody
+                    }, 'cloud-agents');
+                    return response.response || '';
+                }
             }
             catch (error) {
                 console.warn(`Failed to send message via background agent ${backgroundAgentId}:`, error.message);
                 // Продолжаем с fallback
-            }
-        }
-        // Fallback: используем старый API
-        if (this.isInitialized) {
-            try {
-                const requestBody = { message: message };
-                if (modelId) {
-                    requestBody.model = modelId;
-                }
-                const response = await this.request(`/agents/${agentId}/messages`, {
-                    method: 'POST',
-                    body: requestBody
-                });
-                return response.response || '';
-            }
-            catch (error) {
-                console.warn('Failed to send message via API:', error.message);
             }
         }
         // Последний fallback: возвращаем заглушку
@@ -613,8 +957,35 @@ ${agent.description}
     static async getAgentStatus(agentId) {
         if (this.isInitialized) {
             try {
-                const response = await this.request(`/agents/${agentId}/status`);
-                return response.status || 'inactive';
+                const apiVersion = await this.getApiVersion();
+                const backgroundAgentId = this.backgroundAgentIds.get(agentId) ||
+                    vscode.workspace.getConfiguration('cursor-autonomous').get(`agents.${agentId}.backgroundAgentId`);
+                if (backgroundAgentId) {
+                    if (apiVersion === 'v0') {
+                        // v0 API: получаем статус через /v0/agents/{id}
+                        const response = await this.request(`/v0/agents/${backgroundAgentId}`, {}, 'v0');
+                        if (response.status) {
+                            const status = response.status.toLowerCase();
+                            if (status === 'running' || status === 'active')
+                                return 'active';
+                            if (status === 'failed' || status === 'error')
+                                return 'error';
+                            return 'inactive';
+                        }
+                    }
+                    else {
+                        // Cloud Agents API: используем /cloud-agents/status/{id}
+                        const response = await this.request(`/cloud-agents/status/${backgroundAgentId}`, {}, 'cloud-agents');
+                        if (response.status) {
+                            const status = response.status.toLowerCase();
+                            if (status === 'running' || status === 'active')
+                                return 'active';
+                            if (status === 'failed' || status === 'error')
+                                return 'error';
+                            return 'inactive';
+                        }
+                    }
+                }
             }
             catch (error) {
                 console.warn('Failed to get status via API:', error.message);
@@ -631,10 +1002,16 @@ ${agent.description}
     static async listBackgroundAgents() {
         if (this.isInitialized) {
             try {
-                const response = await this.request('/background-agents', {
-                    method: 'GET'
-                });
-                return response.agents || [];
+                const apiVersion = await this.getApiVersion();
+                if (apiVersion === 'v0') {
+                    // v0 API не имеет endpoint для списка агентов, возвращаем пустой массив
+                    return [];
+                }
+                else {
+                    // Cloud Agents API может иметь endpoint для списка, но он не документирован
+                    // Возвращаем пустой массив
+                    return [];
+                }
             }
             catch (error) {
                 console.warn('Failed to list background agents via API:', error.message);
@@ -648,10 +1025,20 @@ ${agent.description}
     static async getBackgroundAgent(agentId) {
         if (this.isInitialized) {
             try {
-                const response = await this.request(`/background-agents/${agentId}`, {
-                    method: 'GET'
-                });
-                return response;
+                const apiVersion = await this.getApiVersion();
+                if (apiVersion === 'v0') {
+                    const response = await this.request(`/v0/agents/${agentId}`, {
+                        method: 'GET'
+                    }, 'v0');
+                    return response;
+                }
+                else {
+                    // Cloud Agents API: используем status endpoint
+                    const response = await this.request(`/cloud-agents/status/${agentId}`, {
+                        method: 'GET'
+                    }, 'cloud-agents');
+                    return response;
+                }
             }
             catch (error) {
                 console.debug(`Background agent ${agentId} not found:`, error.message);
@@ -674,49 +1061,119 @@ ${agent.description}
         const existingBackgroundAgentId = this.backgroundAgentIds.get(agentId);
         if (this.isInitialized) {
             try {
-                // Если агент существует, обновляем его
-                if (existingBackgroundAgentId) {
+                const apiVersion = await this.getApiVersion();
+                if (apiVersion === 'v0') {
+                    // v0 API: используем POST /v0/agents для создания агента
+                    // Если агент существует, отправляем followup для обновления модели
+                    if (existingBackgroundAgentId && modelId) {
+                        try {
+                            // Отправляем followup с новой моделью
+                            await this.request(`/v0/agents/${existingBackgroundAgentId}/followup`, {
+                                method: 'POST',
+                                body: {
+                                    prompt: {
+                                        text: instructions
+                                    },
+                                    model: modelId
+                                }
+                            }, 'v0');
+                            console.log(`v0 Agent ${existingBackgroundAgentId} model updated to ${modelId}`);
+                            return existingBackgroundAgentId;
+                        }
+                        catch (error) {
+                            console.debug(`Failed to update v0 agent model:`, error.message);
+                            // Продолжаем создание нового агента
+                        }
+                    }
+                    // Создаем нового агента через v0 API
                     try {
-                        const updateBody = {
-                            name: name,
-                            description: description,
-                            instructions: instructions,
-                            enabled: true
+                        // Получаем информацию о репозитории из workspace
+                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+                        let repositoryId = '';
+                        if (workspaceFolder) {
+                            // Пытаемся определить репозиторий из git
+                            try {
+                                const gitConfigPath = vscode.Uri.joinPath(workspaceFolder.uri, '.git', 'config');
+                                await vscode.workspace.fs.stat(gitConfigPath);
+                                // Если есть .git, используем путь workspace как repository_id
+                                repositoryId = workspaceFolder.uri.fsPath;
+                            }
+                            catch {
+                                // Нет git репозитория
+                            }
+                        }
+                        const createBody = {
+                            prompt: {
+                                text: `${instructions}\n\n${description}`
+                            },
+                            source: {
+                                repository: repositoryId || 'local',
+                                ref: 'main'
+                            },
+                            target: {
+                                autoCreatePr: false
+                            }
                         };
                         if (modelId) {
-                            updateBody.model = modelId;
+                            createBody.model = modelId;
                         }
-                        const response = await this.request(`/background-agents/${existingBackgroundAgentId}`, {
-                            method: 'PATCH',
-                            body: updateBody
-                        });
-                        console.log(`Background agent ${existingBackgroundAgentId} updated for agent ${agentId}`);
-                        return existingBackgroundAgentId;
+                        const response = await this.request('/v0/agents', {
+                            method: 'POST',
+                            body: createBody
+                        }, 'v0');
+                        if (response && response.id) {
+                            this.backgroundAgentIds.set(agentId, response.id);
+                            console.log(`v0 Agent ${response.id} created for agent ${agentId} with model ${modelId || 'auto'}`);
+                            // Сохраняем ID в настройках
+                            const config = vscode.workspace.getConfiguration('cursor-autonomous');
+                            await config.update(`agents.${agentId}.backgroundAgentId`, response.id, vscode.ConfigurationTarget.Global);
+                            return response.id;
+                        }
                     }
                     catch (error) {
-                        // Если агент не найден, создадим новый
-                        console.debug(`Background agent ${existingBackgroundAgentId} not found, creating new one:`, error.message);
-                        this.backgroundAgentIds.delete(agentId);
+                        console.error('Failed to create v0 agent:', error.message);
                     }
                 }
-                // Создаем нового агента
-                const createBody = {
-                    name: name,
-                    description: description,
-                    instructions: instructions,
-                    enabled: true
-                };
-                if (modelId) {
-                    createBody.model = modelId;
-                }
-                const response = await this.request('/background-agents', {
-                    method: 'POST',
-                    body: createBody
-                });
-                if (response && response.id) {
-                    this.backgroundAgentIds.set(agentId, response.id);
-                    console.log(`Background agent ${response.id} created for agent ${agentId} with model ${modelId || 'auto'}`);
-                    return response.id;
+                else {
+                    // Cloud Agents API: используем POST /cloud-agents/launch
+                    // Cloud Agents запускается для конкретной задачи, поэтому создаем новый каждый раз
+                    try {
+                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+                        let repositoryId = 'local';
+                        if (workspaceFolder) {
+                            // Пытаемся определить репозиторий
+                            try {
+                                const gitConfigPath = vscode.Uri.joinPath(workspaceFolder.uri, '.git', 'config');
+                                await vscode.workspace.fs.stat(gitConfigPath);
+                                repositoryId = workspaceFolder.uri.fsPath;
+                            }
+                            catch {
+                                repositoryId = 'local';
+                            }
+                        }
+                        const launchBody = {
+                            repository_id: repositoryId,
+                            instructions: `${instructions}\n\n${description}`
+                        };
+                        if (modelId) {
+                            launchBody.model_id = modelId;
+                        }
+                        const response = await this.request('/cloud-agents/launch', {
+                            method: 'POST',
+                            body: launchBody
+                        }, 'cloud-agents');
+                        if (response && response.agent_id) {
+                            this.backgroundAgentIds.set(agentId, response.agent_id);
+                            console.log(`Cloud Agent ${response.agent_id} launched for agent ${agentId} with model ${modelId || 'auto'}`);
+                            // Сохраняем ID в настройках
+                            const config = vscode.workspace.getConfiguration('cursor-autonomous');
+                            await config.update(`agents.${agentId}.backgroundAgentId`, response.agent_id, vscode.ConfigurationTarget.Global);
+                            return response.agent_id;
+                        }
+                    }
+                    catch (error) {
+                        console.error('Failed to launch cloud agent:', error.message);
+                    }
                 }
             }
             catch (error) {
@@ -764,7 +1221,9 @@ ${agent.description}
     }
 }
 exports.CursorAPI = CursorAPI;
-CursorAPI.apiBaseUrl = 'https://api.cursor.com/v0';
+CursorAPI.apiBaseUrl = 'https://api.cursor.com';
+CursorAPI.apiVersion = 'auto';
+CursorAPI.detectedApiVersion = null;
 CursorAPI.isInitialized = false;
 CursorAPI.backgroundAgentIds = new Map(); // agentId -> backgroundAgentId
 //# sourceMappingURL=cursor-api.js.map
