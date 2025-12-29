@@ -91,7 +91,7 @@
   },
   "dependencies": {
     "version": "1.0.0",
-    "lastUpdated": "2025-12-29T10:59:00.038Z",
+    "lastUpdated": "2025-12-29T11:03:23.643Z",
     "files": {
       "build-standalone.js": {
         "exports": [],
@@ -1207,43 +1207,731 @@
         "dependents": [
           "src/extension.ts"
         ]
+      },
+      "out/agents/analyst-agent.js": {
+        "exports": [],
+        "imports": [
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "AnalystAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/agents/architect-agent.js": {
+        "exports": [],
+        "imports": [
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "ArchitectAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/agents/backend-agent.js": {
+        "exports": [],
+        "imports": [
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "BackendAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/agents/devops-agent.js": {
+        "exports": [],
+        "imports": [
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "DevOpsAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/agents/frontend-agent.js": {
+        "exports": [],
+        "imports": [
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "FrontendAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/agents/local-agent.js": {
+        "exports": [],
+        "imports": [
+          "../integration/cursor-api",
+          "../integration/settings-manager"
+        ],
+        "dependencies": {
+          "classes": [
+            "LocalAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/analyst-agent.js",
+          "out/agents/architect-agent.js",
+          "out/agents/backend-agent.js",
+          "out/agents/devops-agent.js",
+          "out/agents/frontend-agent.js",
+          "out/agents/qa-agent.js"
+        ]
+      },
+      "out/agents/qa-agent.js": {
+        "exports": [],
+        "imports": [
+          "./local-agent"
+        ],
+        "dependencies": {
+          "classes": [
+            "QAAgent"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/agents/self-improver.js": {
+        "exports": [],
+        "imports": [
+          "../self-improvement/performance-monitor",
+          "../self-improvement/knowledge-searcher",
+          "../self-improvement/rule-updater",
+          "../self-improvement/agent-optimizer"
+        ],
+        "dependencies": {
+          "classes": [
+            "SelfImprover"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      },
+      "out/agents/virtual-user-decision.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "DecisionMaker"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/virtual-user.js"
+        ]
+      },
+      "out/agents/virtual-user-monitor.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "ProjectMonitor"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/virtual-user.js"
+        ]
+      },
+      "out/agents/virtual-user.js": {
+        "exports": [],
+        "imports": [
+          "../integration/ui-integration",
+          "./virtual-user-monitor",
+          "./virtual-user-decision"
+        ],
+        "dependencies": {
+          "classes": [
+            "VirtualUser"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      },
+      "out/extension.js": {
+        "exports": [],
+        "imports": [
+          "./orchestrator/self-learning-orchestrator",
+          "./integration/settings-manager",
+          "./integration/ui-integration",
+          "./agents/virtual-user",
+          "./agents/self-improver",
+          "./storage/rules-integration",
+          "./integration/cursor-api",
+          "./ui/agents-status-tree",
+          "./ui/status-panel",
+          "./ui/analytics-panel",
+          "./integration/model-provider",
+          "./integration/settings-manager",
+          "./integration/cursor-api"
+        ],
+        "dependencies": {
+          "classes": [],
+          "functions": [
+            "activate",
+            "sendTaskToChatHelper",
+            "startStatusUpdates",
+            "updateAgentsStatus",
+            "getStatusText",
+            "updateStatusBar",
+            "deactivate"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": []
+      },
+      "out/integration/cursor-api.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "CursorAPI"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/local-agent.js",
+          "out/extension.js",
+          "out/integration/model-provider.js",
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/integration/model-provider.js": {
+        "exports": [],
+        "imports": [
+          "./cursor-api"
+        ],
+        "dependencies": {
+          "classes": [
+            "ModelProvider"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js",
+          "out/orchestrator/self-learning-orchestrator.js",
+          "out/ui/status-panel.js"
+        ]
+      },
+      "out/integration/settings-manager.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "SettingsManager"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/local-agent.js",
+          "out/extension.js",
+          "out/integration/ui-integration.js"
+        ]
+      },
+      "out/integration/ui-integration.js": {
+        "exports": [],
+        "imports": [
+          "./settings-manager"
+        ],
+        "dependencies": {
+          "classes": [
+            "UIIntegration"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/virtual-user.js",
+          "out/extension.js"
+        ]
+      },
+      "out/orchestrator/agent-manager.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "AgentManager"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/orchestrator.js"
+        ]
+      },
+      "out/orchestrator/autonomous-mode.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "AutonomousMode"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": []
+      },
+      "out/orchestrator/brainstorming-manager.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "BrainstormingManager"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/learning-engine.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "LearningEngine"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/orchestrator.js": {
+        "exports": [],
+        "imports": [
+          "./agent-manager",
+          "./task-planner",
+          "./project-analyzer",
+          "./rule-generator",
+          "./task-analytics",
+          "./task-executor"
+        ],
+        "dependencies": {
+          "classes": [
+            "Orchestrator"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/project-analyzer.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "ProjectAnalyzer"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/orchestrator.js",
+          "out/orchestrator/rule-generator.js",
+          "out/orchestrator/self-learning-orchestrator.js",
+          "out/storage/rules-integration.js"
+        ]
+      },
+      "out/orchestrator/project-dependency-graph.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "ProjectDependencyGraph"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/project-knowledge-base.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "ProjectKnowledgeBase"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/quality-checker.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "QualityChecker"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/rule-generator.js": {
+        "exports": [],
+        "imports": [
+          "./project-analyzer"
+        ],
+        "dependencies": {
+          "classes": [
+            "RuleGenerator"
+          ],
+          "functions": [],
+          "types": [
+            "hints"
+          ],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/orchestrator.js",
+          "out/storage/rules-integration.js"
+        ]
+      },
+      "out/orchestrator/self-learning-orchestrator.js": {
+        "exports": [],
+        "imports": [
+          "./orchestrator",
+          "../agents/backend-agent",
+          "../agents/frontend-agent",
+          "../agents/architect-agent",
+          "../agents/analyst-agent",
+          "../agents/devops-agent",
+          "../agents/qa-agent",
+          "./brainstorming-manager",
+          "./solution-evaluator",
+          "./project-dependency-graph",
+          "./project-knowledge-base",
+          "./learning-engine",
+          "./project-analyzer",
+          "./quality-checker",
+          "../integration/cursor-api",
+          "../integration/model-provider"
+        ],
+        "dependencies": {
+          "classes": [
+            "SelfLearningOrchestrator"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      },
+      "out/orchestrator/solution-evaluator.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "SolutionEvaluator"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/self-learning-orchestrator.js"
+        ]
+      },
+      "out/orchestrator/task-analytics.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "TaskAnalytics"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/orchestrator.js"
+        ]
+      },
+      "out/orchestrator/task-executor.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "TaskExecutor"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/orchestrator.js"
+        ]
+      },
+      "out/orchestrator/task-planner.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "TaskPlanner"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/orchestrator/orchestrator.js"
+        ]
+      },
+      "out/self-improvement/agent-optimizer.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "AgentOptimizer"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/self-improver.js"
+        ]
+      },
+      "out/self-improvement/knowledge-searcher.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "KnowledgeSearcher"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/self-improver.js"
+        ]
+      },
+      "out/self-improvement/performance-monitor.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "PerformanceMonitor"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/self-improver.js"
+        ]
+      },
+      "out/self-improvement/rule-updater.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "RuleUpdater"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/agents/self-improver.js"
+        ]
+      },
+      "out/storage/rules-integration.js": {
+        "exports": [],
+        "imports": [
+          "../orchestrator/project-analyzer",
+          "../orchestrator/rule-generator",
+          "./rules-versioning"
+        ],
+        "dependencies": {
+          "classes": [
+            "RulesIntegration"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      },
+      "out/storage/rules-versioning.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "RulesVersioning"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/storage/rules-integration.js"
+        ]
+      },
+      "out/ui/agents-status-tree.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "AgentsStatusTreeProvider",
+            "AgentTreeItem",
+            "TaskTreeItem"
+          ],
+          "functions": [],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      },
+      "out/ui/analytics-panel.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "AnalyticsPanel"
+          ],
+          "functions": [
+            "refresh",
+            "exportReport"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
+      },
+      "out/ui/quick-access-panel.js": {
+        "exports": [],
+        "imports": [],
+        "dependencies": {
+          "classes": [
+            "QuickAccessPanel"
+          ],
+          "functions": [
+            "executeCommand",
+            "updateStatus"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": []
+      },
+      "out/ui/status-panel.js": {
+        "exports": [],
+        "imports": [
+          "../integration/model-provider"
+        ],
+        "dependencies": {
+          "classes": [
+            "StatusPanel"
+          ],
+          "functions": [
+            "refresh",
+            "agentClick",
+            "selectModel",
+            "sendTaskToChat"
+          ],
+          "types": [],
+          "variables": []
+        },
+        "dependents": [
+          "out/extension.js"
+        ]
       }
     },
     "indexes": {
       "byExport": {
-        "AnalystAgent": [
-          "src/agents/analyst-agent.ts"
-        ],
-        "ArchitectAgent": [
-          "src/agents/architect-agent.ts"
-        ],
-        "BackendAgent": [
-          "src/agents/backend-agent.ts"
-        ],
-        "DevOpsAgent": [
-          "src/agents/devops-agent.ts"
-        ],
-        "FrontendAgent": [
-          "src/agents/frontend-agent.ts"
-        ],
-        "ProjectContext": [
-          "src/agents/local-agent.ts"
-        ],
-        "SolutionOption": [
-          "src/agents/local-agent.ts"
-        ],
-        "AgentThoughts": [
-          "src/agents/local-agent.ts"
-        ],
-        "AgentSolution": [
-          "src/agents/local-agent.ts"
-        ],
-        "ExecutionResult": [
-          "src/agents/local-agent.ts"
-        ],
-        "QAAgent": [
-          "src/agents/qa-agent.ts"
-        ],
         "SelfImprover": [
           "src/agents/self-improver.ts"
         ],
@@ -1273,21 +1961,6 @@
         ],
         "deactivate": [
           "src/extension.ts"
-        ],
-        "CursorAgent": [
-          "src/integration/cursor-api.ts"
-        ],
-        "CursorModel": [
-          "src/integration/cursor-api.ts"
-        ],
-        "BackgroundAgentConfig": [
-          "src/integration/cursor-api.ts"
-        ],
-        "ApiVersion": [
-          "src/integration/cursor-api.ts"
-        ],
-        "CursorAPI": [
-          "src/integration/cursor-api.ts"
         ],
         "LanguageModelInfo": [
           "src/integration/model-provider.ts"
@@ -1489,24 +2162,78 @@
         ],
         "StatusPanel": [
           "src/ui/status-panel.ts"
+        ],
+        "AnalystAgent": [
+          "src/agents/analyst-agent.ts"
+        ],
+        "ArchitectAgent": [
+          "src/agents/architect-agent.ts"
+        ],
+        "BackendAgent": [
+          "src/agents/backend-agent.ts"
+        ],
+        "DevOpsAgent": [
+          "src/agents/devops-agent.ts"
+        ],
+        "FrontendAgent": [
+          "src/agents/frontend-agent.ts"
+        ],
+        "ProjectContext": [
+          "src/agents/local-agent.ts"
+        ],
+        "SolutionOption": [
+          "src/agents/local-agent.ts"
+        ],
+        "AgentThoughts": [
+          "src/agents/local-agent.ts"
+        ],
+        "AgentSolution": [
+          "src/agents/local-agent.ts"
+        ],
+        "ExecutionResult": [
+          "src/agents/local-agent.ts"
+        ],
+        "QAAgent": [
+          "src/agents/qa-agent.ts"
+        ],
+        "CursorAgent": [
+          "src/integration/cursor-api.ts"
+        ],
+        "CursorModel": [
+          "src/integration/cursor-api.ts"
+        ],
+        "BackgroundAgentConfig": [
+          "src/integration/cursor-api.ts"
+        ],
+        "ApiVersion": [
+          "src/integration/cursor-api.ts"
+        ],
+        "CursorAPI": [
+          "src/integration/cursor-api.ts"
         ]
       },
       "byImport": {
         "../orchestrator/orchestrator": [
+          "src/agents/self-improver.ts",
+          "src/agents/virtual-user.ts",
+          "src/ui/agents-status-tree.ts",
+          "src/ui/analytics-panel.ts",
+          "src/ui/status-panel.ts",
           "src/agents/analyst-agent.ts",
           "src/agents/architect-agent.ts",
           "src/agents/backend-agent.ts",
           "src/agents/devops-agent.ts",
           "src/agents/frontend-agent.ts",
           "src/agents/local-agent.ts",
-          "src/agents/qa-agent.ts",
-          "src/agents/self-improver.ts",
-          "src/agents/virtual-user.ts",
-          "src/ui/agents-status-tree.ts",
-          "src/ui/analytics-panel.ts",
-          "src/ui/status-panel.ts"
+          "src/agents/qa-agent.ts"
         ],
         "./local-agent": [
+          "out/agents/analyst-agent.js",
+          "out/agents/architect-agent.js",
+          "out/agents/backend-agent.js",
+          "out/agents/devops-agent.js",
+          "out/agents/frontend-agent.js",
+          "out/agents/qa-agent.js",
           "src/agents/analyst-agent.ts",
           "src/agents/architect-agent.ts",
           "src/agents/backend-agent.ts",
@@ -1515,17 +2242,20 @@
           "src/agents/qa-agent.ts"
         ],
         "../integration/cursor-api": [
-          "src/agents/local-agent.ts",
           "src/orchestrator/self-learning-orchestrator.ts",
-          "src/orchestrator/task-executor.ts"
+          "src/orchestrator/task-executor.ts",
+          "out/agents/local-agent.js",
+          "out/orchestrator/self-learning-orchestrator.js",
+          "src/agents/local-agent.ts"
         ],
         "../integration/model-provider": [
-          "src/agents/local-agent.ts",
           "src/orchestrator/agent-manager.ts",
-          "src/ui/agents-status-tree.ts"
+          "src/ui/agents-status-tree.ts",
+          "out/orchestrator/self-learning-orchestrator.js",
+          "out/ui/status-panel.js",
+          "src/agents/local-agent.ts"
         ],
         "../integration/settings-manager": [
-          "src/agents/local-agent.ts",
           "src/agents/self-improver.ts",
           "src/agents/virtual-user-decision.ts",
           "src/agents/virtual-user-monitor.ts",
@@ -1536,76 +2266,97 @@
           "src/orchestrator/self-learning-orchestrator.ts",
           "src/orchestrator/task-analytics.ts",
           "src/self-improvement/knowledge-searcher.ts",
-          "src/self-improvement/performance-monitor.ts"
+          "src/self-improvement/performance-monitor.ts",
+          "out/agents/local-agent.js",
+          "src/agents/local-agent.ts"
         ],
         "../self-improvement/performance-monitor": [
-          "src/agents/self-improver.ts"
+          "src/agents/self-improver.ts",
+          "out/agents/self-improver.js"
         ],
         "../self-improvement/knowledge-searcher": [
-          "src/agents/self-improver.ts"
+          "src/agents/self-improver.ts",
+          "out/agents/self-improver.js"
         ],
         "../self-improvement/rule-updater": [
-          "src/agents/self-improver.ts"
+          "src/agents/self-improver.ts",
+          "out/agents/self-improver.js"
         ],
         "../self-improvement/agent-optimizer": [
-          "src/agents/self-improver.ts"
+          "src/agents/self-improver.ts",
+          "out/agents/self-improver.js"
         ],
         "./virtual-user": [
           "src/agents/virtual-user-decision.ts"
         ],
         "../integration/ui-integration": [
-          "src/agents/virtual-user.ts"
+          "src/agents/virtual-user.ts",
+          "out/agents/virtual-user.js"
         ],
         "./virtual-user-monitor": [
-          "src/agents/virtual-user.ts"
+          "src/agents/virtual-user.ts",
+          "out/agents/virtual-user.js"
         ],
         "./virtual-user-decision": [
-          "src/agents/virtual-user.ts"
+          "src/agents/virtual-user.ts",
+          "out/agents/virtual-user.js"
         ],
         "./orchestrator/orchestrator": [
           "src/extension.ts"
         ],
         "./orchestrator/self-learning-orchestrator": [
-          "src/extension.ts"
+          "src/extension.ts",
+          "out/extension.js"
         ],
         "./integration/settings-manager": [
-          "src/extension.ts"
+          "src/extension.ts",
+          "out/extension.js"
         ],
         "./integration/ui-integration": [
-          "src/extension.ts"
+          "src/extension.ts",
+          "out/extension.js"
         ],
         "./agents/virtual-user": [
-          "src/extension.ts"
+          "src/extension.ts",
+          "out/extension.js"
         ],
         "./agents/self-improver": [
-          "src/extension.ts"
+          "src/extension.ts",
+          "out/extension.js"
         ],
         "./storage/rules-integration": [
-          "src/extension.ts"
+          "src/extension.ts",
+          "out/extension.js"
         ],
         "./integration/cursor-api": [
-          "src/extension.ts"
+          "src/extension.ts",
+          "out/extension.js"
         ],
         "./ui/agents-status-tree": [
-          "src/extension.ts"
+          "src/extension.ts",
+          "out/extension.js"
         ],
         "./ui/status-panel": [
-          "src/extension.ts"
+          "src/extension.ts",
+          "out/extension.js"
         ],
         "./ui/analytics-panel": [
-          "src/extension.ts"
+          "src/extension.ts",
+          "out/extension.js"
         ],
         "./agents/local-agent": [
           "src/extension.ts"
         ],
         "./cursor-api": [
-          "src/integration/model-provider.ts"
+          "src/integration/model-provider.ts",
+          "out/integration/model-provider.js"
         ],
         "./model-provider": [
           "src/integration/settings-manager.ts"
         ],
         "./settings-manager": [
-          "src/integration/ui-integration.ts"
+          "src/integration/ui-integration.ts",
+          "out/integration/ui-integration.js"
         ],
         "./orchestrator": [
           "src/orchestrator/agent-manager.ts",
@@ -1616,7 +2367,8 @@
           "src/orchestrator/self-learning-orchestrator.ts",
           "src/orchestrator/task-analytics.ts",
           "src/orchestrator/task-executor.ts",
-          "src/orchestrator/task-planner.ts"
+          "src/orchestrator/task-planner.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "../agents/local-agent": [
           "src/orchestrator/agent-manager.ts",
@@ -1636,68 +2388,88 @@
         "./project-knowledge-base": [
           "src/orchestrator/learning-engine.ts",
           "src/orchestrator/quality-checker.ts",
-          "src/orchestrator/self-learning-orchestrator.ts"
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "./agent-manager": [
           "src/orchestrator/orchestrator.ts",
           "src/orchestrator/self-learning-orchestrator.ts",
-          "src/orchestrator/task-planner.ts"
+          "src/orchestrator/task-planner.ts",
+          "out/orchestrator/orchestrator.js"
         ],
         "./task-planner": [
-          "src/orchestrator/orchestrator.ts"
+          "src/orchestrator/orchestrator.ts",
+          "out/orchestrator/orchestrator.js"
         ],
         "./project-analyzer": [
           "src/orchestrator/orchestrator.ts",
           "src/orchestrator/project-knowledge-base.ts",
           "src/orchestrator/rule-generator.ts",
-          "src/orchestrator/self-learning-orchestrator.ts"
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "out/orchestrator/orchestrator.js",
+          "out/orchestrator/rule-generator.js",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "./rule-generator": [
-          "src/orchestrator/orchestrator.ts"
+          "src/orchestrator/orchestrator.ts",
+          "out/orchestrator/orchestrator.js"
         ],
         "./task-analytics": [
           "src/orchestrator/orchestrator.ts",
-          "src/orchestrator/task-executor.ts"
+          "src/orchestrator/task-executor.ts",
+          "out/orchestrator/orchestrator.js"
         ],
         "./task-executor": [
-          "src/orchestrator/orchestrator.ts"
+          "src/orchestrator/orchestrator.ts",
+          "out/orchestrator/orchestrator.js"
         ],
         "./quality-checker": [
           "src/orchestrator/orchestrator.ts",
-          "src/orchestrator/self-learning-orchestrator.ts"
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "./project-dependency-graph": [
           "src/orchestrator/project-knowledge-base.ts",
           "src/orchestrator/quality-checker.ts",
           "src/orchestrator/self-learning-orchestrator.ts",
-          "src/orchestrator/solution-evaluator.ts"
+          "src/orchestrator/solution-evaluator.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "../agents/backend-agent": [
-          "src/orchestrator/self-learning-orchestrator.ts"
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "../agents/frontend-agent": [
-          "src/orchestrator/self-learning-orchestrator.ts"
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "../agents/architect-agent": [
-          "src/orchestrator/self-learning-orchestrator.ts"
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "../agents/analyst-agent": [
-          "src/orchestrator/self-learning-orchestrator.ts"
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "../agents/devops-agent": [
-          "src/orchestrator/self-learning-orchestrator.ts"
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "../agents/qa-agent": [
-          "src/orchestrator/self-learning-orchestrator.ts"
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "./brainstorming-manager": [
-          "src/orchestrator/self-learning-orchestrator.ts"
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "./solution-evaluator": [
-          "src/orchestrator/self-learning-orchestrator.ts"
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "./learning-engine": [
-          "src/orchestrator/self-learning-orchestrator.ts"
+          "src/orchestrator/self-learning-orchestrator.ts",
+          "out/orchestrator/self-learning-orchestrator.js"
         ],
         "../ui/agents-status-tree": [
           "src/orchestrator/self-learning-orchestrator.ts"
@@ -1711,19 +2483,25 @@
           "src/self-improvement/rule-updater.ts"
         ],
         "../orchestrator/project-analyzer": [
-          "src/storage/rules-integration.ts"
+          "src/storage/rules-integration.ts",
+          "out/storage/rules-integration.js"
         ],
         "../orchestrator/rule-generator": [
-          "src/storage/rules-integration.ts"
+          "src/storage/rules-integration.ts",
+          "out/storage/rules-integration.js"
         ],
         "./rules-versioning": [
-          "src/storage/rules-integration.ts"
+          "src/storage/rules-integration.ts",
+          "out/storage/rules-integration.js"
         ],
         "../orchestrator/task-analytics": [
           "src/ui/analytics-panel.ts"
         ],
         "./agents-status-tree": [
           "src/ui/status-panel.ts"
+        ],
+        "./integration/model-provider": [
+          "out/extension.js"
         ]
       }
     }
@@ -10853,26 +11631,406 @@
         "Слабая сторона: Несоответствие архитектуре проекта",
         "Рекомендация: Привести в соответствие архитектуре проекта"
       ]
+    },
+    {
+      "id": "decision-1767006283095",
+      "taskId": "task-1767006283061-agr8wgrio",
+      "timestamp": "2025-12-29T11:04:43.095Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1767006283085-6dzcsapp3",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Низкое покрытие тестами - требуется добавить тесты\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1767006283127",
+      "taskId": "task-1767006283099-ijqncgd58",
+      "timestamp": "2025-12-29T11:04:43.127Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1767006283120-wymuf4e03",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: Недостаточная документация - требуется улучшить документацию\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1767006283163",
+      "taskId": "task-1767006283132-1rxnbchlo",
+      "timestamp": "2025-12-29T11:04:43.163Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1767006283156-fhor0m3my",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: и FIXME\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1767006283198",
+      "taskId": "task-1767006283167-i5mrunah9",
+      "timestamp": "2025-12-29T11:04:43.198Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1767006283190-0znzhj08h",
+        "agentId": "backend",
+        "reasoning": "Agent backend received message: Ты - Backend Developer. Специализируется на backend разработке: PHP, PostgreSQL, API, серверная логика, безопасность\n\nТвоя задача: Ты - опытный Backend Developer. Объясни, почему выбран следующий вариант решения:\n\nЗадача: Исправить проблему: found');\nВыбранное решение: Базовое решение\nОписание: Базовый подход к решению задачи\nПодход: Стандартный подход\n\nПреимущества:\n- Простота реализации\n\nНедостатки:\n- Может потребовать доработки\n\nСложность: medium\nУверенность: 0.5\n\nОбъясни обоснование выбора этого решения, учитывая:\n- Соответствие стандартам проекта\n- Безопасность\n- Производительность\n- Поддерживаемость кода\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1767006283215",
+      "taskId": "task-1767006283202-ugao8eds0",
+      "timestamp": "2025-12-29T11:04:43.215Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1767006283214-g6e4fbzz9",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - Data Analyst. Специализируется на анализе: производительность, оптимизация, метрики, данные\n\nТвоя задача: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Увеличить покрытие тестами до 80%+\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1767006283233",
+      "taskId": "task-1767006283219-oxwib7gsc",
+      "timestamp": "2025-12-29T11:04:43.233Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1767006283231-v8tpesqve",
+        "agentId": "analyst",
+        "reasoning": "Agent analyst received message: Ты - Data Analyst. Специализируется на анализе: производительность, оптимизация, метрики, данные\n\nТвоя задача: Ты - опытный Data Analyst. Объясни, почему выбран следующий вариант оптимизации:\n\nЗадача: Улучшение: Улучшить документацию проекта\nВыбранное решение: Базовое решение оптимизации\nОписание: Базовый подход к оптимизации\n\nОбъясни обоснование выбора, учитывая:\n- Улучшение производительности\n- Эффективность использования ресурсов\n- Масштабируемость решения\n\nОтвечай как специалист в своей области, предоставляя детальные и точные ответы.. Model: auto"
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.8525000000000001,
+        "issues": [
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Высокое качество кода",
+        "Сильная сторона: Хорошая производительность",
+        "Сильная сторона: Высокий уровень безопасности",
+        "Сильная сторона: Хорошая поддерживаемость",
+        "Сильная сторона: Полное соответствие стандартам",
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1767006925780",
+      "taskId": "task-1767006925719-hvvgxj7a8",
+      "timestamp": "2025-12-29T11:15:25.780Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1767006925746-hhc993lie",
+        "agentId": "backend",
+        "reasoning": ""
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.5750000000000001,
+        "issues": [
+          "Низкое качество кода",
+          "Проблемы с производительностью",
+          "Потенциальные проблемы безопасности",
+          "Сложность поддержки",
+          "Неполное соответствие стандартам",
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Низкое качество кода",
+        "Слабая сторона: Проблемы с производительностью",
+        "Слабая сторона: Потенциальные проблемы безопасности",
+        "Слабая сторона: Сложность поддержки",
+        "Слабая сторона: Неполное соответствие стандартам",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Улучшить качество кода: добавить комментарии, улучшить читаемость",
+        "Рекомендация: Оптимизировать производительность: проверить алгоритмы, кэширование",
+        "Рекомендация: Усилить безопасность: проверить на уязвимости, использовать безопасные паттерны",
+        "Рекомендация: Улучшить поддерживаемость: упростить структуру, добавить документацию",
+        "Рекомендация: Привести в соответствие стандартам проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1767006925844",
+      "taskId": "task-1767006925785-oqpijgpd2",
+      "timestamp": "2025-12-29T11:15:25.844Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1767006925811-1kuc1di92",
+        "agentId": "backend",
+        "reasoning": ""
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.5750000000000001,
+        "issues": [
+          "Низкое качество кода",
+          "Проблемы с производительностью",
+          "Потенциальные проблемы безопасности",
+          "Сложность поддержки",
+          "Неполное соответствие стандартам",
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Низкое качество кода",
+        "Слабая сторона: Проблемы с производительностью",
+        "Слабая сторона: Потенциальные проблемы безопасности",
+        "Слабая сторона: Сложность поддержки",
+        "Слабая сторона: Неполное соответствие стандартам",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Улучшить качество кода: добавить комментарии, улучшить читаемость",
+        "Рекомендация: Оптимизировать производительность: проверить алгоритмы, кэширование",
+        "Рекомендация: Усилить безопасность: проверить на уязвимости, использовать безопасные паттерны",
+        "Рекомендация: Улучшить поддерживаемость: упростить структуру, добавить документацию",
+        "Рекомендация: Привести в соответствие стандартам проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1767006925914",
+      "taskId": "task-1767006925849-5yl9vh1hl",
+      "timestamp": "2025-12-29T11:15:25.914Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1767006925874-ddc5kohwr",
+        "agentId": "backend",
+        "reasoning": ""
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.5750000000000001,
+        "issues": [
+          "Низкое качество кода",
+          "Проблемы с производительностью",
+          "Потенциальные проблемы безопасности",
+          "Сложность поддержки",
+          "Неполное соответствие стандартам",
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Низкое качество кода",
+        "Слабая сторона: Проблемы с производительностью",
+        "Слабая сторона: Потенциальные проблемы безопасности",
+        "Слабая сторона: Сложность поддержки",
+        "Слабая сторона: Неполное соответствие стандартам",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Улучшить качество кода: добавить комментарии, улучшить читаемость",
+        "Рекомендация: Оптимизировать производительность: проверить алгоритмы, кэширование",
+        "Рекомендация: Усилить безопасность: проверить на уязвимости, использовать безопасные паттерны",
+        "Рекомендация: Улучшить поддерживаемость: упростить структуру, добавить документацию",
+        "Рекомендация: Привести в соответствие стандартам проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1767006925948",
+      "taskId": "task-1767006925918-y78wh4fkx",
+      "timestamp": "2025-12-29T11:15:25.948Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1767006925932-0oal29ar8",
+        "agentId": "analyst",
+        "reasoning": ""
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.5750000000000001,
+        "issues": [
+          "Низкое качество кода",
+          "Проблемы с производительностью",
+          "Потенциальные проблемы безопасности",
+          "Сложность поддержки",
+          "Неполное соответствие стандартам",
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Низкое качество кода",
+        "Слабая сторона: Проблемы с производительностью",
+        "Слабая сторона: Потенциальные проблемы безопасности",
+        "Слабая сторона: Сложность поддержки",
+        "Слабая сторона: Неполное соответствие стандартам",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Улучшить качество кода: добавить комментарии, улучшить читаемость",
+        "Рекомендация: Оптимизировать производительность: проверить алгоритмы, кэширование",
+        "Рекомендация: Усилить безопасность: проверить на уязвимости, использовать безопасные паттерны",
+        "Рекомендация: Улучшить поддерживаемость: упростить структуру, добавить документацию",
+        "Рекомендация: Привести в соответствие стандартам проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
+    },
+    {
+      "id": "decision-1767006925987",
+      "taskId": "task-1767006925952-3rtqtu7m9",
+      "timestamp": "2025-12-29T11:15:25.987Z",
+      "decision": {
+        "type": "selected",
+        "solutionId": "solution-1767006925967-yv4dckpph",
+        "agentId": "analyst",
+        "reasoning": ""
+      },
+      "outcome": {
+        "success": true,
+        "executionTime": 0,
+        "filesChanged": 0,
+        "quality": 0.5750000000000001,
+        "issues": [
+          "Низкое качество кода",
+          "Проблемы с производительностью",
+          "Потенциальные проблемы безопасности",
+          "Сложность поддержки",
+          "Неполное соответствие стандартам",
+          "Несоответствие архитектуре проекта"
+        ]
+      },
+      "lessons": [
+        "Сильная сторона: Минимальное влияние на зависимости",
+        "Слабая сторона: Низкое качество кода",
+        "Слабая сторона: Проблемы с производительностью",
+        "Слабая сторона: Потенциальные проблемы безопасности",
+        "Слабая сторона: Сложность поддержки",
+        "Слабая сторона: Неполное соответствие стандартам",
+        "Слабая сторона: Несоответствие архитектуре проекта",
+        "Рекомендация: Улучшить качество кода: добавить комментарии, улучшить читаемость",
+        "Рекомендация: Оптимизировать производительность: проверить алгоритмы, кэширование",
+        "Рекомендация: Усилить безопасность: проверить на уязвимости, использовать безопасные паттерны",
+        "Рекомендация: Улучшить поддерживаемость: упростить структуру, добавить документацию",
+        "Рекомендация: Привести в соответствие стандартам проекта",
+        "Рекомендация: Привести в соответствие архитектуре проекта"
+      ]
     }
   ],
   "metrics": {
-    "totalTasks": 304,
-    "completedTasks": 146,
-    "averageExecutionTime": 1.5,
-    "averageQuality": 0.8524999999999977,
-    "successRate": 0.48026315789473684,
+    "totalTasks": 315,
+    "completedTasks": 157,
+    "averageExecutionTime": 1.4476190476190476,
+    "averageQuality": 0.848095238095236,
+    "successRate": 0.4984126984126984,
     "mostEffectiveAgents": [
       {
         "agentId": "backend",
-        "successRate": 0.5113636363636364
+        "successRate": 0.5300546448087432
       },
       {
         "agentId": "analyst",
-        "successRate": 0.4375
+        "successRate": 0.45454545454545453
       }
     ],
     "commonPatterns": [],
-    "lastUpdated": "2025-12-29T10:59:43.292Z"
+    "lastUpdated": "2025-12-29T11:15:25.987Z"
   },
   "profile": {
     "type": "web-application",
@@ -10892,5 +12050,5 @@
       "axios": "^1.6.0"
     }
   },
-  "lastUpdated": "2025-12-29T10:59:43.292Z"
+  "lastUpdated": "2025-12-29T11:15:25.987Z"
 }

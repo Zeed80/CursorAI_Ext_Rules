@@ -651,6 +651,8 @@ ${existingCode}
                 return response || '';
             } catch (fallbackError) {
                 console.error(`Fallback also failed for agent ${this.id}:`, fallbackError);
+                // Возвращаем пустую строку, чтобы агенты могли обработать отсутствие ответа
+                // и использовать fallback варианты решений
                 return '';
             }
         }
@@ -804,5 +806,103 @@ ${existingCode}
      */
     getContext(key: string): any {
         return this.agentContext.get(key);
+    }
+
+    /**
+     * Общий метод для парсинга JSON опций из ответа LLM
+     * Улучшенная версия, которая игнорирует промпт и извлекает только JSON
+     */
+    protected parseJSONOptions(text: string, agentName: string): Omit<SolutionOption, 'id'>[] {
+        try {
+            // Проверяем, не является ли это fallback заглушкой
+            if (text.includes('Agent ') && text.includes(' received message:')) {
+                console.warn(`${agentName}: Received fallback message, skipping JSON parsing`);
+                throw new Error('Fallback message received - no real response from API');
+            }
+
+            // Удаляем промпт из начала текста, если он там есть
+            let cleanedText = text;
+            
+            // Удаляем строки, которые выглядят как промпт
+            const promptPatterns = [
+                /^.*?Ты\s*-\s*[^\n]+\n/,
+                /^.*?ПРОБЛЕМА:\s*[^\n]+\n/,
+                /^.*?КОНТЕКСТ:\s*[^\n]+\n/,
+                /^.*?ОГРАНИЧЕНИЯ:\s*[\s\S]*?(?=\n\n|\[)/,
+                /^.*?ВАЖНО:[^\n]*\n/,
+                /^.*?Тип задачи:[^\n]*\n/,
+                /^.*?Приоритет:[^\n]*\n/,
+                /^.*?Agent\s+\w+\s+received\s+message:[^\n]*\n/
+            ];
+            
+            for (const pattern of promptPatterns) {
+                cleanedText = cleanedText.replace(pattern, '');
+            }
+
+            // Удаляем все до первого символа [
+            const firstBracket = cleanedText.indexOf('[');
+            if (firstBracket > 0) {
+                cleanedText = cleanedText.substring(firstBracket);
+            }
+
+            // Пытаемся распарсить весь текст как JSON
+            try {
+                const parsed = JSON.parse(cleanedText.trim());
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+            } catch (e) {
+                // Если не сработало, пробуем найти JSON массив в тексте
+            }
+
+            // Ищем JSON массив в тексте (более точный поиск)
+            // Ищем массив, который начинается с [ и содержит объекты с полями title, description и т.д.
+            const jsonArrayPattern = /\[\s*\{[\s\S]*?"title"[\s\S]*?\}\s*(?:,\s*\{[\s\S]*?\}\s*)*\]/;
+            const jsonMatch = cleanedText.match(jsonArrayPattern);
+            
+            if (jsonMatch) {
+                try {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return parsed;
+                    }
+                } catch (e) {
+                    // Пробуем найти любой JSON массив
+                    const simpleArrayMatch = cleanedText.match(/\[[\s\S]*\]/);
+                    if (simpleArrayMatch) {
+                        try {
+                            // Пытаемся найти полный массив, даже если он обрезан
+                            let arrayText = simpleArrayMatch[0];
+                            
+                            // Если массив не закрыт, пытаемся его закрыть
+                            if (!arrayText.endsWith(']')) {
+                                // Считаем открывающие и закрывающие скобки
+                                let openBraces = (arrayText.match(/\{/g) || []).length;
+                                let closeBraces = (arrayText.match(/\}/g) || []).length;
+                                
+                                // Закрываем объекты и массив
+                                while (closeBraces < openBraces) {
+                                    arrayText += '}';
+                                    closeBraces++;
+                                }
+                                arrayText += ']';
+                            }
+                            
+                            const parsed = JSON.parse(arrayText);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                return parsed;
+                            }
+                        } catch (e2) {
+                            // Игнорируем ошибки парсинга
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error(`${agentName}: Error parsing options:`, error);
+            console.error(`${agentName}: Response text was:`, text.substring(0, 500));
+        }
+
+        return [];
     }
 }

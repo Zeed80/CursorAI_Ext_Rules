@@ -149,9 +149,11 @@ export class SelfLearningOrchestrator extends Orchestrator {
                     modelId  // undefined = автоматический выбор CursorAI (режим auto)
                 );
 
-                // Проверяем явно на null/undefined, а не на falsy (handle может быть 0!)
-                if (backgroundAgentId !== null && backgroundAgentId !== undefined) {
-                    console.log(`Background agent ${backgroundAgentId} created/updated for agent ${agent.getId()} during initialization`);
+                // Проверяем явно на null/undefined, а не на falsy (handle может быть 0 или "0"!)
+                // Преобразуем в строку для единообразия
+                const agentIdStr = backgroundAgentId !== null && backgroundAgentId !== undefined ? String(backgroundAgentId) : null;
+                if (agentIdStr) {
+                    console.log(`Background agent ${agentIdStr} created/updated for agent ${agent.getId()} during initialization`);
                 } else {
                     console.debug(`Background agent not created for agent ${agent.getId()} (API may not be available)`);
                 }

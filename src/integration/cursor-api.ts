@@ -54,7 +54,23 @@ export class CursorAPI {
      * Инициализация API
      */
     static initialize(apiKey?: string, baseUrl?: string, apiVersion?: ApiVersion): void {
+        // Пробуем получить API ключ из разных источников (синхронно)
+        // Асинхронный поиск будет выполнен при первом запросе
         this.apiKey = apiKey || process.env.CURSOR_API_KEY;
+        
+        // Также пробуем синхронные источники
+        if (!this.apiKey) {
+            const config = vscode.workspace.getConfiguration('cursor-autonomous');
+            this.apiKey = config.get<string>('apiKey');
+        }
+        
+        if (!this.apiKey) {
+            const cursorConfig = vscode.workspace.getConfiguration('cursor');
+            this.apiKey = cursorConfig.get<string>('apiKey') || 
+                         cursorConfig.get<string>('api.apiKey') ||
+                         cursorConfig.get<string>('auth.apiKey');
+        }
+        
         if (baseUrl) {
             this.apiBaseUrl = baseUrl;
         }
@@ -74,6 +90,73 @@ export class CursorAPI {
             this.isInitialized = false;
             console.warn('CursorAPI: No API key provided, using fallback methods');
         }
+    }
+
+    /**
+     * Получение API ключа из всех возможных источников
+     */
+    private static async getApiKeyFromAllSources(): Promise<string | undefined> {
+        // 1. Переменная окружения
+        if (process.env.CURSOR_API_KEY) {
+            console.log('Found CURSOR_API_KEY in environment variables');
+            return process.env.CURSOR_API_KEY;
+        }
+
+        // 2. Настройки расширения
+        const config = vscode.workspace.getConfiguration('cursor-autonomous');
+        const extensionApiKey = config.get<string>('apiKey');
+        if (extensionApiKey) {
+            console.log('Found API key in extension settings');
+            return extensionApiKey;
+        }
+
+        // 3. Настройки Cursor IDE (пробуем разные возможные ключи)
+        const cursorConfig = vscode.workspace.getConfiguration('cursor');
+        const cursorApiKey = cursorConfig.get<string>('apiKey') || 
+                            cursorConfig.get<string>('api.apiKey') ||
+                            cursorConfig.get<string>('auth.apiKey');
+        if (cursorApiKey) {
+            console.log('Found API key in Cursor IDE settings');
+            return cursorApiKey;
+        }
+
+        // 4. Пробуем прочитать из файла настроек Cursor напрямую
+        try {
+            const settingsFile = await this.findCursorSettingsFile();
+            if (settingsFile) {
+                const fs = require('fs');
+                if (fs.existsSync(settingsFile.fsPath)) {
+                    const settingsContent = fs.readFileSync(settingsFile.fsPath, 'utf8');
+                    const settings = JSON.parse(settingsContent);
+                    
+                    // Проверяем различные возможные пути к API ключу
+                    const possiblePaths = [
+                        settings.cursor?.apiKey,
+                        settings.cursor?.api?.apiKey,
+                        settings.cursor?.auth?.apiKey,
+                        settings['cursor.apiKey'],
+                        settings['cursor.api.apiKey'],
+                        settings['cursor.auth.apiKey'],
+                        // Также проверяем в корне настроек (могут быть без префикса cursor)
+                        settings.apiKey,
+                        settings.api?.apiKey,
+                        settings.auth?.apiKey
+                    ];
+                    
+                    for (const key of possiblePaths) {
+                        if (key && typeof key === 'string' && key.trim().length > 0) {
+                            console.log('Found API key in Cursor settings file');
+                            return key.trim();
+                        }
+                    }
+                }
+            }
+        } catch (error: any) {
+            // Игнорируем ошибки чтения файла
+            console.debug('Failed to read API key from Cursor settings file:', error.message);
+        }
+
+        return undefined;
     }
 
     /**
@@ -172,14 +255,42 @@ export class CursorAPI {
         };
 
         // Аутентификация в зависимости от версии API
+        // Обновляем API ключ перед запросом, если он еще не установлен
+        if (!this.apiKey) {
+            // Пробуем получить из синхронных источников
+            const config = vscode.workspace.getConfiguration('cursor-autonomous');
+            this.apiKey = config.get<string>('apiKey');
+            
+            if (!this.apiKey) {
+                const cursorConfig = vscode.workspace.getConfiguration('cursor');
+                this.apiKey = cursorConfig.get<string>('apiKey') || 
+                             cursorConfig.get<string>('api.apiKey') ||
+                             cursorConfig.get<string>('auth.apiKey');
+            }
+            
+            if (!this.apiKey && process.env.CURSOR_API_KEY) {
+                this.apiKey = process.env.CURSOR_API_KEY;
+            }
+            
+            if (this.apiKey) {
+                this.isInitialized = true;
+            }
+        }
+        
         if (this.apiKey) {
             if (apiVersion === 'v0') {
-                // Basic Auth для v0 API
-                headers['Authorization'] = `Basic ${Buffer.from(`${this.apiKey}:`).toString('base64')}`;
+                // Basic Auth для v0 API: формат YOUR_API_KEY: (с двоеточием)
+                // Это соответствует curl -u YOUR_API_KEY: https://api.cursor.com/v0/models
+                const authString = `${this.apiKey}:`;
+                headers['Authorization'] = `Basic ${Buffer.from(authString).toString('base64')}`;
+                console.debug(`Using Basic Auth for v0 API (key length: ${this.apiKey.length})`);
             } else {
                 // Bearer Auth для Cloud Agents API
                 headers['Authorization'] = `Bearer ${this.apiKey}`;
+                console.debug(`Using Bearer Auth for Cloud Agents API (key length: ${this.apiKey.length})`);
             }
+        } else {
+            console.warn('No API key available for request');
         }
 
         // Используем fetch если доступен (Node.js 18+)
@@ -419,6 +530,7 @@ ${agent.description}
 
     /**
      * Поиск файла настроек CursorAI
+     * Теперь возвращает Promise для совместимости
      */
     private static async findCursorSettingsFile(): Promise<vscode.Uri | null> {
         const pathsToCheck: string[] = [];
@@ -513,8 +625,17 @@ ${agent.description}
      * Использует правильные endpoints согласно документации
      */
     static async getModelsViaAPI(): Promise<CursorModel[]> {
-        if (!this.isInitialized) {
+        // Проверяем и обновляем API ключ перед запросом
+        const apiKey = this.getApiKey();
+        if (!apiKey) {
+            console.warn('No API key found, cannot fetch models via API');
             return [];
+        }
+
+        // Обновляем isInitialized если ключ был найден
+        if (!this.isInitialized && apiKey) {
+            this.isInitialized = true;
+            this.apiKey = apiKey;
         }
 
         const apiVersion = await this.getApiVersion();
@@ -529,6 +650,7 @@ ${agent.description}
                 );
                 
                 if (response && response.models && Array.isArray(response.models)) {
+                    console.log(`Found ${response.models.length} models via Cloud Agents API`);
                     return response.models.map(m => ({
                         id: m.id,
                         name: m.id,
@@ -541,8 +663,9 @@ ${agent.description}
             }
         }
 
-        // Fallback на v0 API
+        // Fallback на v0 API (основной метод согласно документации)
         try {
+            console.log('Trying v0 API /v0/models with Basic Auth');
             const response = await this.request<{ models: string[] }>(
                 '/v0/models',
                 {},
@@ -550,6 +673,7 @@ ${agent.description}
             );
             
             if (response && response.models && Array.isArray(response.models)) {
+                console.log(`Found ${response.models.length} models via v0 API`);
                 return response.models
                     .filter(id => !this.isGitHubCopilotModel(id, id))
                     .map(id => ({
@@ -560,7 +684,12 @@ ${agent.description}
                     }));
             }
         } catch (error: any) {
-            console.debug('v0 API models request failed:', error.message);
+            console.error('v0 API models request failed:', error.message);
+            console.error('Error details:', {
+                status: (error as any).status,
+                statusText: (error as any).statusText,
+                message: error.message
+            });
         }
 
         return [];
@@ -712,17 +841,14 @@ ${agent.description}
             }
             
             // Вариант 3: Пробуем получить из настроек через VS Code API
+            // Используем только валидные ключи, чтобы избежать предупреждений VS Code
             const cursorConfig = vscode.workspace.getConfiguration('cursor');
             let modelNames: string[] = [];
             
-            // Проверяем различные возможные ключи
+            // Проверяем только валидные ключи (без паттернов, которые могут вызвать предупреждения)
             const configKeys = [
                 'modelNames',
-                'models',
-                'chat.models',
-                'chat.modelNames',
-                'models.list',
-                'models.modelNames'
+                'models'
             ];
             
             for (const key of configKeys) {
@@ -746,6 +872,20 @@ ${agent.description}
                 } catch (e) {
                     // Продолжаем проверку
                 }
+            }
+            
+            // Дополнительно проверяем вложенные объекты через безопасный доступ
+            try {
+                const cursorSettings = cursorConfig.get<any>('chat', null);
+                if (cursorSettings && typeof cursorSettings === 'object') {
+                    if (Array.isArray(cursorSettings.models)) {
+                        modelNames = cursorSettings.models;
+                    } else if (Array.isArray(cursorSettings.modelNames)) {
+                        modelNames = cursorSettings.modelNames;
+                    }
+                }
+            } catch (e) {
+                // Игнорируем ошибки доступа к вложенным настройкам
             }
             
             // Если нашли модели в настройках, возвращаем их (только CursorAI модели)
@@ -1139,8 +1279,9 @@ ${agent.description}
             }
         }
 
-        // Последний fallback: возвращаем заглушку
-        return `Agent ${agentId} received message: ${message}. Model: ${modelId || 'auto'}`;
+        // Последний fallback: выбрасываем ошибку вместо возврата заглушки
+        // Это позволит агентам правильно обработать отсутствие ответа от API
+        throw new Error(`Failed to send message to agent ${agentId}. Background agent not available and no fallback method succeeded.`);
     }
 
     /**
@@ -1329,19 +1470,21 @@ ${agent.description}
                             body: createBody
                         }, 'v0');
                         
-                        if (response && response.id) {
-                            this.backgroundAgentIds.set(agentId, response.id);
+                        if (response && response.id !== undefined && response.id !== null) {
+                            // Преобразуем ID в строку для единообразия (handle может быть числом 0, что валидно)
+                            const agentIdStr = String(response.id);
+                            this.backgroundAgentIds.set(agentId, agentIdStr);
                             if (modelId) {
-                                console.log(`v0 Agent ${response.id} created for agent ${agentId} with model ${modelId}`);
+                                console.log(`v0 Agent ${agentIdStr} created for agent ${agentId} with model ${modelId}`);
                             } else {
-                                console.log(`v0 Agent ${response.id} created for agent ${agentId} with auto mode (CursorAI will select model)`);
+                                console.log(`v0 Agent ${agentIdStr} created for agent ${agentId} with auto mode (CursorAI will select model)`);
                             }
                             
                             // Сохраняем ID в настройках
                             const config = vscode.workspace.getConfiguration('cursor-autonomous');
-                            await config.update(`agents.${agentId}.backgroundAgentId`, response.id, vscode.ConfigurationTarget.Global);
+                            await config.update(`agents.${agentId}.backgroundAgentId`, agentIdStr, vscode.ConfigurationTarget.Global);
                             
-                            return response.id;
+                            return agentIdStr;
                         }
                     } catch (error: any) {
                         console.error('Failed to create v0 agent:', error.message);
@@ -1378,19 +1521,21 @@ ${agent.description}
                             body: launchBody
                         }, 'cloud-agents');
                         
-                        if (response && response.agent_id) {
-                            this.backgroundAgentIds.set(agentId, response.agent_id);
+                        if (response && response.agent_id !== undefined && response.agent_id !== null) {
+                            // Преобразуем ID в строку для единообразия
+                            const agentIdStr = String(response.agent_id);
+                            this.backgroundAgentIds.set(agentId, agentIdStr);
                             if (modelId) {
-                                console.log(`Cloud Agent ${response.agent_id} launched for agent ${agentId} with model ${modelId}`);
+                                console.log(`Cloud Agent ${agentIdStr} launched for agent ${agentId} with model ${modelId}`);
                             } else {
-                                console.log(`Cloud Agent ${response.agent_id} launched for agent ${agentId} with auto mode (CursorAI will select model)`);
+                                console.log(`Cloud Agent ${agentIdStr} launched for agent ${agentId} with auto mode (CursorAI will select model)`);
                             }
                             
                             // Сохраняем ID в настройках
                             const config = vscode.workspace.getConfiguration('cursor-autonomous');
-                            await config.update(`agents.${agentId}.backgroundAgentId`, response.agent_id, vscode.ConfigurationTarget.Global);
+                            await config.update(`agents.${agentId}.backgroundAgentId`, agentIdStr, vscode.ConfigurationTarget.Global);
                             
-                            return response.agent_id;
+                            return agentIdStr;
                         }
                     } catch (error: any) {
                         console.error('Failed to launch cloud agent:', error.message);
@@ -1425,15 +1570,34 @@ ${agent.description}
 
     /**
      * Получение API ключа из настроек
+     * Обновляет кэшированный ключ, если он изменился
      */
     static getApiKey(): string | undefined {
+        // Если ключ уже есть, возвращаем его
         if (this.apiKey) {
             return this.apiKey;
         }
 
-        // Попытка получить из настроек VS Code
+        // Пробуем получить из синхронных источников
         const config = vscode.workspace.getConfiguration('cursor-autonomous');
-        return config.get<string>('apiKey') || process.env.CURSOR_API_KEY;
+        this.apiKey = config.get<string>('apiKey');
+        
+        if (!this.apiKey) {
+            const cursorConfig = vscode.workspace.getConfiguration('cursor');
+            this.apiKey = cursorConfig.get<string>('apiKey') || 
+                         cursorConfig.get<string>('api.apiKey') ||
+                         cursorConfig.get<string>('auth.apiKey');
+        }
+        
+        if (!this.apiKey && process.env.CURSOR_API_KEY) {
+            this.apiKey = process.env.CURSOR_API_KEY;
+        }
+        
+        if (this.apiKey) {
+            this.isInitialized = true;
+        }
+        
+        return this.apiKey;
     }
 
     /**

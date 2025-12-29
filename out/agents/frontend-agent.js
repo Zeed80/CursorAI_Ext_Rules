@@ -117,31 +117,10 @@ ${analysis.constraints.map(c => `- ${c}`).join('\n')}
         };
     }
     parseOptions(text) {
-        try {
-            // Логируем полный ответ для отладки
-            console.log('FrontendAgent parseOptions - Raw response:', text);
-            // Пытаемся распарсить весь текст как JSON
-            try {
-                const parsed = JSON.parse(text.trim());
-                if (Array.isArray(parsed)) {
-                    return parsed;
-                }
-            }
-            catch (e) {
-                // Если не сработало, пробуем найти JSON массив в тексте
-            }
-            // Ищем JSON массив в тексте
-            const jsonMatch = text.match(/\[[\s\S]*\]/);
-            if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    return parsed;
-                }
-            }
-        }
-        catch (error) {
-            console.error('FrontendAgent: Error parsing options:', error);
-            console.error('FrontendAgent: Response text was:', text.substring(0, 500));
+        // Используем общий метод парсинга из LocalAgent
+        const parsed = this.parseJSONOptions(text, 'FrontendAgent');
+        if (parsed.length > 0) {
+            return parsed;
         }
         return [{
                 title: 'Базовое frontend решение',

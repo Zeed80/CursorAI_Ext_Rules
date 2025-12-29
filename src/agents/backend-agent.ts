@@ -164,31 +164,11 @@ ${option.cons.map(c => `- ${c}`).join('\n')}
     }
 
     private parseOptions(text: string): Omit<SolutionOption, 'id'>[] {
-        try {
-            // Логируем полный ответ для отладки
-            console.log('BackendAgent parseOptions - Raw response:', text);
-
-            // Пытаемся распарсить весь текст как JSON
-            try {
-                const parsed = JSON.parse(text.trim());
-                if (Array.isArray(parsed)) {
-                    return parsed;
-                }
-            } catch (e) {
-                // Если не сработало, пробуем найти JSON массив в тексте
-            }
-
-            // Ищем JSON массив в тексте
-            const jsonMatch = text.match(/\[[\s\S]*\]/);
-            if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    return parsed;
-                }
-            }
-        } catch (error) {
-            console.error('BackendAgent: Error parsing options:', error);
-            console.error('BackendAgent: Response text was:', text.substring(0, 500));
+        // Используем общий метод парсинга из LocalAgent
+        const parsed = this.parseJSONOptions(text, 'BackendAgent');
+        
+        if (parsed.length > 0) {
+            return parsed;
         }
 
         // Возвращаем вариант по умолчанию
