@@ -331,7 +331,31 @@ export class CursorAPI {
                 const response = await fetch(url, fetchOptions);
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    // Пытаемся получить детали ошибки из ответа
+                    let errorMessage = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json() as any;
+                        if (errorData && (errorData.error || errorData.message)) {
+                            errorMessage += `: ${errorData.error || errorData.message}`;
+                        }
+                        console.error('API Error Details:', {
+                            status: response.status,
+                            statusText: response.statusText,
+                            body: errorData,
+                            requestBody: options.body
+                        });
+                    } catch (e) {
+                        // Не удалось распарсить JSON ошибки
+                        const text = await response.text().catch(() => '');
+                        console.error('API Error (text):', {
+                            status: response.status,
+                            statusText: response.statusText,
+                            body: text,
+                            requestBody: options.body
+                        });
+                        errorMessage += `: ${text || response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
                 }
 
                 const data = await response.json();
@@ -1322,18 +1346,26 @@ ${agent.description}
                 if (backgroundAgentId) {
                     if (apiVersion === 'v0') {
                         // v0 API: получаем статус через /v0/agents/{id}
-                        const response = await this.request<{ status?: string }>(`/v0/agents/${backgroundAgentId}`, {}, 'v0');
+                        const response = await this.request<{ status?: string; model?: string }>(`/v0/agents/${backgroundAgentId}`, {}, 'v0');
                         if (response.status) {
                             const status = response.status.toLowerCase();
+                            // Логируем информацию о модели, если она есть в ответе
+                            if (response.model) {
+                                console.log(`Agent ${agentId} (${backgroundAgentId}) status: ${status}, model: ${response.model}`);
+                            }
                             if (status === 'running' || status === 'active') return 'active';
                             if (status === 'failed' || status === 'error') return 'error';
                             return 'inactive';
                         }
                     } else {
                         // Cloud Agents API: используем /cloud-agents/status/{id}
-                        const response = await this.request<{ status?: string }>(`/cloud-agents/status/${backgroundAgentId}`, {}, 'cloud-agents');
+                        const response = await this.request<{ status?: string; model?: string }>(`/cloud-agents/status/${backgroundAgentId}`, {}, 'cloud-agents');
                         if (response.status) {
                             const status = response.status.toLowerCase();
+                            // Логируем информацию о модели, если она есть в ответе
+                            if (response.model) {
+                                console.log(`Agent ${agentId} (${backgroundAgentId}) status: ${status}, model: ${response.model}`);
+                            }
                             if (status === 'running' || status === 'active') return 'active';
                             if (status === 'failed' || status === 'error') return 'error';
                             return 'inactive';
@@ -1349,6 +1381,32 @@ ${agent.description}
         const config = vscode.workspace.getConfiguration('cursor-autonomous');
         const enabled = config.get<boolean>(`agents.${agentId}.enabled`, false);
         return enabled ? 'active' : 'inactive';
+    }
+
+    /**
+     * Получение информации о назначенной модели агента
+     */
+    static async getAgentModelInfo(agentId: string): Promise<{ model?: string; status?: string } | null> {
+        if (this.isInitialized) {
+            try {
+                const apiVersion = await this.getApiVersion();
+                const backgroundAgentId = this.backgroundAgentIds.get(agentId) || 
+                    vscode.workspace.getConfiguration('cursor-autonomous').get<string>(`agents.${agentId}.backgroundAgentId`);
+                
+                if (backgroundAgentId) {
+                    if (apiVersion === 'v0') {
+                        const response = await this.request<{ model?: string; status?: string }>(`/v0/agents/${backgroundAgentId}`, {}, 'v0');
+                        return response || null;
+                    } else {
+                        const response = await this.request<{ model?: string; status?: string }>(`/cloud-agents/status/${backgroundAgentId}`, {}, 'cloud-agents');
+                        return response || null;
+                    }
+                }
+            } catch (error: any) {
+                console.debug(`Failed to get model info for agent ${agentId}:`, error.message);
+            }
+        }
+        return null;
     }
 
     /**
@@ -1442,7 +1500,10 @@ ${agent.description}
                                 }
                             }, 'v0');
                             
-                            console.log(`v0 Agent ${existingBackgroundAgentId} model updated to ${modelId}`);
+                            console.log(`✅ v0 Agent ${existingBackgroundAgentId} model updated:`);
+                            console.log(`   - Agent ID: ${existingBackgroundAgentId}`);
+                            console.log(`   - Local Agent ID: ${agentId}`);
+                            console.log(`   - New Model: ${modelId}`);
                             return existingBackgroundAgentId;
                         } catch (error: any) {
                             console.debug(`Failed to update v0 agent model:`, error.message);
@@ -1451,46 +1512,38 @@ ${agent.description}
                     } else if (existingBackgroundAgentId && !modelId) {
                         // Если агент существует, но модель не указана - используем режим auto
                         // Не обновляем агента, просто возвращаем существующий ID
-                        console.log(`v0 Agent ${existingBackgroundAgentId} using auto mode (no model specified)`);
+                        console.log(`✅ v0 Agent ${existingBackgroundAgentId} using auto mode:`);
+                        console.log(`   - Agent ID: ${existingBackgroundAgentId}`);
+                        console.log(`   - Local Agent ID: ${agentId}`);
+                        console.log(`   - Model: auto (CursorAI will automatically select model)`);
                         return existingBackgroundAgentId;
                     }
                     
                     // Создаем нового агента через v0 API
                     try {
-                        // Получаем информацию о репозитории из workspace
-                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-                        let repositoryId = '';
-                        
-                        if (workspaceFolder) {
-                            // Пытаемся определить репозиторий из git
-                            try {
-                                const gitConfigPath = vscode.Uri.joinPath(workspaceFolder.uri, '.git', 'config');
-                                await vscode.workspace.fs.stat(gitConfigPath);
-                                // Если есть .git, используем путь workspace как repository_id
-                                repositoryId = workspaceFolder.uri.fsPath;
-                            } catch {
-                                // Нет git репозитория
-                            }
-                        }
-                        
+                        // Формируем тело запроса согласно документации
+                        // Для локальной работы репозиторий не требуется
                         const createBody: any = {
                             prompt: {
-                                text: `${instructions}\n\n${description}`
-                            },
-                            source: {
-                                repository: repositoryId || 'local',
-                                ref: 'main'
+                                text: instructions || description
                             },
                             target: {
                                 autoCreatePr: false
                             }
                         };
                         
-                        if (modelId) {
+                        // Добавляем модель ТОЛЬКО если она явно указана
+                        // Если modelId = undefined, не передаем поле model - CursorAI сам выберет модель (режим auto)
+                        if (modelId && modelId.trim().length > 0) {
                             createBody.model = modelId;
+                            console.log(`Creating v0 agent for ${agentId} with explicit model: ${modelId}`);
+                        } else {
+                            console.log(`Creating v0 agent for ${agentId} with auto mode (CursorAI will automatically select model)`);
                         }
                         
-                        const response = await this.request<{ id: string }>('/v0/agents', {
+                        console.log('Creating v0 agent with body:', JSON.stringify(createBody, null, 2));
+                        
+                        const response = await this.request<{ id: string; status?: string; model?: string }>('/v0/agents', {
                             method: 'POST',
                             body: createBody
                         }, 'v0');
@@ -1499,11 +1552,17 @@ ${agent.description}
                             // Преобразуем ID в строку для единообразия (handle может быть числом 0, что валидно)
                             const agentIdStr = String(response.id);
                             this.backgroundAgentIds.set(agentId, agentIdStr);
-                            if (modelId) {
-                                console.log(`v0 Agent ${agentIdStr} created for agent ${agentId} with model ${modelId}`);
-                            } else {
-                                console.log(`v0 Agent ${agentIdStr} created for agent ${agentId} with auto mode (CursorAI will select model)`);
-                            }
+                            
+                            // Логируем информацию о созданном агенте
+                            const assignedModel = response.model || (modelId ? modelId : 'auto (CursorAI will select)');
+                            const agentStatus = response.status || 'unknown';
+                            
+                            console.log(`✅ v0 Agent created successfully:`);
+                            console.log(`   - Agent ID: ${agentIdStr}`);
+                            console.log(`   - Local Agent ID: ${agentId}`);
+                            console.log(`   - Status: ${agentStatus}`);
+                            console.log(`   - Model: ${assignedModel}`);
+                            console.log(`   - Instructions: ${(instructions || description).substring(0, 100)}...`);
                             
                             // Сохраняем ID в настройках
                             const config = vscode.workspace.getConfiguration('cursor-autonomous');
@@ -1512,36 +1571,35 @@ ${agent.description}
                             return agentIdStr;
                         }
                     } catch (error: any) {
-                        console.error('Failed to create v0 agent:', error.message);
+                        console.error(`❌ Failed to create v0 agent for ${agentId}:`, error.message);
+                        console.error('Error details:', {
+                            agentId,
+                            modelId: modelId || 'auto',
+                            error: error.message,
+                            stack: error.stack
+                        });
                     }
                 } else {
                     // Cloud Agents API: используем POST /cloud-agents/launch
                     // Cloud Agents запускается для конкретной задачи, поэтому создаем новый каждый раз
                     try {
-                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-                        let repositoryId = 'local';
-                        
-                        if (workspaceFolder) {
-                            // Пытаемся определить репозиторий
-                            try {
-                                const gitConfigPath = vscode.Uri.joinPath(workspaceFolder.uri, '.git', 'config');
-                                await vscode.workspace.fs.stat(gitConfigPath);
-                                repositoryId = workspaceFolder.uri.fsPath;
-                            } catch {
-                                repositoryId = 'local';
-                            }
-                        }
-                        
+                        // Для локальной работы репозиторий не требуется
                         const launchBody: any = {
-                            repository_id: repositoryId,
-                            instructions: `${instructions}\n\n${description}`
+                            instructions: instructions || description
                         };
                         
-                        if (modelId) {
+                        // Добавляем модель ТОЛЬКО если она явно указана
+                        // Если modelId = undefined, не передаем поле model_id - CursorAI сам выберет модель (режим auto)
+                        if (modelId && modelId.trim().length > 0) {
                             launchBody.model_id = modelId;
+                            console.log(`Creating Cloud Agent for ${agentId} with explicit model: ${modelId}`);
+                        } else {
+                            console.log(`Creating Cloud Agent for ${agentId} with auto mode (CursorAI will automatically select model)`);
                         }
                         
-                        const response = await this.request<{ agent_id: string }>('/cloud-agents/launch', {
+                        console.log('Creating Cloud Agent with body:', JSON.stringify(launchBody, null, 2));
+                        
+                        const response = await this.request<{ agent_id: string; model?: string; status?: string }>('/cloud-agents/launch', {
                             method: 'POST',
                             body: launchBody
                         }, 'cloud-agents');
@@ -1550,11 +1608,17 @@ ${agent.description}
                             // Преобразуем ID в строку для единообразия
                             const agentIdStr = String(response.agent_id);
                             this.backgroundAgentIds.set(agentId, agentIdStr);
-                            if (modelId) {
-                                console.log(`Cloud Agent ${agentIdStr} launched for agent ${agentId} with model ${modelId}`);
-                            } else {
-                                console.log(`Cloud Agent ${agentIdStr} launched for agent ${agentId} with auto mode (CursorAI will select model)`);
-                            }
+                            
+                            // Логируем информацию о созданном агенте
+                            const assignedModel = response.model || (modelId ? modelId : 'auto (CursorAI will select)');
+                            const agentStatus = response.status || 'unknown';
+                            
+                            console.log(`✅ Cloud Agent launched successfully:`);
+                            console.log(`   - Agent ID: ${agentIdStr}`);
+                            console.log(`   - Local Agent ID: ${agentId}`);
+                            console.log(`   - Status: ${agentStatus}`);
+                            console.log(`   - Model: ${assignedModel}`);
+                            console.log(`   - Instructions: ${(instructions || description).substring(0, 100)}...`);
                             
                             // Сохраняем ID в настройках
                             const config = vscode.workspace.getConfiguration('cursor-autonomous');
@@ -1563,7 +1627,13 @@ ${agent.description}
                             return agentIdStr;
                         }
                     } catch (error: any) {
-                        console.error('Failed to launch cloud agent:', error.message);
+                        console.error(`❌ Failed to launch Cloud Agent for ${agentId}:`, error.message);
+                        console.error('Error details:', {
+                            agentId,
+                            modelId: modelId || 'auto',
+                            error: error.message,
+                            stack: error.stack
+                        });
                     }
                 }
             } catch (error: any) {
