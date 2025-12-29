@@ -94,6 +94,12 @@
         "title": "Show Task Analytics",
         "category": "Cursor Autonomous",
         "icon": "$(graph)"
+      },
+      {
+        "command": "cursor-autonomous.sendTaskToChat",
+        "title": "Передать в чат",
+        "category": "Cursor Autonomous",
+        "icon": "$(comment-discussion)"
       }
     ],
     "viewsContainers": {
@@ -222,6 +228,11 @@
         {
           "command": "cursor-autonomous.showAgentDetails",
           "when": "viewItem == agent",
+          "group": "inline"
+        },
+        {
+          "command": "cursor-autonomous.sendTaskToChat",
+          "when": "viewItem == task",
           "group": "inline"
         }
       ]

@@ -361,7 +361,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     // Функция отправки задачи в чат CursorAI
-    async function sendTaskToChat(task: any, orchestrator: Orchestrator): Promise<void> {
+    async function sendTaskToChatHelper(task: any, orchestrator: Orchestrator): Promise<void> {
         try {
             // Формируем сообщение для чата
             const agentName = task.assignedAgent ? 
@@ -575,6 +575,125 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(selectAgentModel);
 
+    // Команда для передачи задачи в чат
+    const sendTaskToChat = vscode.commands.registerCommand('cursor-autonomous.sendTaskToChat', async (item?: vscode.TreeItem | { agentId: string, taskId: string }) => {
+        if (!orchestrator || !agentsStatusTreeProvider) {
+            vscode.window.showErrorMessage('Оркестратор не инициализирован');
+            return;
+        }
+
+        let agentId: string | undefined;
+        let taskId: string | undefined;
+
+        // Если передан объект с agentId и taskId (из WebView)
+        if (item && typeof item === 'object' && 'agentId' in item && 'taskId' in item) {
+            agentId = item.agentId;
+            taskId = item.taskId;
+        }
+        // Если передан TreeItem (из TreeView)
+        else if (item instanceof vscode.TreeItem) {
+            const treeItem = item as any;
+            if (treeItem.task && treeItem.task.id) {
+                taskId = treeItem.task.id;
+                // Находим агента, которому назначена задача
+                const tasks = orchestrator.getTasks();
+                const task = tasks.find(t => t.id === taskId);
+                if (task && task.assignedAgent) {
+                    agentId = task.assignedAgent;
+                }
+            }
+        }
+
+        if (!agentId || !taskId) {
+            vscode.window.showWarningMessage('Не удалось определить задачу для передачи в чат');
+            return;
+        }
+
+        const agent = agentsStatusTreeProvider.getAgentStatus(agentId);
+        if (!agent) {
+            vscode.window.showWarningMessage('Агент не найден');
+            return;
+        }
+
+        const tasks = orchestrator.getTasks();
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) {
+            vscode.window.showWarningMessage('Задача не найдена');
+            return;
+        }
+
+        // Формируем сообщение для чата
+        const taskTypeEmoji: { [key: string]: string } = {
+            'feature': '✨',
+            'bug': '🐛',
+            'improvement': '🔧',
+            'refactoring': '♻️',
+            'documentation': '📝',
+            'quality-check': '🔍'
+        };
+
+        const priorityText: { [key: string]: string } = {
+            'high': 'Высокий',
+            'medium': 'Средний',
+            'low': 'Низкий'
+        };
+
+        const emoji = taskTypeEmoji[task.type] || '📋';
+        const priority = priorityText[task.priority] || task.priority;
+
+        let message = `${emoji} **Задача от агента "${agent.name}"**\n\n`;
+        message += `**Описание:** ${task.description}\n\n`;
+        message += `**Тип:** ${task.type}\n`;
+        message += `**Приоритет:** ${priority}\n`;
+        message += `**Статус:** ${task.status}\n`;
+        
+        if (task.progress) {
+            message += `\n**Прогресс:**\n`;
+            message += `- Изменено файлов: ${task.progress.filesChanged || 0}\n`;
+            message += `- Время работы: ${Math.round((task.progress.timeElapsed || 0) / 1000)}с\n`;
+        }
+
+        if (task.executionResult && !task.executionResult.success && task.executionResult.error) {
+            message += `\n**Ошибка:** ${task.executionResult.error}\n`;
+        }
+
+        message += `\nПожалуйста, помогите выполнить эту задачу.`;
+
+        try {
+            // Открываем чат CursorAI
+            await vscode.commands.executeCommand('workbench.action.chat.open');
+            
+            // Небольшая задержка для открытия чата
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Копируем сообщение в буфер обмена
+            await vscode.env.clipboard.writeText(message);
+
+            // Показываем уведомление
+            const action = await vscode.window.showInformationMessage(
+                'Задача подготовлена для передачи в чат. Сообщение скопировано в буфер обмена.',
+                'Открыть чат',
+                'OK'
+            );
+
+            if (action === 'Открыть чат') {
+                vscode.window.showInformationMessage(
+                    'Вставьте сообщение из буфера обмена в чат CursorAI (Ctrl+V или Cmd+V)',
+                    'OK'
+                );
+            }
+        } catch (error: any) {
+            console.warn('Failed to send task to chat:', error);
+            // Fallback: просто копируем в буфер обмена
+            await vscode.env.clipboard.writeText(message);
+            vscode.window.showWarningMessage(
+                'Не удалось открыть чат автоматически. Сообщение скопировано в буфер обмена. Вставьте его в чат CursorAI вручную.',
+                'OK'
+            );
+        }
+    });
+    context.subscriptions.push(sendTaskToChat);
+
     const showAgentDetails = vscode.commands.registerCommand('cursor-autonomous.showAgentDetails', async (item?: vscode.TreeItem | string) => {
         let agentId: string | undefined;
 
@@ -678,7 +797,8 @@ export function activate(context: vscode.ExtensionContext) {
         showStatusPanel,
         showAnalytics,
         refreshAgentsStatus,
-        showAgentDetails
+        showAgentDetails,
+        sendTaskToChat
     );
 
     const analyzeButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 98);
@@ -732,7 +852,8 @@ export function activate(context: vscode.ExtensionContext) {
         showStatusPanel,
         showAnalytics,
         refreshAgentsStatus,
-        showAgentDetails
+        showAgentDetails,
+        sendTaskToChat
     );
     
     // Логирование для отладки

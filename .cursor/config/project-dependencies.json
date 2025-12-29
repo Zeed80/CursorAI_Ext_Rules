@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-29T07:46:28.246Z",
+  "lastUpdated": "2025-12-29T08:04:17.183Z",
   "files": {
     "build-standalone.js": {
       "exports": [],
@@ -332,7 +332,7 @@
         "classes": [],
         "functions": [
           "activate",
-          "sendTaskToChat",
+          "sendTaskToChatHelper",
           "startStatusUpdates",
           "updateAgentsStatus",
           "getStatusText",
@@ -1104,13 +1104,732 @@
         ],
         "functions": [
           "refresh",
-          "agentClick"
+          "agentClick",
+          "selectModel",
+          "sendTaskToChat"
         ],
         "types": [],
         "variables": []
       },
       "dependents": [
         "src/extension.ts"
+      ]
+    },
+    "out/agents/analyst-agent.js": {
+      "exports": [],
+      "imports": [
+        "./local-agent"
+      ],
+      "dependencies": {
+        "classes": [
+          "AnalystAgent"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/agents/architect-agent.js": {
+      "exports": [],
+      "imports": [
+        "./local-agent"
+      ],
+      "dependencies": {
+        "classes": [
+          "ArchitectAgent"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/agents/backend-agent.js": {
+      "exports": [],
+      "imports": [
+        "./local-agent"
+      ],
+      "dependencies": {
+        "classes": [
+          "BackendAgent"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/agents/devops-agent.js": {
+      "exports": [],
+      "imports": [
+        "./local-agent"
+      ],
+      "dependencies": {
+        "classes": [
+          "DevOpsAgent"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/agents/frontend-agent.js": {
+      "exports": [],
+      "imports": [
+        "./local-agent"
+      ],
+      "dependencies": {
+        "classes": [
+          "FrontendAgent"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/agents/local-agent.js": {
+      "exports": [],
+      "imports": [
+        "../integration/cursor-api",
+        "../integration/settings-manager"
+      ],
+      "dependencies": {
+        "classes": [
+          "LocalAgent"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/agents/analyst-agent.js",
+        "out/agents/architect-agent.js",
+        "out/agents/backend-agent.js",
+        "out/agents/devops-agent.js",
+        "out/agents/frontend-agent.js",
+        "out/agents/qa-agent.js"
+      ]
+    },
+    "out/agents/qa-agent.js": {
+      "exports": [],
+      "imports": [
+        "./local-agent"
+      ],
+      "dependencies": {
+        "classes": [
+          "QAAgent"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/agents/self-improver.js": {
+      "exports": [],
+      "imports": [
+        "../self-improvement/performance-monitor",
+        "../self-improvement/knowledge-searcher",
+        "../self-improvement/rule-updater",
+        "../self-improvement/agent-optimizer"
+      ],
+      "dependencies": {
+        "classes": [
+          "SelfImprover"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/extension.js"
+      ]
+    },
+    "out/agents/virtual-user-decision.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "DecisionMaker"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/agents/virtual-user.js"
+      ]
+    },
+    "out/agents/virtual-user-monitor.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "ProjectMonitor"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/agents/virtual-user.js"
+      ]
+    },
+    "out/agents/virtual-user.js": {
+      "exports": [],
+      "imports": [
+        "../integration/ui-integration",
+        "./virtual-user-monitor",
+        "./virtual-user-decision"
+      ],
+      "dependencies": {
+        "classes": [
+          "VirtualUser"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/extension.js"
+      ]
+    },
+    "out/extension.js": {
+      "exports": [],
+      "imports": [
+        "./orchestrator/self-learning-orchestrator",
+        "./integration/settings-manager",
+        "./integration/ui-integration",
+        "./agents/virtual-user",
+        "./agents/self-improver",
+        "./storage/rules-integration",
+        "./integration/cursor-api",
+        "./ui/agents-status-tree",
+        "./ui/status-panel",
+        "./ui/analytics-panel",
+        "./integration/model-provider",
+        "./integration/settings-manager",
+        "./integration/cursor-api"
+      ],
+      "dependencies": {
+        "classes": [],
+        "functions": [
+          "activate",
+          "sendTaskToChatHelper",
+          "startStatusUpdates",
+          "updateAgentsStatus",
+          "getStatusText",
+          "updateStatusBar",
+          "deactivate"
+        ],
+        "types": [],
+        "variables": []
+      },
+      "dependents": []
+    },
+    "out/integration/cursor-api.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "CursorAPI"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/agents/local-agent.js",
+        "out/extension.js",
+        "out/integration/model-provider.js",
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/integration/model-provider.js": {
+      "exports": [],
+      "imports": [
+        "./cursor-api"
+      ],
+      "dependencies": {
+        "classes": [
+          "ModelProvider"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/extension.js",
+        "out/ui/status-panel.js"
+      ]
+    },
+    "out/integration/settings-manager.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "SettingsManager"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/agents/local-agent.js",
+        "out/extension.js",
+        "out/integration/ui-integration.js"
+      ]
+    },
+    "out/integration/ui-integration.js": {
+      "exports": [],
+      "imports": [
+        "./settings-manager"
+      ],
+      "dependencies": {
+        "classes": [
+          "UIIntegration"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/agents/virtual-user.js",
+        "out/extension.js"
+      ]
+    },
+    "out/orchestrator/agent-manager.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "AgentManager"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/orchestrator.js"
+      ]
+    },
+    "out/orchestrator/autonomous-mode.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "AutonomousMode"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": []
+    },
+    "out/orchestrator/brainstorming-manager.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "BrainstormingManager"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/orchestrator/learning-engine.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "LearningEngine"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/orchestrator/orchestrator.js": {
+      "exports": [],
+      "imports": [
+        "./agent-manager",
+        "./task-planner",
+        "./project-analyzer",
+        "./rule-generator",
+        "./task-analytics",
+        "./task-executor"
+      ],
+      "dependencies": {
+        "classes": [
+          "Orchestrator"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/orchestrator/project-analyzer.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "ProjectAnalyzer"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/orchestrator.js",
+        "out/orchestrator/rule-generator.js",
+        "out/storage/rules-integration.js"
+      ]
+    },
+    "out/orchestrator/project-dependency-graph.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "ProjectDependencyGraph"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/orchestrator/project-knowledge-base.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "ProjectKnowledgeBase"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/orchestrator/quality-checker.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "QualityChecker"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/orchestrator/rule-generator.js": {
+      "exports": [],
+      "imports": [
+        "./project-analyzer"
+      ],
+      "dependencies": {
+        "classes": [
+          "RuleGenerator"
+        ],
+        "functions": [],
+        "types": [
+          "hints"
+        ],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/orchestrator.js",
+        "out/storage/rules-integration.js"
+      ]
+    },
+    "out/orchestrator/self-learning-orchestrator.js": {
+      "exports": [],
+      "imports": [
+        "./orchestrator",
+        "../agents/backend-agent",
+        "../agents/frontend-agent",
+        "../agents/architect-agent",
+        "../agents/analyst-agent",
+        "../agents/devops-agent",
+        "../agents/qa-agent",
+        "./brainstorming-manager",
+        "./solution-evaluator",
+        "./project-dependency-graph",
+        "./project-knowledge-base",
+        "./learning-engine",
+        "./quality-checker",
+        "../integration/cursor-api"
+      ],
+      "dependencies": {
+        "classes": [
+          "SelfLearningOrchestrator"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/extension.js"
+      ]
+    },
+    "out/orchestrator/solution-evaluator.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "SolutionEvaluator"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/self-learning-orchestrator.js"
+      ]
+    },
+    "out/orchestrator/task-analytics.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "TaskAnalytics"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/orchestrator.js"
+      ]
+    },
+    "out/orchestrator/task-executor.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "TaskExecutor"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/orchestrator.js"
+      ]
+    },
+    "out/orchestrator/task-planner.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "TaskPlanner"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/orchestrator/orchestrator.js"
+      ]
+    },
+    "out/self-improvement/agent-optimizer.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "AgentOptimizer"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/agents/self-improver.js"
+      ]
+    },
+    "out/self-improvement/knowledge-searcher.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "KnowledgeSearcher"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/agents/self-improver.js"
+      ]
+    },
+    "out/self-improvement/performance-monitor.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "PerformanceMonitor"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/agents/self-improver.js"
+      ]
+    },
+    "out/self-improvement/rule-updater.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "RuleUpdater"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/agents/self-improver.js"
+      ]
+    },
+    "out/storage/rules-integration.js": {
+      "exports": [],
+      "imports": [
+        "../orchestrator/project-analyzer",
+        "../orchestrator/rule-generator",
+        "./rules-versioning"
+      ],
+      "dependencies": {
+        "classes": [
+          "RulesIntegration"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/extension.js"
+      ]
+    },
+    "out/storage/rules-versioning.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "RulesVersioning"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/storage/rules-integration.js"
+      ]
+    },
+    "out/ui/agents-status-tree.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "AgentsStatusTreeProvider",
+          "AgentTreeItem",
+          "TaskTreeItem"
+        ],
+        "functions": [],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/extension.js"
+      ]
+    },
+    "out/ui/analytics-panel.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "AnalyticsPanel"
+        ],
+        "functions": [
+          "refresh",
+          "exportReport"
+        ],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/extension.js"
+      ]
+    },
+    "out/ui/quick-access-panel.js": {
+      "exports": [],
+      "imports": [],
+      "dependencies": {
+        "classes": [
+          "QuickAccessPanel"
+        ],
+        "functions": [
+          "executeCommand",
+          "updateStatus"
+        ],
+        "types": [],
+        "variables": []
+      },
+      "dependents": []
+    },
+    "out/ui/status-panel.js": {
+      "exports": [],
+      "imports": [
+        "../integration/model-provider"
+      ],
+      "dependencies": {
+        "classes": [
+          "StatusPanel"
+        ],
+        "functions": [
+          "refresh",
+          "agentClick",
+          "selectModel",
+          "sendTaskToChat"
+        ],
+        "types": [],
+        "variables": []
+      },
+      "dependents": [
+        "out/extension.js"
       ]
     }
   },
@@ -1172,12 +1891,6 @@
       ],
       "VirtualUser": [
         "src/agents/virtual-user.ts"
-      ],
-      "activate": [
-        "src/extension.ts"
-      ],
-      "deactivate": [
-        "src/extension.ts"
       ],
       "CursorAgent": [
         "src/integration/cursor-api.ts"
@@ -1391,6 +2104,12 @@
       ],
       "StatusPanel": [
         "src/ui/status-panel.ts"
+      ],
+      "activate": [
+        "src/extension.ts"
+      ],
+      "deactivate": [
+        "src/extension.ts"
       ]
     },
     "byImport": {
@@ -1414,17 +2133,26 @@
         "src/agents/backend-agent.ts",
         "src/agents/devops-agent.ts",
         "src/agents/frontend-agent.ts",
-        "src/agents/qa-agent.ts"
+        "src/agents/qa-agent.ts",
+        "out/agents/analyst-agent.js",
+        "out/agents/architect-agent.js",
+        "out/agents/backend-agent.js",
+        "out/agents/devops-agent.js",
+        "out/agents/frontend-agent.js",
+        "out/agents/qa-agent.js"
       ],
       "../integration/cursor-api": [
         "src/agents/local-agent.ts",
         "src/orchestrator/self-learning-orchestrator.ts",
-        "src/orchestrator/task-executor.ts"
+        "src/orchestrator/task-executor.ts",
+        "out/agents/local-agent.js",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "../integration/model-provider": [
         "src/agents/local-agent.ts",
         "src/orchestrator/agent-manager.ts",
-        "src/ui/agents-status-tree.ts"
+        "src/ui/agents-status-tree.ts",
+        "out/ui/status-panel.js"
       ],
       "../integration/settings-manager": [
         "src/agents/local-agent.ts",
@@ -1438,76 +2166,50 @@
         "src/orchestrator/self-learning-orchestrator.ts",
         "src/orchestrator/task-analytics.ts",
         "src/self-improvement/knowledge-searcher.ts",
-        "src/self-improvement/performance-monitor.ts"
+        "src/self-improvement/performance-monitor.ts",
+        "out/agents/local-agent.js"
       ],
       "../self-improvement/performance-monitor": [
-        "src/agents/self-improver.ts"
+        "src/agents/self-improver.ts",
+        "out/agents/self-improver.js"
       ],
       "../self-improvement/knowledge-searcher": [
-        "src/agents/self-improver.ts"
+        "src/agents/self-improver.ts",
+        "out/agents/self-improver.js"
       ],
       "../self-improvement/rule-updater": [
-        "src/agents/self-improver.ts"
+        "src/agents/self-improver.ts",
+        "out/agents/self-improver.js"
       ],
       "../self-improvement/agent-optimizer": [
-        "src/agents/self-improver.ts"
+        "src/agents/self-improver.ts",
+        "out/agents/self-improver.js"
       ],
       "./virtual-user": [
         "src/agents/virtual-user-decision.ts"
       ],
       "../integration/ui-integration": [
-        "src/agents/virtual-user.ts"
+        "src/agents/virtual-user.ts",
+        "out/agents/virtual-user.js"
       ],
       "./virtual-user-monitor": [
-        "src/agents/virtual-user.ts"
+        "src/agents/virtual-user.ts",
+        "out/agents/virtual-user.js"
       ],
       "./virtual-user-decision": [
-        "src/agents/virtual-user.ts"
-      ],
-      "./orchestrator/orchestrator": [
-        "src/extension.ts"
-      ],
-      "./orchestrator/self-learning-orchestrator": [
-        "src/extension.ts"
-      ],
-      "./integration/settings-manager": [
-        "src/extension.ts"
-      ],
-      "./integration/ui-integration": [
-        "src/extension.ts"
-      ],
-      "./agents/virtual-user": [
-        "src/extension.ts"
-      ],
-      "./agents/self-improver": [
-        "src/extension.ts"
-      ],
-      "./storage/rules-integration": [
-        "src/extension.ts"
-      ],
-      "./integration/cursor-api": [
-        "src/extension.ts"
-      ],
-      "./ui/agents-status-tree": [
-        "src/extension.ts"
-      ],
-      "./ui/status-panel": [
-        "src/extension.ts"
-      ],
-      "./ui/analytics-panel": [
-        "src/extension.ts"
-      ],
-      "./agents/local-agent": [
-        "src/extension.ts"
+        "src/agents/virtual-user.ts",
+        "out/agents/virtual-user.js"
       ],
       "./cursor-api": [
-        "src/integration/model-provider.ts"
+        "src/integration/model-provider.ts",
+        "out/integration/model-provider.js"
       ],
       "./model-provider": [
         "src/integration/settings-manager.ts"
       ],
       "./settings-manager": [
-        "src/integration/ui-integration.ts"
+        "src/integration/ui-integration.ts",
+        "out/integration/ui-integration.js"
       ],
       "./orchestrator": [
         "src/orchestrator/agent-manager.ts",
@@ -1518,7 +2220,8 @@
         "src/orchestrator/self-learning-orchestrator.ts",
         "src/orchestrator/task-analytics.ts",
         "src/orchestrator/task-executor.ts",
-        "src/orchestrator/task-planner.ts"
+        "src/orchestrator/task-planner.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "../agents/local-agent": [
         "src/orchestrator/agent-manager.ts",
@@ -1538,68 +2241,87 @@
       "./project-knowledge-base": [
         "src/orchestrator/learning-engine.ts",
         "src/orchestrator/quality-checker.ts",
-        "src/orchestrator/self-learning-orchestrator.ts"
+        "src/orchestrator/self-learning-orchestrator.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "./agent-manager": [
         "src/orchestrator/orchestrator.ts",
         "src/orchestrator/self-learning-orchestrator.ts",
-        "src/orchestrator/task-planner.ts"
+        "src/orchestrator/task-planner.ts",
+        "out/orchestrator/orchestrator.js"
       ],
       "./task-planner": [
-        "src/orchestrator/orchestrator.ts"
+        "src/orchestrator/orchestrator.ts",
+        "out/orchestrator/orchestrator.js"
       ],
       "./project-analyzer": [
         "src/orchestrator/orchestrator.ts",
         "src/orchestrator/project-knowledge-base.ts",
         "src/orchestrator/rule-generator.ts",
-        "src/orchestrator/self-learning-orchestrator.ts"
+        "src/orchestrator/self-learning-orchestrator.ts",
+        "out/orchestrator/orchestrator.js",
+        "out/orchestrator/rule-generator.js"
       ],
       "./rule-generator": [
-        "src/orchestrator/orchestrator.ts"
+        "src/orchestrator/orchestrator.ts",
+        "out/orchestrator/orchestrator.js"
       ],
       "./task-analytics": [
         "src/orchestrator/orchestrator.ts",
-        "src/orchestrator/task-executor.ts"
+        "src/orchestrator/task-executor.ts",
+        "out/orchestrator/orchestrator.js"
       ],
       "./task-executor": [
-        "src/orchestrator/orchestrator.ts"
+        "src/orchestrator/orchestrator.ts",
+        "out/orchestrator/orchestrator.js"
       ],
       "./quality-checker": [
         "src/orchestrator/orchestrator.ts",
-        "src/orchestrator/self-learning-orchestrator.ts"
+        "src/orchestrator/self-learning-orchestrator.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "./project-dependency-graph": [
         "src/orchestrator/project-knowledge-base.ts",
         "src/orchestrator/quality-checker.ts",
         "src/orchestrator/self-learning-orchestrator.ts",
-        "src/orchestrator/solution-evaluator.ts"
+        "src/orchestrator/solution-evaluator.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "../agents/backend-agent": [
-        "src/orchestrator/self-learning-orchestrator.ts"
+        "src/orchestrator/self-learning-orchestrator.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "../agents/frontend-agent": [
-        "src/orchestrator/self-learning-orchestrator.ts"
+        "src/orchestrator/self-learning-orchestrator.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "../agents/architect-agent": [
-        "src/orchestrator/self-learning-orchestrator.ts"
+        "src/orchestrator/self-learning-orchestrator.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "../agents/analyst-agent": [
-        "src/orchestrator/self-learning-orchestrator.ts"
+        "src/orchestrator/self-learning-orchestrator.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "../agents/devops-agent": [
-        "src/orchestrator/self-learning-orchestrator.ts"
+        "src/orchestrator/self-learning-orchestrator.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "../agents/qa-agent": [
-        "src/orchestrator/self-learning-orchestrator.ts"
+        "src/orchestrator/self-learning-orchestrator.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "./brainstorming-manager": [
-        "src/orchestrator/self-learning-orchestrator.ts"
+        "src/orchestrator/self-learning-orchestrator.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "./solution-evaluator": [
-        "src/orchestrator/self-learning-orchestrator.ts"
+        "src/orchestrator/self-learning-orchestrator.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "./learning-engine": [
-        "src/orchestrator/self-learning-orchestrator.ts"
+        "src/orchestrator/self-learning-orchestrator.ts",
+        "out/orchestrator/self-learning-orchestrator.js"
       ],
       "../ui/agents-status-tree": [
         "src/orchestrator/self-learning-orchestrator.ts"
@@ -1613,19 +2335,71 @@
         "src/self-improvement/rule-updater.ts"
       ],
       "../orchestrator/project-analyzer": [
-        "src/storage/rules-integration.ts"
+        "src/storage/rules-integration.ts",
+        "out/storage/rules-integration.js"
       ],
       "../orchestrator/rule-generator": [
-        "src/storage/rules-integration.ts"
+        "src/storage/rules-integration.ts",
+        "out/storage/rules-integration.js"
       ],
       "./rules-versioning": [
-        "src/storage/rules-integration.ts"
+        "src/storage/rules-integration.ts",
+        "out/storage/rules-integration.js"
       ],
       "../orchestrator/task-analytics": [
         "src/ui/analytics-panel.ts"
       ],
       "./agents-status-tree": [
         "src/ui/status-panel.ts"
+      ],
+      "./orchestrator/self-learning-orchestrator": [
+        "out/extension.js",
+        "src/extension.ts"
+      ],
+      "./integration/settings-manager": [
+        "out/extension.js",
+        "src/extension.ts"
+      ],
+      "./integration/ui-integration": [
+        "out/extension.js",
+        "src/extension.ts"
+      ],
+      "./agents/virtual-user": [
+        "out/extension.js",
+        "src/extension.ts"
+      ],
+      "./agents/self-improver": [
+        "out/extension.js",
+        "src/extension.ts"
+      ],
+      "./storage/rules-integration": [
+        "out/extension.js",
+        "src/extension.ts"
+      ],
+      "./integration/cursor-api": [
+        "out/extension.js",
+        "src/extension.ts"
+      ],
+      "./ui/agents-status-tree": [
+        "out/extension.js",
+        "src/extension.ts"
+      ],
+      "./ui/status-panel": [
+        "out/extension.js",
+        "src/extension.ts"
+      ],
+      "./ui/analytics-panel": [
+        "out/extension.js",
+        "src/extension.ts"
+      ],
+      "./integration/model-provider": [
+        "out/extension.js"
+      ],
+      "./orchestrator/orchestrator": [
+        "src/extension.ts"
+      ],
+      "./agents/local-agent": [
+        "src/extension.ts"
       ]
     }
   }

@@ -57,6 +57,9 @@ class StatusPanel {
                 case 'selectModel':
                     vscode.commands.executeCommand('cursor-autonomous.selectAgentModel', message.agentId);
                     return;
+                case 'sendTaskToChat':
+                    this.sendTaskToChat(message.agentId, message.taskId);
+                    return;
             }
         }, null, this._disposables);
         // Обновление при изменении видимости
@@ -255,6 +258,25 @@ class StatusPanel {
         .refresh-btn:hover {
             background: var(--vscode-button-hoverBackground);
         }
+        .send-to-chat-btn {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: 1px solid var(--vscode-button-border);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .send-to-chat-btn:hover {
+            background: var(--vscode-button-secondaryHoverBackground);
+        }
+        .send-to-chat-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -296,6 +318,18 @@ class StatusPanel {
 
         function agentClick(agentId) {
             vscode.postMessage({ command: 'agentClick', agentId: agentId });
+        }
+
+        function selectModel(agentId, modelValue) {
+            if (modelValue) {
+                const model = JSON.parse(modelValue);
+                vscode.postMessage({ command: 'selectModel', agentId: agentId, model: model });
+            }
+        }
+
+        function sendTaskToChat(agentId, taskId, event) {
+            event.stopPropagation(); // Предотвращаем клик по карточке агента
+            vscode.postMessage({ command: 'sendTaskToChat', agentId: agentId, taskId: taskId });
         }
 
         // Автообновление каждые 5 секунд
@@ -347,6 +381,13 @@ class StatusPanel {
                             ✅ Выполнено: ${Array.isArray(agent.currentTask.executionResult.filesChanged) ? agent.currentTask.executionResult.filesChanged.length : 0} файлов изменено
                         </div>
                     ` : ''}
+                    <button 
+                        class="send-to-chat-btn" 
+                        onclick="sendTaskToChat('${agent.id}', '${agent.currentTask.id}', event)"
+                        title="Передать задачу в чат CursorAI для ручной обработки"
+                    >
+                        💬 Передать в чат
+                    </button>
                 </div>
             ` : ''}
             <div class="agent-model-selector" style="margin-top: 12px; padding: 8px; background: var(--vscode-input-background); border-radius: 4px; border: 1px solid var(--vscode-input-border);">
@@ -446,6 +487,63 @@ class StatusPanel {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+    async sendTaskToChat(agentId, taskId) {
+        const agent = this.agentsTreeProvider.getAgentStatus(agentId);
+        if (!agent || !agent.currentTask || agent.currentTask.id !== taskId) {
+            vscode.window.showWarningMessage('Задача не найдена или больше не активна');
+            return;
+        }
+        const task = agent.currentTask;
+        // Формируем сообщение для чата
+        const taskTypeEmoji = {
+            'feature': '✨',
+            'bug': '🐛',
+            'improvement': '🔧',
+            'refactoring': '♻️',
+            'documentation': '📝',
+            'quality-check': '🔍'
+        };
+        const priorityText = {
+            'high': 'Высокий',
+            'medium': 'Средний',
+            'low': 'Низкий'
+        };
+        const emoji = taskTypeEmoji[task.type] || '📋';
+        const priority = priorityText[task.priority] || task.priority;
+        let message = `${emoji} **Задача от агента "${agent.name}"**\n\n`;
+        message += `**Описание:** ${task.description}\n\n`;
+        message += `**Тип:** ${task.type}\n`;
+        message += `**Приоритет:** ${priority}\n`;
+        message += `**Статус:** ${task.status}\n`;
+        if (task.progress) {
+            message += `\n**Прогресс:**\n`;
+            message += `- Изменено файлов: ${task.progress.filesChanged || 0}\n`;
+            message += `- Время работы: ${Math.round((task.progress.timeElapsed || 0) / 1000)}с\n`;
+        }
+        if (task.executionResult && !task.executionResult.success && task.executionResult.error) {
+            message += `\n**Ошибка:** ${task.executionResult.error}\n`;
+        }
+        message += `\nПожалуйста, помогите выполнить эту задачу.`;
+        try {
+            // Открываем чат CursorAI
+            await vscode.commands.executeCommand('workbench.action.chat.open');
+            // Небольшая задержка для открытия чата
+            await new Promise(resolve => setTimeout(resolve, 500));
+            // Копируем сообщение в буфер обмена
+            await vscode.env.clipboard.writeText(message);
+            // Показываем уведомление
+            const action = await vscode.window.showInformationMessage('Задача подготовлена для передачи в чат. Сообщение скопировано в буфер обмена.', 'Открыть чат', 'OK');
+            if (action === 'Открыть чат') {
+                vscode.window.showInformationMessage('Вставьте сообщение из буфера обмена в чат CursorAI (Ctrl+V или Cmd+V)', 'OK');
+            }
+        }
+        catch (error) {
+            console.warn('Failed to send task to chat:', error);
+            // Fallback: просто копируем в буфер обмена
+            await vscode.env.clipboard.writeText(message);
+            vscode.window.showWarningMessage('Не удалось открыть чат автоматически. Сообщение скопировано в буфер обмена. Вставьте его в чат CursorAI вручную.', 'OK');
+        }
     }
 }
 exports.StatusPanel = StatusPanel;
