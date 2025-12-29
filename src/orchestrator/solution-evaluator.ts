@@ -1,6 +1,8 @@
 import { AgentSolution } from '../agents/local-agent';
 import { ProjectContext } from '../agents/local-agent';
 import { ProjectDependencyGraph, ImpactAnalysis } from './project-dependency-graph';
+import { Task } from './orchestrator';
+import { TaskDeviationController } from './task-deviation-controller';
 
 /**
  * Результат оценки решения
@@ -16,6 +18,7 @@ export interface EvaluationResult {
         compliance: number;
         dependencyImpact: number;
         architecture: number;
+        taskAlignment: number; // Соответствие исходной задаче
     };
     strengths: string[];
     weaknesses: string[];
@@ -66,9 +69,18 @@ export interface MergedSolution {
  */
 export class SolutionEvaluator {
     private dependencyGraph: ProjectDependencyGraph | null = null;
+    private taskDeviationController: TaskDeviationController | null = null;
 
-    constructor(dependencyGraph?: ProjectDependencyGraph) {
+    constructor(dependencyGraph?: ProjectDependencyGraph, taskDeviationController?: TaskDeviationController) {
         this.dependencyGraph = dependencyGraph || null;
+        this.taskDeviationController = taskDeviationController || null;
+    }
+
+    /**
+     * Установка контроллера отклонения
+     */
+    setTaskDeviationController(controller: TaskDeviationController): void {
+        this.taskDeviationController = controller;
     }
 
     /**
@@ -83,7 +95,8 @@ export class SolutionEvaluator {
      */
     async evaluateSolution(
         solution: AgentSolution,
-        projectContext: ProjectContext
+        projectContext: ProjectContext,
+        originalTask?: Task
     ): Promise<EvaluationResult> {
         // Базовые оценки из решения
         const baseEvaluation = solution.evaluation;
@@ -94,6 +107,11 @@ export class SolutionEvaluator {
         // Оценка соответствия архитектуре
         const architectureScore = this.evaluateArchitectureCompliance(solution, projectContext);
 
+        // Оценка соответствия исходной задаче
+        const taskAlignment = originalTask && this.taskDeviationController
+            ? await this.evaluateTaskAlignment(solution, originalTask)
+            : 0.5; // Нейтральная оценка, если задача не предоставлена
+
         // Вычисляем общий балл с учетом всех критериев
         const breakdown = {
             quality: baseEvaluation.quality,
@@ -102,18 +120,20 @@ export class SolutionEvaluator {
             maintainability: baseEvaluation.maintainability,
             compliance: baseEvaluation.compliance,
             dependencyImpact: dependencyImpact.score,
-            architecture: architectureScore
+            architecture: architectureScore,
+            taskAlignment
         };
 
-        // Взвешенный общий балл (приоритет - все сразу)
+        // Взвешенный общий балл (приоритет - все сразу, taskAlignment имеет больший вес)
         const score = (
-            breakdown.quality * 0.15 +
-            breakdown.performance * 0.15 +
-            breakdown.security * 0.15 +
-            breakdown.maintainability * 0.15 +
-            breakdown.compliance * 0.15 +
-            breakdown.dependencyImpact * 0.15 +
-            breakdown.architecture * 0.10
+            breakdown.quality * 0.13 +
+            breakdown.performance * 0.13 +
+            breakdown.security * 0.13 +
+            breakdown.maintainability * 0.13 +
+            breakdown.compliance * 0.13 +
+            breakdown.dependencyImpact * 0.13 +
+            breakdown.architecture * 0.09 +
+            breakdown.taskAlignment * 0.13 // Важный критерий
         );
 
         // Определяем сильные и слабые стороны
@@ -132,14 +152,32 @@ export class SolutionEvaluator {
     }
 
     /**
+     * Оценка соответствия решения исходной задаче
+     */
+    async evaluateTaskAlignment(solution: AgentSolution, originalTask: Task): Promise<number> {
+        if (!this.taskDeviationController) {
+            return 0.5; // Нейтральная оценка
+        }
+
+        try {
+            const deviation = await this.taskDeviationController.checkDeviation(originalTask, solution);
+            return deviation.relevance;
+        } catch (error) {
+            console.error('Error evaluating task alignment:', error);
+            return 0.5;
+        }
+    }
+
+    /**
      * Сравнение решений
      */
     async compareSolutions(
         solutions: AgentSolution[],
-        projectContext: ProjectContext
+        projectContext: ProjectContext,
+        originalTask?: Task
     ): Promise<RankedSolutions> {
         const evaluations = await Promise.all(
-            solutions.map(sol => this.evaluateSolution(sol, projectContext))
+            solutions.map(sol => this.evaluateSolution(sol, projectContext, originalTask))
         );
 
         // Сортируем по общему баллу
@@ -151,7 +189,8 @@ export class SolutionEvaluator {
             performance: evaluations.reduce((sum, e) => sum + e.breakdown.performance, 0) / evaluations.length,
             security: evaluations.reduce((sum, e) => sum + e.breakdown.security, 0) / evaluations.length,
             maintainability: evaluations.reduce((sum, e) => sum + e.breakdown.maintainability, 0) / evaluations.length,
-            compliance: evaluations.reduce((sum, e) => sum + e.breakdown.compliance, 0) / evaluations.length
+            compliance: evaluations.reduce((sum, e) => sum + e.breakdown.compliance, 0) / evaluations.length,
+            taskAlignment: evaluations.reduce((sum, e) => sum + e.breakdown.taskAlignment, 0) / evaluations.length
         };
 
         return {
@@ -167,7 +206,8 @@ export class SolutionEvaluator {
      */
     async mergeSolutions(
         solutions: AgentSolution[],
-        projectContext: ProjectContext
+        projectContext: ProjectContext,
+        originalTask?: Task
     ): Promise<MergedSolution> {
         if (solutions.length === 0) {
             throw new Error('No solutions to merge');
@@ -188,23 +228,61 @@ export class SolutionEvaluator {
             };
         }
 
+        // Фильтруем решения с низким соответствием задаче, если задача предоставлена
+        let solutionsToMerge = solutions;
+        if (originalTask && this.taskDeviationController) {
+            const deviationChecks = await Promise.all(
+                solutions.map(async sol => ({
+                    solution: sol,
+                    deviation: await this.taskDeviationController!.checkDeviation(originalTask, sol)
+                }))
+            );
+
+            // Оставляем только релевантные решения
+            solutionsToMerge = deviationChecks
+                .filter(({ deviation }) => deviation.relevance >= 0.5 && deviation.deviationLevel !== 'high')
+                .map(({ solution }) => solution);
+
+            // Если все решения отфильтрованы, используем исходные
+            if (solutionsToMerge.length === 0) {
+                console.warn('All solutions filtered out during merge, using original solutions');
+                solutionsToMerge = solutions;
+            }
+        }
+
         // Объединяем лучшие части каждого решения
-        const evaluations = await this.compareSolutions(solutions, projectContext);
+        const evaluations = await this.compareSolutions(solutionsToMerge, projectContext, originalTask);
         const bestSolution = evaluations.best.solution;
 
         // Объединяем файлы для изменения (уникальные)
         const allFiles = new Set<string>();
-        solutions.forEach(sol => {
+        solutionsToMerge.forEach(sol => {
             sol.solution.filesToModify.forEach(file => allFiles.add(file));
         });
 
-        // Объединяем изменения кода
+        // Объединяем изменения кода, приоритизируя релевантные решения
         const mergedCodeChanges: AgentSolution['solution']['codeChanges'] = [];
         const fileChangesMap = new Map<string, AgentSolution['solution']['codeChanges'][0]>();
         
-        solutions.forEach(sol => {
+        // Сортируем решения по релевантности (если есть проверка отклонений)
+        let sortedSolutions = solutionsToMerge;
+        if (originalTask && this.taskDeviationController) {
+            const solutionsWithRelevance = await Promise.all(
+                solutionsToMerge.map(async sol => ({
+                    solution: sol,
+                    deviation: await this.taskDeviationController!.checkDeviation(originalTask, sol)
+                }))
+            );
+            
+            sortedSolutions = solutionsWithRelevance
+                .sort((a, b) => b.deviation.relevance - a.deviation.relevance)
+                .map(({ solution }) => solution);
+        }
+        
+        sortedSolutions.forEach(sol => {
             sol.solution.codeChanges.forEach(change => {
                 const existing = fileChangesMap.get(change.file);
+                // Приоритизируем решения с лучшей оценкой и релевантностью
                 if (!existing || sol.evaluation.overallScore > bestSolution.evaluation.overallScore) {
                     fileChangesMap.set(change.file, change);
                 }
@@ -223,20 +301,20 @@ export class SolutionEvaluator {
             overallScore: evaluations.solutions.reduce((sum, e) => sum + e.score, 0) / evaluations.solutions.length
         };
 
-        const reasoning = `Объединено ${solutions.length} решений. ` +
+        const reasoning = `Объединено ${solutionsToMerge.length} решений (из ${solutions.length} исходных). ` +
             `Лучшее решение от ${bestSolution.agentName} использовано как основа. ` +
-            `Включены лучшие элементы из всех решений.`;
+            `Включены лучшие элементы из всех релевантных решений.`;
 
         return {
             id: `merged-${Date.now()}`,
             title: `Объединенное решение: ${bestSolution.solution.title}`,
-            description: `Комбинация лучших элементов из ${solutions.length} решений`,
+            description: `Комбинация лучших элементов из ${solutionsToMerge.length} релевантных решений`,
             approach: bestSolution.solution.approach,
             filesToModify: Array.from(allFiles),
             codeChanges: mergedCodeChanges,
             evaluation: avgEvaluation,
             reasoning,
-            sourceSolutions: solutions.map(s => s.id)
+            sourceSolutions: solutionsToMerge.map(s => s.id)
         };
     }
 
@@ -341,6 +419,9 @@ export class SolutionEvaluator {
         if (breakdown.architecture >= 0.8) {
             strengths.push('Соответствие архитектуре проекта');
         }
+        if (breakdown.taskAlignment >= 0.8) {
+            strengths.push('Высокое соответствие исходной задаче');
+        }
 
         return strengths;
     }
@@ -371,6 +452,9 @@ export class SolutionEvaluator {
         }
         if (breakdown.architecture < 0.6) {
             weaknesses.push('Несоответствие архитектуре проекта');
+        }
+        if (breakdown.taskAlignment < 0.6) {
+            weaknesses.push('Низкое соответствие исходной задаче');
         }
 
         return weaknesses;
@@ -406,6 +490,9 @@ export class SolutionEvaluator {
         }
         if (breakdown.architecture < 0.7) {
             recommendations.push('Привести в соответствие архитектуре проекта');
+        }
+        if (breakdown.taskAlignment < 0.7) {
+            recommendations.push('Улучшить соответствие исходной задаче: пересмотреть требования и убедиться, что все учтены');
         }
 
         // Рекомендации на основе рисков решения

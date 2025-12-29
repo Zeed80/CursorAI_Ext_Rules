@@ -50,6 +50,8 @@ const learning_engine_1 = require("./learning-engine");
 const project_analyzer_1 = require("./project-analyzer");
 const quality_checker_1 = require("./quality-checker");
 const cursor_api_1 = require("../integration/cursor-api");
+const task_deviation_controller_1 = require("./task-deviation-controller");
+const ensemble_refinement_manager_1 = require("./ensemble-refinement-manager");
 /**
  * Самообучаемый оркестратор
  * Расширяет базовый Orchestrator функциями:
@@ -63,10 +65,12 @@ class SelfLearningOrchestrator extends orchestrator_1.Orchestrator {
         super(context, settingsManager);
         this.localAgents = new Map();
         this.thoughtsCallbacks = new Map();
-        this.brainstormingManager = new brainstorming_manager_1.BrainstormingManager();
         this.dependencyGraph = new project_dependency_graph_1.ProjectDependencyGraph();
         this.knowledgeBase = new project_knowledge_base_1.ProjectKnowledgeBase();
-        this.solutionEvaluator = new solution_evaluator_1.SolutionEvaluator(this.dependencyGraph);
+        this.taskDeviationController = new task_deviation_controller_1.TaskDeviationController();
+        this.brainstormingManager = new brainstorming_manager_1.BrainstormingManager();
+        this.solutionEvaluator = new solution_evaluator_1.SolutionEvaluator(this.dependencyGraph, this.taskDeviationController);
+        this.ensembleRefinementManager = new ensemble_refinement_manager_1.EnsembleRefinementManager(this.solutionEvaluator, this.taskDeviationController);
         this.learningEngine = new learning_engine_1.LearningEngine(this.knowledgeBase);
         this.qualityChecker = new quality_checker_1.QualityChecker(this.dependencyGraph, this.knowledgeBase);
         this.agentsStatusTreeProvider = agentsStatusTreeProvider;
@@ -308,14 +312,16 @@ class SelfLearningOrchestrator extends orchestrator_1.Orchestrator {
         }
         // Получаем контекст проекта
         const projectContext = await this.buildProjectContext();
-        // Инициируем мозговой штурм
+        // Инициируем мозговой штурм (с автоматической генерацией вариаций задач)
         const session = await this.brainstormingManager.initiateBrainstorming(task, recommendedAgents, this.localAgents, projectContext, thoughtsCallback);
         // Ждем завершения всех агентов
         const solutions = await this.brainstormingManager.waitForAllAgents(session.id);
-        // Консолидируем решения
-        const consolidated = await this.brainstormingManager.consolidateSolutions(solutions);
-        // Оцениваем решения
-        const ranked = await this.solutionEvaluator.compareSolutions(solutions, projectContext);
+        // Мониторим соответствие исходной задаче
+        const deviationResults = await this.brainstormingManager.monitorTaskAlignment(session.id, task);
+        // Консолидируем решения с учетом отклонений
+        const consolidated = await this.brainstormingManager.consolidateSolutions(solutions, task, deviationResults);
+        // Оцениваем решения с учетом исходной задачи
+        const ranked = await this.solutionEvaluator.compareSolutions(solutions, projectContext, task);
         consolidated.bestSolution = ranked.best.solution;
         return consolidated;
     }
@@ -331,19 +337,29 @@ class SelfLearningOrchestrator extends orchestrator_1.Orchestrator {
         try {
             // Инициируем мозговой штурм
             const consolidated = await this.initiateBrainstorming(task, undefined, thoughtsCallback);
-            // Проверяем, идеально ли решение
-            const evaluation = await this.solutionEvaluator.evaluateSolution(consolidated.bestSolution, await this.buildProjectContext());
+            const projectContext = await this.buildProjectContext();
+            // Проверяем, идеально ли решение (с учетом соответствия задаче)
+            const evaluation = await this.solutionEvaluator.evaluateSolution(consolidated.bestSolution, projectContext, task);
             let finalSolution = consolidated.bestSolution;
-            // Если решение не идеально, дорабатываем его
-            if (evaluation.score < 0.8) {
-                console.log(`Solution score ${evaluation.score} is below threshold, refining...`);
-                const feedback = this.generateRefinementFeedback(evaluation);
-                const agent = this.localAgents.get(finalSolution.agentId);
-                if (agent) {
-                    const refined = await this.brainstormingManager.refineSolution(finalSolution, feedback, agent, task, await this.buildProjectContext());
-                    const refinedEvaluation = await this.solutionEvaluator.evaluateSolution(refined, await this.buildProjectContext());
-                    if (refinedEvaluation.score > evaluation.score) {
-                        finalSolution = refined;
+            // Если решение не идеально или имеет отклонения, дорабатываем его через ансамбль
+            if (evaluation.score < 0.8 || evaluation.breakdown.taskAlignment < 0.7) {
+                console.log(`Solution score ${evaluation.score} or task alignment ${evaluation.breakdown.taskAlignment} is below threshold, refining with ensemble...`);
+                // Используем ансамблевую доработку
+                const refinementResult = await this.ensembleRefinementManager.initiateEnsembleRefinement(finalSolution, task, this.localAgents, projectContext);
+                if (refinementResult.improvementScore > 0) {
+                    finalSolution = refinementResult.refinedSolution;
+                    console.log(`Solution improved by ${(refinementResult.improvementScore * 100).toFixed(1)}%`);
+                }
+                else {
+                    // Fallback на обычную доработку
+                    const feedback = this.generateRefinementFeedback(evaluation);
+                    const agent = this.localAgents.get(finalSolution.agentId);
+                    if (agent) {
+                        const refined = await this.brainstormingManager.refineSolution(finalSolution, feedback, agent, task, projectContext);
+                        const refinedEvaluation = await this.solutionEvaluator.evaluateSolution(refined, projectContext, task);
+                        if (refinedEvaluation.score > evaluation.score) {
+                            finalSolution = refined;
+                        }
                     }
                 }
             }
@@ -352,7 +368,6 @@ class SelfLearningOrchestrator extends orchestrator_1.Orchestrator {
             if (!agent) {
                 throw new Error(`Agent ${finalSolution.agentId} not found`);
             }
-            const projectContext = await this.buildProjectContext();
             const executionResult = await agent.executeSolution(finalSolution, task, projectContext);
             // Сохраняем решение в историю
             await this.recordDecision(task, finalSolution, executionResult, evaluation);
@@ -392,6 +407,57 @@ class SelfLearningOrchestrator extends orchestrator_1.Orchestrator {
                 error: error.message || 'Unknown error'
             };
         }
+    }
+    /**
+     * Выполнение задачи с вариациями
+     * Создает вариации задачи для разных агентов и выполняет их
+     */
+    async executeTaskWithVariations(taskId) {
+        const task = this.getTask(taskId);
+        if (!task) {
+            throw new Error(`Task ${taskId} not found`);
+        }
+        // Используем существующий метод с мозговым штурмом
+        // который уже использует вариации через BrainstormingManager
+        await this.executeTaskWithBrainstorming(taskId);
+    }
+    /**
+     * Мониторинг и корректировка отклонений
+     * Проверяет решения на соответствие задаче и корректирует при необходимости
+     */
+    async monitorAndCorrect(task, solutions) {
+        const projectContext = await this.buildProjectContext();
+        const corrected = [];
+        const deviations = new Map();
+        // Проверяем каждое решение на отклонение
+        for (const solution of solutions) {
+            const deviation = await this.taskDeviationController.checkDeviation(task, solution);
+            deviations.set(solution.agentId, deviation);
+            // Если есть значительное отклонение, корректируем решение
+            if (deviation.deviationLevel === 'high' || deviation.relevance < 0.7) {
+                console.log(`Correcting solution from agent ${solution.agentId} due to deviation`);
+                const agent = this.localAgents.get(solution.agentId);
+                if (agent) {
+                    // Дорабатываем решение на основе обратной связи
+                    const refined = await this.brainstormingManager.refineSolution(solution, deviation.feedback, agent, task, projectContext);
+                    // Проверяем, улучшилось ли решение
+                    const refinedDeviation = await this.taskDeviationController.checkDeviation(task, refined);
+                    if (refinedDeviation.relevance > deviation.relevance) {
+                        corrected.push(refined);
+                    }
+                    else {
+                        corrected.push(solution); // Оставляем исходное, если доработка не помогла
+                    }
+                }
+                else {
+                    corrected.push(solution);
+                }
+            }
+            else {
+                corrected.push(solution);
+            }
+        }
+        return { corrected, deviations };
     }
     /**
      * Построение контекста проекта

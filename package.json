@@ -2,7 +2,7 @@
   "name": "cursor-ai-autonomous-extension",
   "displayName": "CursorAI Autonomous Extension",
   "description": "Автономное расширение CursorAI с виртуальным пользователем и системой самосовершенствования",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "cursor-autonomous",
   "repository": {
     "type": "git",
