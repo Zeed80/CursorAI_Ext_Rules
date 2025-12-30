@@ -35,8 +35,9 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LocalAgent = void 0;
 const vscode = __importStar(require("vscode"));
-const cursor_api_1 = require("../integration/cursor-api");
 const settings_manager_1 = require("../integration/settings-manager");
+const provider_manager_1 = require("../integration/model-providers/provider-manager");
+const usage_tracker_1 = require("../integration/model-providers/usage-tracker");
 /**
  * Базовый класс для локальных агентов
  * Все агенты работают локально через CursorAI API
@@ -49,6 +50,7 @@ class LocalAgent {
         this.description = description;
         this.context = context;
         this.settingsManager = new settings_manager_1.SettingsManager();
+        this.usageTracker = usage_tracker_1.UsageTracker.getInstance(context);
     }
     /**
      * Установка callback для публикации размышлений
@@ -403,50 +405,62 @@ ${existingCode}
         return this.selectedModel;
     }
     /**
-     * Вызов LLM через CursorAI API
-     * Использует выбранную модель или автоматический выбор CursorAI
-     * Создает/обновляет фонового агента CursorAI при необходимости
+     * Вызов LLM через провайдер моделей
+     * Использует выбранный провайдер (CursorAI, OpenAI, Google, Anthropic, Ollama, LLM Studio)
+     * или автоматический выбор через ModelProviderManager
      */
     async callLLM(prompt) {
         try {
-            // Получаем выбранную модель для агента
-            const selectedModelConfig = await this.settingsManager.getAgentModel(this.id);
-            // Убеждаемся, что фоновый агент создан/обновлен
-            try {
-                const agentInstructions = `Ты - ${this.name}. ${this.description}\n\n` +
-                    `Твоя задача - помогать пользователю в разработке, предоставляя детальные и точные ответы.`;
-                const modelId = selectedModelConfig ? selectedModelConfig.id : undefined;
-                await cursor_api_1.CursorAPI.createOrUpdateBackgroundAgent(this.id, this.name, this.description, agentInstructions, modelId);
-            }
-            catch (bgAgentError) {
-                // Если не удалось создать фонового агента, продолжаем без него
-                console.debug(`Failed to ensure background agent for ${this.id}:`, bgAgentError);
-            }
+            // Получаем провайдер для агента через ModelProviderManager
+            const manager = provider_manager_1.ModelProviderManager.getInstance();
             // Формируем промпт с контекстом агента
             const fullPrompt = `Ты - ${this.name}. ${this.description}\n\n` +
                 `Твоя задача: ${prompt}\n\n` +
                 `Отвечай как специалист в своей области, предоставляя детальные и точные ответы.`;
-            // Отправляем сообщение через CursorAI API
-            // Фоновый агент уже настроен с нужной моделью, поэтому просто отправляем сообщение
-            const response = await cursor_api_1.CursorAPI.sendMessageToAgent(this.id, fullPrompt);
-            return response || '';
+            // Получаем конфигурацию модели для агента
+            const modelConfig = this.settingsManager.getAgentModelConfig(this.id);
+            // Получаем провайдер для отслеживания
+            const provider = await manager.getProviderForAgent(this.id);
+            const providerType = provider?.getProviderType() || 'cursorai';
+            // Вызываем модель через провайдер
+            const result = await manager.callForAgent(this.id, fullPrompt, {
+                temperature: modelConfig.modelConfig?.temperature,
+                maxTokens: modelConfig.modelConfig?.maxTokens,
+                model: modelConfig.modelConfig?.model
+            });
+            // Отслеживаем использование
+            if (this.usageTracker) {
+                this.usageTracker.trackUsage(providerType, this.id, result);
+            }
+            return result.text || '';
         }
         catch (error) {
             console.error(`Error calling LLM for agent ${this.id}:`, error);
-            // Fallback: пытаемся использовать базовый метод без указания модели
+            // Fallback: пытаемся использовать CursorAI напрямую
             try {
-                const fallbackPrompt = `Ты - ${this.name}. ${this.description}\n\n` +
-                    `Твоя задача: ${prompt}\n\n` +
-                    `Отвечай как специалист в своей области, предоставляя детальные и точные ответы.`;
-                const response = await cursor_api_1.CursorAPI.sendMessageToAgent(this.id, fallbackPrompt);
-                return response || '';
+                const manager = provider_manager_1.ModelProviderManager.getInstance();
+                const cursorAIProvider = manager.getProvider('cursorai');
+                if (cursorAIProvider) {
+                    const isAvailable = await cursorAIProvider.isAvailable();
+                    if (isAvailable) {
+                        const fallbackPrompt = `Ты - ${this.name}. ${this.description}\n\n` +
+                            `Твоя задача: ${prompt}\n\n` +
+                            `Отвечай как специалист в своей области, предоставляя детальные и точные ответы.`;
+                        const result = await cursorAIProvider.call(fallbackPrompt);
+                        // Отслеживаем использование fallback
+                        if (this.usageTracker) {
+                            this.usageTracker.trackUsage('cursorai', this.id, result);
+                        }
+                        return result.text || '';
+                    }
+                }
             }
             catch (fallbackError) {
                 console.error(`Fallback also failed for agent ${this.id}:`, fallbackError);
-                // Возвращаем пустую строку, чтобы агенты могли обработать отсутствие ответа
-                // и использовать fallback варианты решений
-                return '';
             }
+            // Последний резерв: возвращаем пустую строку
+            // Агенты должны обработать отсутствие ответа и использовать fallback варианты решений
+            return '';
         }
     }
     /**

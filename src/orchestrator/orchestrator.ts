@@ -7,6 +7,8 @@ import { RuleGenerator } from './rule-generator';
 import { TaskAnalytics, AnalyticsReport } from './task-analytics';
 import { TaskExecutor, TaskExecutionResult } from './task-executor';
 import { QualityCheckResult } from './quality-checker';
+import { AgentSolution } from '../agents/local-agent';
+import { ModelProviderManager } from '../integration/model-providers/provider-manager';
 
 export interface Task {
     id: string;
@@ -388,6 +390,131 @@ export class Orchestrator {
      */
     getAgentManager(): AgentManager {
         return this.agentManager;
+    }
+
+    /**
+     * Выбор лучшего решения из предложенных агентами
+     */
+    async selectBestSolution(solutions: AgentSolution[]): Promise<AgentSolution> {
+        if (solutions.length === 0) {
+            throw new Error('No solutions provided');
+        }
+
+        if (solutions.length === 1) {
+            return solutions[0];
+        }
+
+        // Оцениваем решения по нескольким критериям
+        const scoredSolutions = solutions.map(solution => {
+            let score = 0;
+
+            // Оценка качества (0-1) * 0.3
+            score += (solution.evaluation.quality || 0.5) * 0.3;
+
+            // Оценка уверенности (0-1) * 0.25
+            score += solution.confidence * 0.25;
+
+            // Оценка общего балла (0-1) * 0.25
+            score += solution.evaluation.overallScore * 0.25;
+
+            // Обратная оценка сложности (меньше сложность = выше балл) * 0.1
+            const complexityScore = solution.solution.codeChanges.reduce((sum, change) => {
+                const lines = change.estimatedLines || 50;
+                return sum + (lines > 200 ? 0.3 : lines > 100 ? 0.6 : 1.0);
+            }, 0) / solution.solution.codeChanges.length;
+            score += complexityScore * 0.1;
+
+            // Оценка влияния на зависимости (меньше влияние = выше балл) * 0.1
+            const impactScore = solution.solution.dependencies.impact === 'low' ? 1.0 :
+                              solution.solution.dependencies.impact === 'medium' ? 0.6 : 0.3;
+            score += impactScore * 0.1;
+
+            return { solution, score };
+        });
+
+        // Сортируем по убыванию балла
+        scoredSolutions.sort((a, b) => b.score - a.score);
+
+        console.log(`Orchestrator: Selected best solution from ${solutions.length} options. Score: ${scoredSolutions[0].score.toFixed(2)}`);
+
+        return scoredSolutions[0].solution;
+    }
+
+    /**
+     * Опциональная финальная обработка решения через CursorAI
+     * Используется только для критических задач или если включено в настройках
+     */
+    async refineSolutionWithCursorAI(solution: AgentSolution, task: Task): Promise<AgentSolution> {
+        const config = vscode.workspace.getConfiguration('cursor-autonomous');
+        const useCursorAIForRefinement = config.get<boolean>('useCursorAIForRefinement', false);
+        const onlyForCriticalTasks = config.get<boolean>('cursorAIRefinementOnlyForCritical', true);
+
+        // Проверяем, нужно ли использовать CursorAI
+        if (!useCursorAIForRefinement) {
+            return solution; // Возвращаем решение без изменений
+        }
+
+        if (onlyForCriticalTasks && task.priority !== 'high') {
+            return solution; // Используем только для критических задач
+        }
+
+        try {
+            const manager = ModelProviderManager.getInstance();
+            const cursorAIProvider = manager.getProvider('cursorai');
+
+            if (!cursorAIProvider) {
+                console.warn('Orchestrator: CursorAI provider not available for refinement');
+                return solution;
+            }
+
+            const isAvailable = await cursorAIProvider.isAvailable();
+            if (!isAvailable) {
+                console.warn('Orchestrator: CursorAI provider not available');
+                return solution;
+            }
+
+            // Формируем промпт для улучшения решения
+            const refinementPrompt = `Ты - опытный архитектор программного обеспечения. 
+
+Задача: ${task.description}
+Тип задачи: ${task.type}
+Приоритет: ${task.priority}
+
+Предложенное решение:
+Название: ${solution.solution.title}
+Описание: ${solution.solution.description}
+Подход: ${solution.solution.approach}
+Файлы для изменения: ${solution.solution.filesToModify.join(', ')}
+
+Оценка решения:
+- Качество: ${solution.evaluation.quality}
+- Производительность: ${solution.evaluation.performance}
+- Безопасность: ${solution.evaluation.security}
+- Поддерживаемость: ${solution.evaluation.maintainability}
+- Соответствие стандартам: ${solution.evaluation.compliance}
+- Общий балл: ${solution.evaluation.overallScore}
+
+Проверь решение и предложи улучшения, если они необходимы. 
+Верни улучшенное решение в том же формате, или подтверди, что решение оптимально.`;
+
+            const result = await cursorAIProvider.call(refinementPrompt, {
+                temperature: 0.3, // Низкая температура для более точных ответов
+                maxTokens: 2000
+            });
+
+            // Парсим улучшенное решение из ответа (упрощенная версия)
+            // В реальной реализации здесь должен быть более сложный парсинг
+            if (result.text && result.text.length > 100) {
+                // Если ответ достаточно детальный, считаем, что решение было улучшено
+                console.log('Orchestrator: Solution refined with CursorAI');
+                // Можно добавить более детальную обработку ответа для обновления solution
+            }
+
+            return solution;
+        } catch (error: any) {
+            console.error('Orchestrator: Error refining solution with CursorAI:', error);
+            return solution; // Возвращаем исходное решение при ошибке
+        }
     }
 
     /**

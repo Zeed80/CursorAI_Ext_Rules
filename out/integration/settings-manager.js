@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingsManager = void 0;
 const vscode = __importStar(require("vscode"));
+const provider_manager_1 = require("./model-providers/provider-manager");
 class SettingsManager {
     constructor() {
         this.config = vscode.workspace.getConfiguration('cursor-autonomous');
@@ -114,6 +115,69 @@ class SettingsManager {
         // Обновляем настройки - сохраняем только примитивные значения
         await this.config.update('agents', agentsConfig, vscode.ConfigurationTarget.Global);
         this.config = vscode.workspace.getConfiguration('cursor-autonomous');
+    }
+    /**
+     * Получение провайдера модели для агента
+     */
+    async getAgentModelProvider(agentId) {
+        const manager = provider_manager_1.ModelProviderManager.getInstance();
+        return await manager.getProviderForAgent(agentId);
+    }
+    /**
+     * Получение конфигурации модели для агента
+     */
+    getAgentModelConfig(agentId) {
+        const agentsConfig = this.config.get('agents', {});
+        return agentsConfig[agentId] || {};
+    }
+    /**
+     * Установка провайдера модели для агента
+     */
+    async setAgentModelProvider(agentId, providerType, config) {
+        const agentsConfig = this.config.get('agents', {});
+        if (!agentsConfig[agentId]) {
+            agentsConfig[agentId] = {};
+        }
+        agentsConfig[agentId].model = providerType;
+        if (config) {
+            agentsConfig[agentId].modelConfig = config;
+        }
+        await this.config.update('agents', agentsConfig, vscode.ConfigurationTarget.Global);
+        this.config = vscode.workspace.getConfiguration('cursor-autonomous');
+    }
+    /**
+     * Получение глобальной конфигурации провайдера
+     */
+    getProviderConfig(providerType) {
+        const providersConfig = this.config.get('providers', {});
+        const providerConfig = providersConfig[providerType] || {};
+        return {
+            apiKey: providerConfig.apiKey,
+            baseUrl: providerConfig.baseUrl,
+            ...providerConfig
+        };
+    }
+    /**
+     * Обновление глобальной конфигурации провайдера
+     */
+    async updateProviderConfig(providerType, config) {
+        const providersConfig = this.config.get('providers', {});
+        if (!providersConfig[providerType]) {
+            providersConfig[providerType] = {};
+        }
+        providersConfig[providerType] = {
+            ...providersConfig[providerType],
+            ...config
+        };
+        await this.config.update('providers', providersConfig, vscode.ConfigurationTarget.Global);
+        this.config = vscode.workspace.getConfiguration('cursor-autonomous');
+    }
+    /**
+     * Получение провайдера по умолчанию
+     */
+    getDefaultProvider() {
+        const providersConfig = this.config.get('providers', {});
+        return (providersConfig.defaultProvider || 'cursorai');
     }
 }
 exports.SettingsManager = SettingsManager;

@@ -69,6 +69,14 @@ function activate(context) {
             console.log('CursorAI API not available, using fallback methods');
         }
     });
+    // Инициализация провайдеров моделей (асинхронно)
+    Promise.resolve().then(() => __importStar(require('./integration/model-providers/providers-initializer'))).then(({ ProvidersInitializer }) => {
+        ProvidersInitializer.initialize(context).then(() => {
+            console.log('Model providers initialized');
+        }).catch(err => {
+            console.error('Error initializing model providers:', err);
+        });
+    });
     // Инициализация TreeView для статуса агентов ПЕРЕД созданием оркестратора
     agentsStatusTreeProvider = new agents_status_tree_1.AgentsStatusTreeProvider();
     // Инициализация самообучаемого оркестратора ПЕРЕД регистрацией команд
@@ -463,81 +471,125 @@ function activate(context) {
             agentId = selected.agentId;
         }
         try {
-            // Получаем список доступных моделей
-            const { ModelProvider } = await Promise.resolve().then(() => __importStar(require('./integration/model-provider')));
-            const availableModels = await ModelProvider.getAvailableModels();
-            if (availableModels.length === 0) {
-                vscode.window.showWarningMessage('Нет доступных языковых моделей CursorAI. Убедитесь, что CursorAI настроен и модели доступны.');
+            // Получаем список доступных провайдеров и моделей
+            const { ModelProviderManager } = await Promise.resolve().then(() => __importStar(require('./integration/model-providers/provider-manager')));
+            const { SettingsManager } = await Promise.resolve().then(() => __importStar(require('./integration/settings-manager')));
+            const manager = ModelProviderManager.getInstance();
+            const settingsManager = new SettingsManager();
+            // Получаем все доступные модели из всех провайдеров
+            const allModels = await manager.getAllAvailableModels();
+            // Получаем текущую конфигурацию агента
+            const agentConfig = settingsManager.getAgentModelConfig(agentId);
+            const currentProvider = agentConfig.model || 'cursorai';
+            // Сначала выбираем провайдер
+            const providerItems = [
+                { label: '$(cloud) CursorAI', provider: 'cursorai', description: 'Модели CursorAI (по умолчанию)' },
+                { label: '$(cloud) OpenAI', provider: 'openai', description: 'ChatGPT модели (gpt-4, gpt-3.5-turbo)' },
+                { label: '$(cloud) Google', provider: 'google', description: 'Gemini модели (gemini-pro)' },
+                { label: '$(cloud) Anthropic', provider: 'anthropic', description: 'Claude модели (claude-3)' },
+                { label: '$(server) Ollama', provider: 'ollama', description: 'Локальные модели (llama2, mistral)' },
+                { label: '$(server) LLM Studio', provider: 'llm-studio', description: 'LLM Studio локальные модели' }
+            ];
+            const selectedProvider = await vscode.window.showQuickPick(providerItems, {
+                placeHolder: `Выберите провайдер для агента ${agentId}`,
+                canPickMany: false
+            });
+            if (!selectedProvider)
+                return;
+            // Получаем модели выбранного провайдера
+            const provider = manager.getProvider(selectedProvider.provider);
+            if (!provider) {
+                vscode.window.showErrorMessage(`Провайдер ${selectedProvider.provider} не зарегистрирован`);
                 return;
             }
-            // Получаем текущую модель агента
-            const { SettingsManager } = await Promise.resolve().then(() => __importStar(require('./integration/settings-manager')));
-            const settingsManager = new SettingsManager();
-            const currentModel = await settingsManager.getAgentModel(agentId);
-            // Формируем список для выбора
+            const providerModels = await provider.getAvailableModels();
+            // Формируем список моделей для выбора
             const modelItems = [
                 {
                     label: '$(circle-slash) Автоматический выбор',
-                    description: 'CursorAI автоматически выберет модель',
-                    model: undefined
+                    description: 'Провайдер автоматически выберет модель',
+                    modelId: undefined,
+                    provider: selectedProvider.provider
                 },
-                ...availableModels.map(model => ({
-                    label: `$(robot) ${model.displayName || `${model.vendor || ''} ${model.family || model.id || ''}`.trim()}`,
-                    description: model.id || model.family || '',
-                    detail: model.vendor ? `Провайдер: ${model.vendor}` : undefined,
-                    model: model
+                ...providerModels.map((model) => ({
+                    label: `$(robot) ${model.name}`,
+                    description: model.description || model.id,
+                    detail: `Тип: ${model.type}, Макс. токенов: ${model.maxTokens || 'неизвестно'}`,
+                    modelId: model.id,
+                    provider: selectedProvider.provider
                 }))
             ];
-            // Выделяем текущую модель
-            const currentIndex = currentModel
-                ? modelItems.findIndex(item => item.model &&
-                    item.model.id === currentModel.id &&
-                    item.model.vendor === currentModel.vendor)
-                : 0;
-            const selected = await vscode.window.showQuickPick(modelItems, {
-                placeHolder: `Выберите модель для агента ${agentId}`,
+            const selectedModel = await vscode.window.showQuickPick(modelItems, {
+                placeHolder: `Выберите модель из ${selectedProvider.label} для агента ${agentId}`,
                 canPickMany: false
             });
-            if (selected === undefined)
+            if (selectedModel === undefined)
                 return;
-            // Сохраняем выбранную модель
-            await settingsManager.setAgentModel(agentId, selected.model);
-            // Получаем информацию об агенте для создания фонового агента
-            const agent = orchestrator.getAgentManager().getLocalAgent(agentId);
-            if (agent) {
-                agent.setSelectedModel(selected.model);
-                // Создаем или обновляем фонового агента CursorAI с указанной моделью
-                try {
-                    const { CursorAPI } = await Promise.resolve().then(() => __importStar(require('./integration/cursor-api')));
-                    const agentName = agent.getName();
-                    const agentDescription = agent.getDescription();
-                    const agentInstructions = `Ты - ${agentName}. ${agentDescription}\n\n` +
-                        `Твоя задача - помогать пользователю в разработке, предоставляя детальные и точные ответы.`;
-                    const modelId = selected.model ? selected.model.id : undefined;
-                    const backgroundAgentId = await CursorAPI.createOrUpdateBackgroundAgent(agentId, agentName, agentDescription, agentInstructions, modelId);
-                    if (backgroundAgentId) {
-                        console.log(`Background agent ${backgroundAgentId} created/updated for agent ${agentId}`);
+            // Если выбран облачный провайдер, запрашиваем API ключ если нужно
+            let apiKey;
+            if (['openai', 'google', 'anthropic'].includes(selectedProvider.provider)) {
+                const providersConfig = vscode.workspace.getConfiguration('cursor-autonomous').get('providers', {});
+                const providerConfig = providersConfig[selectedProvider.provider];
+                if (!providerConfig?.apiKey) {
+                    apiKey = await vscode.window.showInputBox({
+                        prompt: `Введите API ключ для ${selectedProvider.label}`,
+                        password: true,
+                        placeHolder: 'API ключ...'
+                    });
+                    if (!apiKey) {
+                        vscode.window.showWarningMessage('API ключ не введен. Модель не будет работать без ключа.');
+                        return;
                     }
-                    else {
-                        console.warn(`Failed to create/update background agent for agent ${agentId}`);
-                    }
-                }
-                catch (error) {
-                    console.error(`Error creating/updating background agent for agent ${agentId}:`, error);
-                    // Продолжаем выполнение, даже если не удалось создать фонового агента
+                    // Сохраняем API ключ в настройках
+                    await settingsManager.updateProviderConfig(selectedProvider.provider, { apiKey });
                 }
             }
-            // Обновляем статус агента
-            agentsStatusTreeProvider.updateAgentStatus(agentId, {
-                selectedModel: selected.model
+            // Если выбран локальный провайдер, запрашиваем URL если нужно
+            let baseUrl;
+            if (['ollama', 'llm-studio'].includes(selectedProvider.provider)) {
+                const providersConfig = vscode.workspace.getConfiguration('cursor-autonomous').get('providers', {});
+                const providerConfig = providersConfig[selectedProvider.provider];
+                const defaultUrl = selectedProvider.provider === 'ollama'
+                    ? 'http://localhost:11434'
+                    : 'http://localhost:11434';
+                if (!providerConfig?.baseUrl || providerConfig.baseUrl === defaultUrl) {
+                    baseUrl = await vscode.window.showInputBox({
+                        prompt: `Введите URL сервера для ${selectedProvider.label}`,
+                        placeHolder: defaultUrl,
+                        value: providerConfig?.baseUrl || defaultUrl
+                    });
+                    if (baseUrl) {
+                        await settingsManager.updateProviderConfig(selectedProvider.provider, { baseUrl });
+                    }
+                }
+            }
+            // Сохраняем настройки агента
+            await settingsManager.setAgentModelProvider(agentId, selectedProvider.provider, {
+                model: selectedModel.modelId,
+                apiKey: apiKey,
+                baseUrl: baseUrl,
+                temperature: 0.7,
+                maxTokens: 1000
             });
-            const modelName = selected.model
-                ? selected.model.displayName || `${selected.model.vendor || ''} ${selected.model.family || selected.model.id || ''}`.trim()
+            // Обновляем статус агента
+            const foundModel = providerModels.find((m) => m.id === selectedModel.modelId);
+            agentsStatusTreeProvider.updateAgentStatus(agentId, {
+                selectedModel: {
+                    id: selectedModel.modelId || 'auto',
+                    displayName: selectedModel.modelId
+                        ? (foundModel?.name || selectedModel.modelId)
+                        : 'Автоматический выбор',
+                    provider: selectedProvider.provider
+                }
+            });
+            const modelName = selectedModel.modelId
+                ? providerModels.find((m) => m.id === selectedModel.modelId)?.name || selectedModel.modelId
                 : 'Автоматический выбор';
-            vscode.window.showInformationMessage(`Модель для агента ${agentId} установлена: ${modelName}`);
+            vscode.window.showInformationMessage(`Провайдер ${selectedProvider.label} и модель "${modelName}" установлены для агента ${agentId}`);
         }
         catch (error) {
             vscode.window.showErrorMessage(`Ошибка при выборе модели: ${error.message}`);
+            console.error('Error in selectAgentModel:', error);
         }
     });
     context.subscriptions.push(selectAgentModel);

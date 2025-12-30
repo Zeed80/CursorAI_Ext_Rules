@@ -164,6 +164,236 @@
           "type": "boolean",
           "default": true,
           "description": "Enable orchestrator in agent selector"
+        },
+        "cursor-autonomous.agents": {
+          "type": "object",
+          "description": "Настройки моделей для каждого агента",
+          "properties": {
+            "backend": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "enum": ["cursorai", "openai", "google", "anthropic", "ollama", "llm-studio"],
+                  "default": "cursorai",
+                  "description": "Провайдер модели для Backend Developer агента"
+                },
+                "modelConfig": {
+                  "type": "object",
+                  "properties": {
+                    "apiKey": {"type": "string", "description": "API ключ для облачных моделей"},
+                    "model": {"type": "string", "description": "Конкретная модель (например, gpt-4, gemini-pro)"},
+                    "baseUrl": {"type": "string", "description": "Базовый URL для локальных моделей (Ollama, LLM Studio)"},
+                    "temperature": {"type": "number", "description": "Температура модели (0-2)", "default": 0.7},
+                    "maxTokens": {"type": "number", "description": "Максимальное количество токенов", "default": 1000}
+                  }
+                }
+              }
+            },
+            "frontend": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "enum": ["cursorai", "openai", "google", "anthropic", "ollama", "llm-studio"],
+                  "default": "cursorai"
+                },
+                "modelConfig": {
+                  "type": "object",
+                  "properties": {
+                    "apiKey": {"type": "string"},
+                    "model": {"type": "string"},
+                    "baseUrl": {"type": "string"},
+                    "temperature": {"type": "number", "default": 0.7},
+                    "maxTokens": {"type": "number", "default": 1000}
+                  }
+                }
+              }
+            },
+            "architect": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "enum": ["cursorai", "openai", "google", "anthropic", "ollama", "llm-studio"],
+                  "default": "cursorai"
+                },
+                "modelConfig": {
+                  "type": "object",
+                  "properties": {
+                    "apiKey": {"type": "string"},
+                    "model": {"type": "string"},
+                    "baseUrl": {"type": "string"},
+                    "temperature": {"type": "number", "default": 0.7},
+                    "maxTokens": {"type": "number", "default": 1000}
+                  }
+                }
+              }
+            },
+            "analyst": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "enum": ["cursorai", "openai", "google", "anthropic", "ollama", "llm-studio"],
+                  "default": "cursorai"
+                },
+                "modelConfig": {
+                  "type": "object",
+                  "properties": {
+                    "apiKey": {"type": "string"},
+                    "model": {"type": "string"},
+                    "baseUrl": {"type": "string"},
+                    "temperature": {"type": "number", "default": 0.7},
+                    "maxTokens": {"type": "number", "default": 1000}
+                  }
+                }
+              }
+            },
+            "devops": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "enum": ["cursorai", "openai", "google", "anthropic", "ollama", "llm-studio"],
+                  "default": "cursorai"
+                },
+                "modelConfig": {
+                  "type": "object",
+                  "properties": {
+                    "apiKey": {"type": "string"},
+                    "model": {"type": "string"},
+                    "baseUrl": {"type": "string"},
+                    "temperature": {"type": "number", "default": 0.7},
+                    "maxTokens": {"type": "number", "default": 1000}
+                  }
+                }
+              }
+            },
+            "qa": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "enum": ["cursorai", "openai", "google", "anthropic", "ollama", "llm-studio"],
+                  "default": "cursorai"
+                },
+                "modelConfig": {
+                  "type": "object",
+                  "properties": {
+                    "apiKey": {"type": "string"},
+                    "model": {"type": "string"},
+                    "baseUrl": {"type": "string"},
+                    "temperature": {"type": "number", "default": 0.7},
+                    "maxTokens": {"type": "number", "default": 1000}
+                  }
+                }
+              }
+            },
+            "orchestrator": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "enum": ["cursorai", "openai", "google", "anthropic", "ollama", "llm-studio"],
+                  "default": "cursorai"
+                },
+                "modelConfig": {
+                  "type": "object",
+                  "properties": {
+                    "apiKey": {"type": "string"},
+                    "model": {"type": "string"},
+                    "baseUrl": {"type": "string"},
+                    "temperature": {"type": "number", "default": 0.7},
+                    "maxTokens": {"type": "number", "default": 1000}
+                  }
+                }
+              }
+            },
+            "virtual-user": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "enum": ["cursorai", "openai", "google", "anthropic", "ollama", "llm-studio"],
+                  "default": "cursorai"
+                },
+                "modelConfig": {
+                  "type": "object",
+                  "properties": {
+                    "apiKey": {"type": "string"},
+                    "model": {"type": "string"},
+                    "baseUrl": {"type": "string"},
+                    "temperature": {"type": "number", "default": 0.7},
+                    "maxTokens": {"type": "number", "default": 1000}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "cursor-autonomous.providers": {
+          "type": "object",
+          "description": "Глобальные настройки провайдеров моделей",
+          "properties": {
+            "openai": {
+              "type": "object",
+              "properties": {
+                "apiKey": {"type": "string", "description": "OpenAI API ключ"},
+                "baseUrl": {"type": "string", "default": "https://api.openai.com/v1", "description": "Базовый URL OpenAI API"}
+              }
+            },
+            "google": {
+              "type": "object",
+              "properties": {
+                "apiKey": {"type": "string", "description": "Google API ключ для Gemini"},
+                "baseUrl": {"type": "string", "default": "https://generativelanguage.googleapis.com/v1beta", "description": "Базовый URL Google API"}
+              }
+            },
+            "anthropic": {
+              "type": "object",
+              "properties": {
+                "apiKey": {"type": "string", "description": "Anthropic API ключ для Claude"},
+                "baseUrl": {"type": "string", "default": "https://api.anthropic.com/v1", "description": "Базовый URL Anthropic API"}
+              }
+            },
+            "ollama": {
+              "type": "object",
+              "properties": {
+                "baseUrl": {"type": "string", "default": "http://localhost:11434", "description": "URL сервера Ollama"},
+                "enabled": {"type": "boolean", "default": true, "description": "Включить поддержку Ollama"}
+              }
+            },
+            "llm-studio": {
+              "type": "object",
+              "properties": {
+                "baseUrl": {"type": "string", "default": "http://localhost:11434", "description": "URL сервера LLM Studio"},
+                "enabled": {"type": "boolean", "default": true, "description": "Включить поддержку LLM Studio"}
+              }
+            },
+            "cursorai": {
+              "type": "object",
+              "properties": {
+                "enabled": {"type": "boolean", "default": true, "description": "Включить поддержку CursorAI (fallback)"}
+              }
+            },
+            "defaultProvider": {
+              "type": "string",
+              "enum": ["cursorai", "openai", "google", "anthropic", "ollama", "llm-studio"],
+              "default": "cursorai",
+              "description": "Провайдер по умолчанию для агентов без явной настройки"
+            }
+          }
+        },
+        "cursor-autonomous.useCursorAIForRefinement": {
+          "type": "boolean",
+          "default": false,
+          "description": "Использовать CursorAI для финальной обработки лучшего решения (опционально)"
+        },
+        "cursor-autonomous.cursorAIRefinementOnlyForCritical": {
+          "type": "boolean",
+          "default": true,
+          "description": "Использовать CursorAI для финальной обработки только для критических задач (high priority)"
         }
       }
     },

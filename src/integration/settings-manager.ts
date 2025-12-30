@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { LanguageModelInfo } from './model-provider';
+import { IModelProvider, ModelProviderType, ProviderConfig } from './model-providers/base-provider';
+import { ModelProviderManager } from './model-providers/provider-manager';
 
 export class SettingsManager {
     private config: vscode.WorkspaceConfiguration;
@@ -96,5 +98,104 @@ export class SettingsManager {
         // Обновляем настройки - сохраняем только примитивные значения
         await this.config.update('agents', agentsConfig, vscode.ConfigurationTarget.Global);
         this.config = vscode.workspace.getConfiguration('cursor-autonomous');
+    }
+
+    /**
+     * Получение провайдера модели для агента
+     */
+    async getAgentModelProvider(agentId: string): Promise<IModelProvider | undefined> {
+        const manager = ModelProviderManager.getInstance();
+        return await manager.getProviderForAgent(agentId);
+    }
+
+    /**
+     * Получение конфигурации модели для агента
+     */
+    getAgentModelConfig(agentId: string): { model?: string; modelConfig?: ProviderConfig } {
+        const agentsConfig = this.config.get<{ 
+            [key: string]: { 
+                model?: string; 
+                modelConfig?: ProviderConfig 
+            } 
+        }>('agents', {});
+        
+        return agentsConfig[agentId] || {};
+    }
+
+    /**
+     * Установка провайдера модели для агента
+     */
+    async setAgentModelProvider(agentId: string, providerType: ModelProviderType, config?: ProviderConfig): Promise<void> {
+        const agentsConfig = this.config.get<{ 
+            [key: string]: { 
+                model?: string; 
+                modelConfig?: ProviderConfig 
+            } 
+        }>('agents', {});
+        
+        if (!agentsConfig[agentId]) {
+            agentsConfig[agentId] = {};
+        }
+
+        agentsConfig[agentId].model = providerType;
+        if (config) {
+            agentsConfig[agentId].modelConfig = config;
+        }
+
+        await this.config.update('agents', agentsConfig, vscode.ConfigurationTarget.Global);
+        this.config = vscode.workspace.getConfiguration('cursor-autonomous');
+    }
+
+    /**
+     * Получение глобальной конфигурации провайдера
+     */
+    getProviderConfig(providerType: ModelProviderType): ProviderConfig {
+        const providersConfig = this.config.get<{
+            [key: string]: {
+                apiKey?: string;
+                baseUrl?: string;
+                enabled?: boolean;
+            }
+        }>('providers', {});
+
+        const providerConfig = providersConfig[providerType] || {};
+        
+        return {
+            apiKey: providerConfig.apiKey,
+            baseUrl: providerConfig.baseUrl,
+            ...providerConfig
+        };
+    }
+
+    /**
+     * Обновление глобальной конфигурации провайдера
+     */
+    async updateProviderConfig(providerType: ModelProviderType, config: Partial<ProviderConfig>): Promise<void> {
+        const providersConfig = this.config.get<{
+            [key: string]: any
+        }>('providers', {});
+
+        if (!providersConfig[providerType]) {
+            providersConfig[providerType] = {};
+        }
+
+        providersConfig[providerType] = {
+            ...providersConfig[providerType],
+            ...config
+        };
+
+        await this.config.update('providers', providersConfig, vscode.ConfigurationTarget.Global);
+        this.config = vscode.workspace.getConfiguration('cursor-autonomous');
+    }
+
+    /**
+     * Получение провайдера по умолчанию
+     */
+    getDefaultProvider(): ModelProviderType {
+        const providersConfig = this.config.get<{
+            defaultProvider?: string;
+        }>('providers', {});
+
+        return (providersConfig.defaultProvider || 'cursorai') as ModelProviderType;
     }
 }
