@@ -3,7 +3,9 @@
  * Использует Ollama REST API
  */
 
-import axios, { AxiosInstance } from 'axios';
+import * as http from 'http';
+import * as https from 'https';
+import { URL } from 'url';
 import { BaseModelProvider, ModelProviderType, ModelInfo, CallOptions, CallResult, ProviderConfig } from './base-provider';
 
 interface OllamaResponse {
@@ -36,7 +38,8 @@ interface OllamaModel {
 }
 
 export class OllamaProvider extends BaseModelProvider {
-    private axiosInstance: AxiosInstance;
+    private baseUrl: string;
+    private timeout: number;
     private defaultModel: string = 'llama2';
 
     constructor(config: ProviderConfig) {
@@ -56,15 +59,71 @@ export class OllamaProvider extends BaseModelProvider {
 
         super(config, modelInfo);
         this.defaultModel = config.model || 'llama2';
+        this.baseUrl = config.baseUrl || 'http://localhost:11434';
+        this.timeout = config.timeout || 120000;
+    }
 
-        // Создаем axios instance для Ollama API
-        const baseUrl = config.baseUrl || 'http://localhost:11434';
-        this.axiosInstance = axios.create({
-            baseURL: baseUrl,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            timeout: config.timeout || 120000 // Больше таймаут для локальных моделей
+    /**
+     * Выполнить HTTP запрос через встроенные модули Node.js
+     */
+    private async makeRequest<T>(path: string, method: string = 'GET', body?: any): Promise<T> {
+        return new Promise((resolve, reject) => {
+            try {
+                const url = new URL(path, this.baseUrl);
+                const isHttps = url.protocol === 'https:';
+                const httpModule = isHttps ? https : http;
+
+                const options = {
+                    hostname: url.hostname,
+                    port: url.port || (isHttps ? 443 : 80),
+                    path: url.pathname + url.search,
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: this.timeout
+                };
+
+                const req = httpModule.request(options, (res) => {
+                    let data = '';
+
+                    res.on('data', (chunk) => {
+                        data += chunk.toString();
+                    });
+
+                    res.on('end', () => {
+                        try {
+                            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+                                const parsed = JSON.parse(data);
+                                resolve(parsed as T);
+                            } else {
+                                reject(new Error(`HTTP error! status: ${res.statusCode}, body: ${data}`));
+                            }
+                        } catch (error: any) {
+                            reject(new Error(`Failed to parse response: ${error.message}, body: ${data}`));
+                        }
+                    });
+                });
+
+                req.on('error', (error) => {
+                    console.error(`OllamaProvider: Request error for ${this.baseUrl}${path}:`, error);
+                    reject(error);
+                });
+
+                req.on('timeout', () => {
+                    req.destroy();
+                    reject(new Error(`Request timeout after ${this.timeout}ms`));
+                });
+
+                if (body) {
+                    req.write(JSON.stringify(body));
+                }
+
+                req.end();
+            } catch (error: any) {
+                console.error(`OllamaProvider: Error making request to ${this.baseUrl}${path}:`, error);
+                reject(error);
+            }
         });
     }
 
@@ -74,13 +133,13 @@ export class OllamaProvider extends BaseModelProvider {
 
     async isAvailable(): Promise<boolean> {
         try {
+            console.log(`OllamaProvider: Checking availability at ${this.baseUrl}/api/tags`);
             // Проверяем доступность через список моделей
-            const response = await this.axiosInstance.get('/api/tags', {
-                timeout: 5000
-            });
-            return response.status === 200;
-        } catch (error) {
-            console.debug('OllamaProvider: Not available:', error);
+            const response = await this.makeRequest<{ models: OllamaModel[] }>('/api/tags', 'GET');
+            console.log(`OllamaProvider: Available! Response received`);
+            return true;
+        } catch (error: any) {
+            console.error(`OllamaProvider: Not available at ${this.baseUrl}:`, error.message || error);
             return false;
         }
     }
@@ -130,18 +189,18 @@ export class OllamaProvider extends BaseModelProvider {
                 requestBody.options.stop = options.stopSequences;
             }
 
-            const response = await this.axiosInstance.post<OllamaResponse>('/api/generate', requestBody);
+            const response = await this.makeRequest<OllamaResponse>('/api/generate', 'POST', requestBody);
             const responseTime = Date.now() - startTime;
 
-            if (!response.data.response) {
+            if (!response.response) {
                 throw new Error('No response from Ollama');
             }
 
-            const text = response.data.response;
+            const text = response.response;
 
             // Оценка токенов (примерно 4 символа = 1 токен)
-            const inputTokens = response.data.prompt_eval_count || Math.ceil(prompt.length / 4);
-            const outputTokens = response.data.eval_count || Math.ceil(text.length / 4);
+            const inputTokens = response.prompt_eval_count || Math.ceil(prompt.length / 4);
+            const outputTokens = response.eval_count || Math.ceil(text.length / 4);
 
             return {
                 text,
@@ -154,17 +213,16 @@ export class OllamaProvider extends BaseModelProvider {
             };
         } catch (error: any) {
             console.error('OllamaProvider: Error calling model:', error);
-            if (error.response) {
-                throw new Error(`Ollama API error: ${error.response.status} - ${error.response.data?.error || error.message}`);
-            }
-            throw new Error(`Ollama provider error: ${error.message}`);
+            throw new Error(`Ollama provider error: ${error.message || error}`);
         }
     }
 
     async getAvailableModels(): Promise<ModelInfo[]> {
         try {
-            const response = await this.axiosInstance.get<{ models: OllamaModel[] }>('/api/tags');
-            const models = response.data.models || [];
+            console.log(`OllamaProvider: Getting available models from ${this.baseUrl}/api/tags`);
+            const response = await this.makeRequest<{ models: OllamaModel[] }>('/api/tags', 'GET');
+            const models = response.models || [];
+            console.log(`OllamaProvider: Found ${models.length} models`);
 
             return models.map((model: OllamaModel) => ({
                 id: model.name,
@@ -211,6 +269,27 @@ export class OllamaProvider extends BaseModelProvider {
                     costPerToken: { input: 0, output: 0 }
                 }
             ];
+        }
+    }
+
+    updateConfig(config: Partial<ProviderConfig>): void {
+        super.updateConfig(config);
+        
+        // Обновляем baseUrl если изменился
+        if (config.baseUrl) {
+            this.baseUrl = config.baseUrl;
+            console.log(`OllamaProvider: Updated baseURL to ${this.baseUrl}`);
+        }
+        
+        // Обновляем timeout если изменился
+        if (config.timeout !== undefined) {
+            this.timeout = config.timeout;
+            console.log(`OllamaProvider: Updated timeout to ${this.timeout}ms`);
+        }
+        
+        // Обновляем defaultModel если изменился
+        if (config.model) {
+            this.defaultModel = config.model;
         }
     }
 }

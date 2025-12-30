@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { SettingsManager } from '../integration/settings-manager';
 import { ModelProviderManager } from '../integration/model-providers/provider-manager';
-import { ModelProviderType, ModelInfo } from '../integration/model-providers/base-provider';
+import { ModelProviderType, ModelInfo, ProviderConfig } from '../integration/model-providers/base-provider';
 import { UsageTracker } from '../integration/model-providers/usage-tracker';
 import { SettingsValidator } from '../integration/settings-validator';
 
@@ -20,6 +20,7 @@ export interface SettingsData {
             apiKey?: string;
             baseUrl?: string;
             enabled?: boolean;
+            model?: string; // Выбранная модель для локальных провайдеров
         };
     };
     agents: {
@@ -162,7 +163,7 @@ export class SettingsPanel {
                 await this.saveSettings(message.settings);
                 return;
             case 'testProvider':
-                await this.testProviderConnection(message.providerType);
+                await this.testProviderConnection(message.providerType, message.baseUrl);
                 return;
             case 'getModels':
                 await this.getModelsForProvider(message.providerType);
@@ -200,7 +201,8 @@ export class SettingsPanel {
                 settings.providers[providerType] = {
                     apiKey: config.apiKey,
                     baseUrl: config.baseUrl,
-                    enabled: config.enabled !== false
+                    enabled: config.enabled !== false,
+                    model: config.model // Загружаем выбранную модель для локальных провайдеров
                 };
             }
 
@@ -265,7 +267,8 @@ export class SettingsPanel {
                     await this._settingsManager.updateProviderConfig(providerType as ModelProviderType, {
                         apiKey: config.apiKey,
                         baseUrl: config.baseUrl,
-                        enabled: config.enabled
+                        enabled: config.enabled,
+                        model: (config as any).model // Сохраняем выбранную модель для локальных провайдеров
                     });
                 }
             }
@@ -299,32 +302,88 @@ export class SettingsPanel {
         }
     }
 
-    private async testProviderConnection(providerType: string): Promise<void> {
+    private async testProviderConnection(providerType: string, baseUrl?: string): Promise<void> {
         try {
-            const provider = this._modelProviderManager.getProvider(providerType as ModelProviderType);
+            // Получаем провайдер
+            let provider = this._modelProviderManager.getProvider(providerType as ModelProviderType);
             if (!provider) {
                 this._panel.webview.postMessage({
                     command: 'providerTestResult',
                     providerType: providerType,
                     success: false,
-                    message: 'Провайдер не найден'
+                    message: 'Провайдер не найден. Убедитесь, что провайдер включен.',
+                    models: []
                 });
                 return;
             }
 
-            const isAvailable = await provider.isAvailable();
+            // Загружаем актуальную конфигурацию из настроек
+            const currentConfig = this._settingsManager.getProviderConfig(providerType as ModelProviderType);
+            
+            // Если передан baseUrl из UI, используем его, иначе используем сохраненный
+            const configToUse: ProviderConfig = {
+                ...currentConfig,
+                baseUrl: baseUrl || currentConfig.baseUrl
+            };
+
+            // Обновляем конфигурацию провайдера перед проверкой
+            if (provider.updateConfig) {
+                provider.updateConfig(configToUse);
+                console.log(`SettingsPanel: Updated ${providerType} config with baseUrl: ${configToUse.baseUrl}`);
+            }
+
+            // Проверяем доступность
+            let isAvailable = false;
+            let errorMessage = '';
+            
+            try {
+                isAvailable = await provider.isAvailable();
+            } catch (error: any) {
+                console.error(`SettingsPanel: Error checking ${providerType} availability:`, error);
+                errorMessage = error.message || 'Неизвестная ошибка';
+                
+                // Для более информативных сообщений об ошибках
+                if (error.code === 'ECONNREFUSED' || error.message?.includes('ECONNREFUSED')) {
+                    errorMessage = `Не удалось подключиться к ${configToUse.baseUrl}. Убедитесь, что Ollama запущен и доступен по этому адресу.`;
+                } else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
+                    errorMessage = `Таймаут подключения к ${configToUse.baseUrl}. Проверьте доступность сервера.`;
+                } else if (error.response) {
+                    errorMessage = `Ошибка сервера: ${error.response.status} - ${error.response.data?.error || error.message}`;
+                }
+            }
+            
+            // Для локальных провайдеров (Ollama, LLM Studio) при успешной проверке сразу получаем список моделей
+            let models: ModelInfo[] = [];
+            if (isAvailable && (providerType === 'ollama' || providerType === 'llm-studio')) {
+                try {
+                    models = await provider.getAvailableModels();
+                    console.log(`SettingsPanel: Found ${models.length} models for ${providerType}`);
+                } catch (error: any) {
+                    console.warn(`SettingsPanel: Failed to get models for ${providerType}:`, error);
+                    // Продолжаем даже если не удалось получить модели
+                    errorMessage = errorMessage || `Подключение успешно, но не удалось получить список моделей: ${error.message}`;
+                }
+            }
+
             this._panel.webview.postMessage({
                 command: 'providerTestResult',
                 providerType: providerType,
                 success: isAvailable,
-                message: isAvailable ? 'Подключение успешно' : 'Подключение не удалось'
+                message: isAvailable 
+                    ? (models.length > 0 
+                        ? `Подключение успешно. Найдено моделей: ${models.length}` 
+                        : 'Подключение успешно, но модели не найдены')
+                    : (errorMessage || 'Подключение не удалось. Проверьте настройки и убедитесь, что сервер доступен.'),
+                models: models
             });
         } catch (error: any) {
+            console.error(`SettingsPanel: Unexpected error testing ${providerType}:`, error);
             this._panel.webview.postMessage({
                 command: 'providerTestResult',
                 providerType: providerType,
                 success: false,
-                message: `Ошибка: ${error.message}`
+                message: `Ошибка: ${error.message || 'Неизвестная ошибка'}`,
+                models: []
             });
         }
     }
@@ -341,6 +400,12 @@ export class SettingsPanel {
                 return;
             }
 
+            // Загружаем актуальную конфигурацию из настроек перед получением моделей
+            const currentConfig = this._settingsManager.getProviderConfig(providerType as ModelProviderType);
+            if (provider.updateConfig) {
+                provider.updateConfig(currentConfig);
+            }
+
             const models = await provider.getAvailableModels();
             this._panel.webview.postMessage({
                 command: 'modelsLoaded',
@@ -348,6 +413,7 @@ export class SettingsPanel {
                 models: models
             });
         } catch (error: any) {
+            console.error(`SettingsPanel: Error getting models for ${providerType}:`, error);
             this._panel.webview.postMessage({
                 command: 'error',
                 message: `Ошибка загрузки моделей: ${error.message}`
@@ -729,12 +795,14 @@ export class SettingsPanel {
                 const apiKeyEl = document.getElementById(\`provider-\${providerType}-apiKey\`);
                 const baseUrlEl = document.getElementById(\`provider-\${providerType}-baseUrl\`);
                 const enabledEl = document.getElementById(\`provider-\${providerType}-enabled\`);
+                const modelEl = document.getElementById(\`provider-\${providerType}-model\`);
                 
-                if (apiKeyEl || baseUrlEl || enabledEl) {
+                if (apiKeyEl || baseUrlEl || enabledEl || modelEl) {
                     providers[providerType] = {
                         apiKey: apiKeyEl ? apiKeyEl.value : undefined,
                         baseUrl: baseUrlEl ? baseUrlEl.value : undefined,
-                        enabled: enabledEl ? enabledEl.checked : true
+                        enabled: enabledEl ? enabledEl.checked : true,
+                        model: modelEl && modelEl.value ? modelEl.value : undefined
                     };
                 }
             });
@@ -784,7 +852,15 @@ export class SettingsPanel {
         }
 
         function testProvider(providerType) {
-            vscode.postMessage({ command: 'testProvider', providerType: providerType });
+            // Получаем текущий baseUrl из UI перед проверкой
+            const baseUrlEl = document.getElementById(\`provider-\${providerType}-baseUrl\`);
+            const baseUrl = baseUrlEl ? baseUrlEl.value : undefined;
+            
+            vscode.postMessage({ 
+                command: 'testProvider', 
+                providerType: providerType,
+                baseUrl: baseUrl
+            });
         }
 
         function getModelsForProvider(providerType) {
@@ -807,7 +883,7 @@ export class SettingsPanel {
                     showError(message.message);
                     break;
                 case 'providerTestResult':
-                    handleProviderTestResult(message.providerType, message.success, message.message);
+                    handleProviderTestResult(message.providerType, message.success, message.message, message.models || []);
                     break;
                 case 'modelsLoaded':
                     handleModelsLoaded(message.providerType, message.models);
@@ -852,6 +928,7 @@ export class SettingsPanel {
             for (const [providerType, config] of Object.entries(providerConfigs)) {
                 const providerData = providers[providerType] || {};
                 const statusId = \`provider-\${providerType}-status\`;
+                const hasSelectedModel = providerData.model && (providerType === 'ollama' || providerType === 'llm-studio');
                 
                 html += \`
                     <div class="provider-card">
@@ -885,11 +962,32 @@ export class SettingsPanel {
                         <button class="test-button" onclick="testProvider('\${providerType}')">
                             Тест подключения
                         </button>
+                        \${(providerType === 'ollama' || providerType === 'llm-studio') ? \`
+                            <div class="form-group" id="provider-\${providerType}-model-group" style="display: \${hasSelectedModel ? 'block' : 'none'}; margin-top: 15px;">
+                                <label for="provider-\${providerType}-model">Выберите модель</label>
+                                <select id="provider-\${providerType}-model" style="width: 100%; padding: 8px; margin-top: 5px;">
+                                    <option value="">\${hasSelectedModel ? 'Загрузка моделей...' : 'Загрузка моделей...'}</option>
+                                </select>
+                                <div class="help-text" id="provider-\${providerType}-model-help" style="margin-top: 5px; font-size: 11px; color: var(--vscode-descriptionForeground);">
+                                    \${hasSelectedModel ? 'Выбранная модель: ' + providerData.model : 'После успешной проверки подключения здесь появится список доступных моделей'}
+                                </div>
+                            </div>
+                        \` : ''}
                     </div>
                 \`;
             }
 
             providersList.innerHTML = html;
+            
+            // Если есть сохраненная модель для локальных провайдеров, загружаем модели и устанавливаем выбранную
+            for (const [providerType, providerData] of Object.entries(providers)) {
+                if ((providerType === 'ollama' || providerType === 'llm-studio') && providerData.model) {
+                    // Загружаем модели для установки выбранной
+                    setTimeout(() => {
+                        getModelsForProvider(providerType);
+                    }, 100);
+                }
+            }
         }
 
         function populateAgents(agents) {
@@ -991,7 +1089,7 @@ export class SettingsPanel {
             statisticsContent.innerHTML = html;
         }
 
-        function handleProviderTestResult(providerType, success, message) {
+        function handleProviderTestResult(providerType, success, message, models = []) {
             const statusEl = document.getElementById(\`provider-\${providerType}-status\`);
             if (statusEl) {
                 statusEl.className = \`status-indicator \${success ? 'available' : 'unavailable'}\`;
@@ -1000,12 +1098,70 @@ export class SettingsPanel {
             
             if (success) {
                 showSuccess(\`Провайдер \${providerType}: \${message}\`);
+                
+                // Для локальных провайдеров (Ollama, LLM Studio) показываем список моделей
+                if ((providerType === 'ollama' || providerType === 'llm-studio') && models && models.length > 0) {
+                    const modelGroup = document.getElementById(\`provider-\${providerType}-model-group\`);
+                    const modelSelect = document.getElementById(\`provider-\${providerType}-model\`);
+                    const modelHelp = document.getElementById(\`provider-\${providerType}-model-help\`);
+                    
+                    if (modelGroup) {
+                        modelGroup.style.display = 'block';
+                    }
+                    
+                    if (modelSelect) {
+                        modelSelect.innerHTML = '<option value="">Выберите модель</option>';
+                        models.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model.id;
+                            option.textContent = \`\${model.name}\${model.description ? ' - ' + model.description : ''}\`;
+                            modelSelect.appendChild(option);
+                        });
+                    }
+                    
+                    if (modelHelp) {
+                        modelHelp.textContent = \`Доступно моделей: \${models.length}. Выберите модель для использования по умолчанию.\`;
+                    }
+                } else if ((providerType === 'ollama' || providerType === 'llm-studio') && success) {
+                    // Если проверка успешна, но модели не получены, скрываем группу
+                    const modelGroup = document.getElementById(\`provider-\${providerType}-model-group\`);
+                    if (modelGroup) {
+                        modelGroup.style.display = 'none';
+                    }
+                }
             } else {
                 showError(\`Провайдер \${providerType}: \${message}\`);
+                
+                // Скрываем группу моделей при ошибке
+                if (providerType === 'ollama' || providerType === 'llm-studio') {
+                    const modelGroup = document.getElementById(\`provider-\${providerType}-model-group\`);
+                    if (modelGroup) {
+                        modelGroup.style.display = 'none';
+                    }
+                }
             }
         }
 
         function handleModelsLoaded(providerType, models) {
+            // Обновляем селект моделей для самого провайдера (для локальных провайдеров)
+            if (providerType === 'ollama' || providerType === 'llm-studio') {
+                const providerModelSelect = document.getElementById(\`provider-\${providerType}-model\`);
+                if (providerModelSelect) {
+                    providerModelSelect.innerHTML = '<option value="">Выберите модель</option>';
+                    models.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        option.textContent = \`\${model.name}\${model.description ? ' - ' + model.description : ''}\`;
+                        providerModelSelect.appendChild(option);
+                    });
+                    
+                    // Восстанавливаем выбранную модель провайдера если есть
+                    if (currentSettings && currentSettings.providers[providerType] && currentSettings.providers[providerType].model) {
+                        providerModelSelect.value = currentSettings.providers[providerType].model;
+                    }
+                }
+            }
+            
             // Обновляем селекты моделей для всех агентов с этим провайдером
             const agentIds = ['backend', 'frontend', 'architect', 'analyst', 'devops', 'qa', 'orchestrator', 'virtual-user'];
             

@@ -228,7 +228,8 @@ export class SettingsManager {
             settings.providers[providerType] = {
                 apiKey: config.apiKey,
                 baseUrl: config.baseUrl,
-                enabled: config.enabled !== false
+                enabled: config.enabled !== false,
+                model: config.model // Сохраняем выбранную модель для локальных провайдеров
             };
         }
 
