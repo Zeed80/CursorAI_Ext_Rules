@@ -3,7 +3,9 @@
  * Использует OpenAI REST API
  */
 
-import axios, { AxiosInstance } from 'axios';
+import * as http from 'http';
+import * as https from 'https';
+import { URL } from 'url';
 import { BaseModelProvider, ModelProviderType, ModelInfo, CallOptions, CallResult, ProviderConfig } from './base-provider';
 
 interface OpenAIResponse {
@@ -27,7 +29,8 @@ interface OpenAIResponse {
 }
 
 export class OpenAIProvider extends BaseModelProvider {
-    private axiosInstance: AxiosInstance;
+    private baseUrl: string;
+    private timeout: number;
     private defaultModel: string = 'gpt-3.5-turbo';
 
     constructor(config: ProviderConfig) {
@@ -47,15 +50,73 @@ export class OpenAIProvider extends BaseModelProvider {
 
         super(config, modelInfo);
         this.defaultModel = config.model || 'gpt-3.5-turbo';
+        this.baseUrl = config.baseUrl || 'https://api.openai.com/v1';
+        this.timeout = config.timeout || 60000;
+    }
 
-        // Создаем axios instance с базовым URL и заголовками
-        this.axiosInstance = axios.create({
-            baseURL: config.baseUrl || 'https://api.openai.com/v1',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.apiKey || ''}`
-            },
-            timeout: config.timeout || 60000
+    /**
+     * Выполнить HTTP запрос через встроенные модули Node.js
+     */
+    private async makeRequest<T>(path: string, method: string = 'GET', body?: any): Promise<T> {
+        return new Promise((resolve, reject) => {
+            try {
+                const url = new URL(path, this.baseUrl);
+                const isHttps = url.protocol === 'https:';
+                const httpModule = isHttps ? https : http;
+
+                const port = url.port ? parseInt(url.port) : (isHttps ? 443 : 80);
+                const options = {
+                    hostname: url.hostname,
+                    port: port,
+                    path: url.pathname + url.search,
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.config.apiKey || ''}`
+                    },
+                    timeout: this.timeout
+                };
+
+                const req = httpModule.request(options, (res) => {
+                    let data = '';
+
+                    res.on('data', (chunk) => {
+                        data += chunk.toString();
+                    });
+
+                    res.on('end', () => {
+                        try {
+                            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+                                const parsed = JSON.parse(data);
+                                resolve(parsed as T);
+                            } else {
+                                reject(new Error(`HTTP error! status: ${res.statusCode}, body: ${data}`));
+                            }
+                        } catch (error: any) {
+                            reject(new Error(`Failed to parse response: ${error.message}, body: ${data}`));
+                        }
+                    });
+                });
+
+                req.on('error', (error) => {
+                    console.error(`OpenAIProvider: Request error for ${this.baseUrl}${path}:`, error);
+                    reject(error);
+                });
+
+                req.on('timeout', () => {
+                    req.destroy();
+                    reject(new Error(`Request timeout after ${this.timeout}ms`));
+                });
+
+                if (body) {
+                    req.write(JSON.stringify(body));
+                }
+
+                req.end();
+            } catch (error: any) {
+                console.error(`OpenAIProvider: Error making request to ${this.baseUrl}${path}:`, error);
+                reject(error);
+            }
         });
     }
 
@@ -70,10 +131,16 @@ export class OpenAIProvider extends BaseModelProvider {
 
         try {
             // Проверяем доступность через список моделей
-            const response = await this.axiosInstance.get('/models', {
-                timeout: 5000
-            });
-            return response.status === 200;
+            const originalTimeout = this.timeout;
+            this.timeout = 5000; // 5 секунд для проверки
+            
+            try {
+                await this.makeRequest<{ data: any[] }>('/models', 'GET');
+                this.timeout = originalTimeout;
+                return true;
+            } finally {
+                this.timeout = originalTimeout;
+            }
         } catch (error) {
             console.debug('OpenAIProvider: Not available:', error);
             return false;
@@ -114,15 +181,15 @@ export class OpenAIProvider extends BaseModelProvider {
                 requestBody.stop = options.stopSequences;
             }
 
-            const response = await this.axiosInstance.post<OpenAIResponse>('/chat/completions', requestBody);
+            const response = await this.makeRequest<OpenAIResponse>('/chat/completions', 'POST', requestBody);
             const responseTime = Date.now() - startTime;
 
-            if (!response.data.choices || response.data.choices.length === 0) {
+            if (!response.choices || response.choices.length === 0) {
                 throw new Error('No response from OpenAI');
             }
 
-            const text = response.data.choices[0].message.content;
-            const usage = response.data.usage;
+            const text = response.choices[0].message.content;
+            const usage = response.usage;
 
             // Расчет стоимости
             const cost = (usage.prompt_tokens * this.modelInfo.costPerToken!.input) +
@@ -139,17 +206,14 @@ export class OpenAIProvider extends BaseModelProvider {
             };
         } catch (error: any) {
             console.error('OpenAIProvider: Error calling model:', error);
-            if (error.response) {
-                throw new Error(`OpenAI API error: ${error.response.status} - ${error.response.data?.error?.message || error.message}`);
-            }
             throw new Error(`OpenAI provider error: ${error.message}`);
         }
     }
 
     async getAvailableModels(): Promise<ModelInfo[]> {
         try {
-            const response = await this.axiosInstance.get('/models');
-            const models = response.data.data || [];
+            const response = await this.makeRequest<{ data: any[] }>('/models', 'GET');
+            const models = response.data || [];
 
             return models
                 .filter((model: any) => model.id.includes('gpt'))
@@ -199,5 +263,21 @@ export class OpenAIProvider extends BaseModelProvider {
             return { input: 0.0000015, output: 0.000002 };
         }
         return { input: 0.0000015, output: 0.000002 }; // По умолчанию
+    }
+
+    updateConfig(config: Partial<ProviderConfig>): void {
+        super.updateConfig(config);
+        
+        if (config.baseUrl) {
+            this.baseUrl = config.baseUrl;
+        }
+        
+        if (config.timeout !== undefined) {
+            this.timeout = config.timeout;
+        }
+        
+        if (config.model) {
+            this.defaultModel = config.model;
+        }
     }
 }

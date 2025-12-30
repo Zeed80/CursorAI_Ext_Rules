@@ -437,10 +437,15 @@ function activate(context) {
 Пожалуйста, выполните эту задачу.`;
             // Пытаемся открыть чат и отправить сообщение
             try {
-                // Пытаемся использовать команду CursorAI для открытия чата
-                await vscode.commands.executeCommand('workbench.action.chat.open');
-                // Небольшая задержка для открытия чата
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Пытаемся использовать команду CursorAI для открытия чата (если доступна)
+                try {
+                    await vscode.commands.executeCommand('workbench.action.chat.open');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                catch (chatError) {
+                    // Команда может быть недоступна в некоторых версиях CursorAI
+                    console.debug('Chat command not available:', chatError.message);
+                }
                 // Альтернатива: показываем сообщение пользователю
                 const action = await vscode.window.showInformationMessage(`Задача создана и назначена агенту: ${agentName}`, 'Скопировать в буфер обмена', 'Открыть панель задач');
                 if (action === 'Скопировать в буфер обмена') {
@@ -488,164 +493,11 @@ function activate(context) {
             agentsStatusTreeProvider.refresh();
         }
     });
-    // Команда для выбора модели агента
+    // Команда для выбора модели агента (теперь открывает панель настроек)
     const selectAgentModel = vscode.commands.registerCommand('cursor-autonomous.selectAgentModel', async (item) => {
-        if (!orchestrator || !agentsStatusTreeProvider) {
-            vscode.window.showErrorMessage('Оркестратор не инициализирован');
-            return;
-        }
-        let agentId;
-        // Если передан TreeItem, извлекаем agentId из него
-        if (item instanceof vscode.TreeItem) {
-            // Проверяем, есть ли у TreeItem свойство agent (AgentTreeItem)
-            const treeItem = item;
-            if (treeItem.agent && treeItem.agent.id) {
-                agentId = treeItem.agent.id;
-            }
-            else {
-                // Пытаемся извлечь из label или description
-                agentId = item.label;
-            }
-        }
-        else if (typeof item === 'string') {
-            agentId = item;
-        }
-        // Если agentId не передан, запрашиваем у пользователя
-        if (!agentId) {
-            const agents = agentsStatusTreeProvider.getAllAgents();
-            const agentItems = agents.map(agent => ({
-                label: agent.name,
-                description: agent.id,
-                agentId: agent.id
-            }));
-            const selected = await vscode.window.showQuickPick(agentItems, {
-                placeHolder: 'Выберите агента для настройки модели'
-            });
-            if (!selected)
-                return;
-            agentId = selected.agentId;
-        }
-        try {
-            // Получаем список доступных провайдеров и моделей
-            const { ModelProviderManager } = await Promise.resolve().then(() => __importStar(require('./integration/model-providers/provider-manager')));
-            const { SettingsManager } = await Promise.resolve().then(() => __importStar(require('./integration/settings-manager')));
-            const manager = ModelProviderManager.getInstance();
-            const settingsManager = new SettingsManager();
-            // Получаем все доступные модели из всех провайдеров
-            const allModels = await manager.getAllAvailableModels();
-            // Получаем текущую конфигурацию агента
-            const agentConfig = settingsManager.getAgentModelConfig(agentId);
-            const currentProvider = agentConfig.model || 'cursorai';
-            // Сначала выбираем провайдер
-            const providerItems = [
-                { label: '$(cloud) CursorAI', provider: 'cursorai', description: 'Модели CursorAI (по умолчанию)' },
-                { label: '$(cloud) OpenAI', provider: 'openai', description: 'ChatGPT модели (gpt-4, gpt-3.5-turbo)' },
-                { label: '$(cloud) Google', provider: 'google', description: 'Gemini модели (gemini-pro)' },
-                { label: '$(cloud) Anthropic', provider: 'anthropic', description: 'Claude модели (claude-3)' },
-                { label: '$(server) Ollama', provider: 'ollama', description: 'Локальные модели (llama2, mistral)' },
-                { label: '$(server) LLM Studio', provider: 'llm-studio', description: 'LLM Studio локальные модели' }
-            ];
-            const selectedProvider = await vscode.window.showQuickPick(providerItems, {
-                placeHolder: `Выберите провайдер для агента ${agentId}`,
-                canPickMany: false
-            });
-            if (!selectedProvider)
-                return;
-            // Получаем модели выбранного провайдера
-            const provider = manager.getProvider(selectedProvider.provider);
-            if (!provider) {
-                vscode.window.showErrorMessage(`Провайдер ${selectedProvider.provider} не зарегистрирован`);
-                return;
-            }
-            const providerModels = await provider.getAvailableModels();
-            // Формируем список моделей для выбора
-            const modelItems = [
-                {
-                    label: '$(circle-slash) Автоматический выбор',
-                    description: 'Провайдер автоматически выберет модель',
-                    modelId: undefined,
-                    provider: selectedProvider.provider
-                },
-                ...providerModels.map((model) => ({
-                    label: `$(robot) ${model.name}`,
-                    description: model.description || model.id,
-                    detail: `Тип: ${model.type}, Макс. токенов: ${model.maxTokens || 'неизвестно'}`,
-                    modelId: model.id,
-                    provider: selectedProvider.provider
-                }))
-            ];
-            const selectedModel = await vscode.window.showQuickPick(modelItems, {
-                placeHolder: `Выберите модель из ${selectedProvider.label} для агента ${agentId}`,
-                canPickMany: false
-            });
-            if (selectedModel === undefined)
-                return;
-            // Если выбран облачный провайдер, запрашиваем API ключ если нужно
-            let apiKey;
-            if (['openai', 'google', 'anthropic'].includes(selectedProvider.provider)) {
-                const providersConfig = vscode.workspace.getConfiguration('cursor-autonomous').get('providers', {});
-                const providerConfig = providersConfig[selectedProvider.provider];
-                if (!providerConfig?.apiKey) {
-                    apiKey = await vscode.window.showInputBox({
-                        prompt: `Введите API ключ для ${selectedProvider.label}`,
-                        password: true,
-                        placeHolder: 'API ключ...'
-                    });
-                    if (!apiKey) {
-                        vscode.window.showWarningMessage('API ключ не введен. Модель не будет работать без ключа.');
-                        return;
-                    }
-                    // Сохраняем API ключ в настройках
-                    await settingsManager.updateProviderConfig(selectedProvider.provider, { apiKey });
-                }
-            }
-            // Если выбран локальный провайдер, запрашиваем URL если нужно
-            let baseUrl;
-            if (['ollama', 'llm-studio'].includes(selectedProvider.provider)) {
-                const providersConfig = vscode.workspace.getConfiguration('cursor-autonomous').get('providers', {});
-                const providerConfig = providersConfig[selectedProvider.provider];
-                const defaultUrl = selectedProvider.provider === 'ollama'
-                    ? 'http://localhost:11434'
-                    : 'http://localhost:11434';
-                if (!providerConfig?.baseUrl || providerConfig.baseUrl === defaultUrl) {
-                    baseUrl = await vscode.window.showInputBox({
-                        prompt: `Введите URL сервера для ${selectedProvider.label}`,
-                        placeHolder: defaultUrl,
-                        value: providerConfig?.baseUrl || defaultUrl
-                    });
-                    if (baseUrl) {
-                        await settingsManager.updateProviderConfig(selectedProvider.provider, { baseUrl });
-                    }
-                }
-            }
-            // Сохраняем настройки агента
-            await settingsManager.setAgentModelProvider(agentId, selectedProvider.provider, {
-                model: selectedModel.modelId,
-                apiKey: apiKey,
-                baseUrl: baseUrl,
-                temperature: 0.7,
-                maxTokens: 1000
-            });
-            // Обновляем статус агента
-            const foundModel = providerModels.find((m) => m.id === selectedModel.modelId);
-            agentsStatusTreeProvider.updateAgentStatus(agentId, {
-                selectedModel: {
-                    id: selectedModel.modelId || 'auto',
-                    displayName: selectedModel.modelId
-                        ? (foundModel?.name || selectedModel.modelId)
-                        : 'Автоматический выбор',
-                    provider: selectedProvider.provider
-                }
-            });
-            const modelName = selectedModel.modelId
-                ? providerModels.find((m) => m.id === selectedModel.modelId)?.name || selectedModel.modelId
-                : 'Автоматический выбор';
-            vscode.window.showInformationMessage(`Провайдер ${selectedProvider.label} и модель "${modelName}" установлены для агента ${agentId}`);
-        }
-        catch (error) {
-            vscode.window.showErrorMessage(`Ошибка при выборе модели: ${error.message}`);
-            console.error('Error in selectAgentModel:', error);
-        }
+        // Просто открываем панель настроек
+        await vscode.commands.executeCommand('cursor-autonomous.openSettings');
+        vscode.window.showInformationMessage('Используйте панель настроек для выбора модели агента');
     });
     context.subscriptions.push(selectAgentModel);
     // Команда для передачи задачи в чат
@@ -720,10 +572,15 @@ function activate(context) {
         }
         message += `\nПожалуйста, помогите выполнить эту задачу.`;
         try {
-            // Открываем чат CursorAI
-            await vscode.commands.executeCommand('workbench.action.chat.open');
-            // Небольшая задержка для открытия чата
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Пытаемся открыть чат CursorAI (если команда доступна)
+            try {
+                await vscode.commands.executeCommand('workbench.action.chat.open');
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            catch (chatError) {
+                // Команда может быть недоступна в некоторых версиях CursorAI
+                console.debug('Chat command not available:', chatError.message);
+            }
             // Копируем сообщение в буфер обмена
             await vscode.env.clipboard.writeText(message);
             // Показываем уведомление

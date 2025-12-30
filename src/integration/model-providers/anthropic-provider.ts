@@ -3,7 +3,9 @@
  * Использует Anthropic API
  */
 
-import axios, { AxiosInstance } from 'axios';
+import * as http from 'http';
+import * as https from 'https';
+import { URL } from 'url';
 import { BaseModelProvider, ModelProviderType, ModelInfo, CallOptions, CallResult, ProviderConfig } from './base-provider';
 
 interface ClaudeResponse {
@@ -24,7 +26,8 @@ interface ClaudeResponse {
 }
 
 export class AnthropicProvider extends BaseModelProvider {
-    private axiosInstance: AxiosInstance;
+    private baseUrl: string;
+    private timeout: number;
     private defaultModel: string = 'claude-3-sonnet-20240229';
 
     constructor(config: ProviderConfig) {
@@ -44,16 +47,80 @@ export class AnthropicProvider extends BaseModelProvider {
 
         super(config, modelInfo);
         this.defaultModel = config.model || 'claude-3-sonnet-20240229';
+        this.baseUrl = config.baseUrl || 'https://api.anthropic.com/v1';
+        this.timeout = config.timeout || 60000;
+    }
 
-        // Создаем axios instance для Anthropic API
-        this.axiosInstance = axios.create({
-            baseURL: config.baseUrl || 'https://api.anthropic.com/v1',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': config.apiKey || '',
-                'anthropic-version': '2023-06-01'
-            },
-            timeout: config.timeout || 60000
+    /**
+     * Выполнить HTTP запрос через встроенные модули Node.js
+     */
+    private async makeRequest<T>(path: string, method: string = 'GET', body?: any): Promise<T> {
+        return new Promise((resolve, reject) => {
+            try {
+                const url = new URL(path, this.baseUrl);
+                const isHttps = url.protocol === 'https:';
+                const httpModule = isHttps ? https : http;
+
+                const port = url.port ? parseInt(url.port) : (isHttps ? 443 : 80);
+                const options = {
+                    hostname: url.hostname,
+                    port: port,
+                    path: url.pathname + url.search,
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': this.config.apiKey || '',
+                        'anthropic-version': '2023-06-01'
+                    },
+                    timeout: this.timeout
+                };
+
+                const req = httpModule.request(options, (res) => {
+                    let data = '';
+
+                    res.on('data', (chunk) => {
+                        data += chunk.toString();
+                    });
+
+                    res.on('end', () => {
+                        try {
+                            // Anthropic может вернуть 400 для проверки доступности (это нормально)
+                            if (res.statusCode && (res.statusCode === 200 || (res.statusCode === 400 && method === 'POST' && path === '/messages'))) {
+                                if (res.statusCode === 200) {
+                                    const parsed = JSON.parse(data);
+                                    resolve(parsed as T);
+                                } else {
+                                    // 400 означает, что API доступен, но запрос некорректный
+                                    resolve({} as T);
+                                }
+                            } else {
+                                reject(new Error(`HTTP error! status: ${res.statusCode}, body: ${data}`));
+                            }
+                        } catch (error: any) {
+                            reject(new Error(`Failed to parse response: ${error.message}, body: ${data}`));
+                        }
+                    });
+                });
+
+                req.on('error', (error) => {
+                    console.error(`AnthropicProvider: Request error for ${this.baseUrl}${path}:`, error);
+                    reject(error);
+                });
+
+                req.on('timeout', () => {
+                    req.destroy();
+                    reject(new Error(`Request timeout after ${this.timeout}ms`));
+                });
+
+                if (body) {
+                    req.write(JSON.stringify(body));
+                }
+
+                req.end();
+            } catch (error: any) {
+                console.error(`AnthropicProvider: Error making request to ${this.baseUrl}${path}:`, error);
+                reject(error);
+            }
         });
     }
 
@@ -67,20 +134,29 @@ export class AnthropicProvider extends BaseModelProvider {
         }
 
         try {
-            // Проверяем доступность через простой запрос
-            const response = await this.axiosInstance.post('/messages', {
-                model: 'claude-3-sonnet-20240229',
-                max_tokens: 10,
-                messages: [{ role: 'user', content: 'test' }]
-            }, {
-                timeout: 5000
-            });
-            return response.status === 200;
-        } catch (error: any) {
-            // 400 ошибка означает, что API доступен, но запрос некорректный (это нормально для проверки)
-            if (error.response && error.response.status === 400) {
+            const originalTimeout = this.timeout;
+            this.timeout = 5000; // 5 секунд для проверки
+            
+            try {
+                // Проверяем доступность через простой запрос
+                await this.makeRequest('/messages', 'POST', {
+                    model: 'claude-3-sonnet-20240229',
+                    max_tokens: 10,
+                    messages: [{ role: 'user', content: 'test' }]
+                });
+                this.timeout = originalTimeout;
                 return true;
+            } catch (error: any) {
+                // 400 ошибка означает, что API доступен, но запрос некорректный (это нормально для проверки)
+                if (error.message && error.message.includes('400')) {
+                    this.timeout = originalTimeout;
+                    return true;
+                }
+                throw error;
+            } finally {
+                this.timeout = originalTimeout;
             }
+        } catch (error) {
             console.debug('AnthropicProvider: Not available:', error);
             return false;
         }
@@ -120,15 +196,15 @@ export class AnthropicProvider extends BaseModelProvider {
                 requestBody.stop_sequences = options.stopSequences;
             }
 
-            const response = await this.axiosInstance.post<ClaudeResponse>('/messages', requestBody);
+            const response = await this.makeRequest<ClaudeResponse>('/messages', 'POST', requestBody);
             const responseTime = Date.now() - startTime;
 
-            if (!response.data.content || response.data.content.length === 0) {
+            if (!response.content || response.content.length === 0) {
                 throw new Error('No response from Anthropic Claude');
             }
 
-            const text = response.data.content[0].text;
-            const usage = response.data.usage;
+            const text = response.content[0].text;
+            const usage = response.usage;
 
             // Расчет стоимости
             const cost = (usage.input_tokens * this.modelInfo.costPerToken!.input) +
@@ -145,9 +221,6 @@ export class AnthropicProvider extends BaseModelProvider {
             };
         } catch (error: any) {
             console.error('AnthropicProvider: Error calling model:', error);
-            if (error.response) {
-                throw new Error(`Anthropic API error: ${error.response.status} - ${error.response.data?.error?.message || error.message}`);
-            }
             throw new Error(`Anthropic provider error: ${error.message}`);
         }
     }
@@ -187,5 +260,21 @@ export class AnthropicProvider extends BaseModelProvider {
                 costPerToken: { input: 0.00000025, output: 0.00000125 }
             }
         ];
+    }
+
+    updateConfig(config: Partial<ProviderConfig>): void {
+        super.updateConfig(config);
+        
+        if (config.baseUrl) {
+            this.baseUrl = config.baseUrl;
+        }
+        
+        if (config.timeout !== undefined) {
+            this.timeout = config.timeout;
+        }
+        
+        if (config.model) {
+            this.defaultModel = config.model;
+        }
     }
 }

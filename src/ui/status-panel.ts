@@ -29,9 +29,6 @@ export class StatusPanel {
                     case 'agentClick':
                         vscode.commands.executeCommand('cursor-autonomous.showAgentDetails', message.agentId);
                         return;
-                    case 'selectModel':
-                        vscode.commands.executeCommand('cursor-autonomous.selectAgentModel', message.agentId);
-                        return;
                     case 'sendTaskToChat':
                         this.sendTaskToChat(message.agentId, message.taskId);
                         return;
@@ -107,9 +104,6 @@ export class StatusPanel {
     }
 
     private async getHtmlForWebview(webview: vscode.Webview, agents: AgentStatus[]): Promise<string> {
-        // Получаем список доступных моделей один раз для всех агентов
-        const { ModelProvider } = await import('../integration/model-provider');
-        const availableModels = await ModelProvider.getAvailableModels();
         const workingAgents = agents.filter(a => a.status === 'working');
         const idleAgents = agents.filter(a => a.status === 'idle');
         const totalTasks = agents.reduce((sum, a) => sum + a.tasksInProgress, 0);
@@ -306,7 +300,7 @@ export class StatusPanel {
     </div>
 
     <div class="agents-list">
-        ${(await Promise.all(agents.map(agent => this.getAgentCardHtml(agent, availableModels)))).join('')}
+        ${(await Promise.all(agents.map(agent => this.getAgentCardHtml(agent)))).join('')}
     </div>
 
     <button class="refresh-btn" id="btnRefresh">Обновить</button>
@@ -320,13 +314,6 @@ export class StatusPanel {
 
         function agentClick(agentId) {
             vscode.postMessage({ command: 'agentClick', agentId: agentId });
-        }
-
-        function selectModel(agentId, modelValue) {
-            if (modelValue) {
-                const model = JSON.parse(modelValue);
-                vscode.postMessage({ command: 'selectModel', agentId: agentId, model: model });
-            }
         }
 
         function sendTaskToChat(agentId, taskId, event) {
@@ -358,14 +345,6 @@ export class StatusPanel {
                 });
             });
 
-            // Добавляем обработчики для select моделей
-            document.querySelectorAll('select[id^="model-select-"]').forEach(select => {
-                select.addEventListener('change', function() {
-                    const agentId = this.getAttribute('data-agent-id');
-                    if (agentId) selectModel(agentId, this.value);
-                });
-            });
-
             // Автообновление каждые 5 секунд
             refreshInterval = setInterval(refresh, 5000);
         });
@@ -374,23 +353,7 @@ export class StatusPanel {
 </html>`;
     }
 
-    private getModelOptions(agent: AgentStatus, availableModels: any[]): string {
-        let options = '';
-        const currentModelId = agent.selectedModel 
-            ? `${agent.selectedModel.vendor || ''}:${agent.selectedModel.id || agent.selectedModel.family || ''}`
-            : '';
-
-        for (const model of availableModels) {
-            const modelId = `${model.vendor || ''}:${model.id || model.family || ''}`;
-            const modelName = model.displayName || `${model.vendor || ''} ${model.family || model.id || ''}`.trim();
-            const selected = modelId === currentModelId ? 'selected' : '';
-            options += `<option value="${this.escapeHtml(JSON.stringify(model))}" ${selected}>${this.escapeHtml(modelName)}</option>`;
-        }
-
-        return options;
-    }
-
-    private async getAgentCardHtml(agent: AgentStatus, availableModels: any[]): Promise<string> {
+    private async getAgentCardHtml(agent: AgentStatus): Promise<string> {
         const statusClass = `status-${agent.status}`;
         const statusText = this.getStatusText(agent.status);
         
@@ -440,16 +403,8 @@ export class StatusPanel {
             >
                 💬 Передать в чат
             </button>
-            <div class="agent-model-selector" style="margin-top: 12px; padding: 8px; background: var(--vscode-input-background); border-radius: 4px; border: 1px solid var(--vscode-input-border);">
-                <label style="display: block; margin-bottom: 4px; font-size: 12px; opacity: 0.9;">Модель:</label>
-                <select
-                    id="model-select-${agent.id}"
-                    data-agent-id="${agent.id}"
-                    style="width: 100%; padding: 4px; background: var(--vscode-dropdown-background); color: var(--vscode-dropdown-foreground); border: 1px solid var(--vscode-dropdown-border); border-radius: 2px; font-size: 12px;"
-                >
-                    <option value="">Автоматический выбор</option>
-                    ${this.getModelOptions(agent, availableModels)}
-                </select>
+            <div style="margin-top: 12px; padding: 8px; background: var(--vscode-input-background); border-radius: 4px; border: 1px solid var(--vscode-input-border); font-size: 12px; opacity: 0.8;">
+                ⚙️ Настройка модели: откройте панель настроек расширения
             </div>
             ${agent.status === 'error' && agent.errorMessage ? `
                 <div style="margin-top: 12px; padding: 12px; background: var(--vscode-inputValidation-errorBackground); border-radius: 4px; border-left: 4px solid var(--vscode-errorForeground);">
@@ -618,28 +573,22 @@ export class StatusPanel {
         message += `\nПожалуйста, помогите выполнить эту задачу.`;
 
         try {
-            // Открываем чат CursorAI
-            await vscode.commands.executeCommand('workbench.action.chat.open');
-            
-            // Небольшая задержка для открытия чата
-            await new Promise(resolve => setTimeout(resolve, 500));
-
             // Копируем сообщение в буфер обмена
             await vscode.env.clipboard.writeText(message);
+
+            // Пытаемся открыть чат CursorAI (если команда доступна)
+            try {
+                await vscode.commands.executeCommand('workbench.action.chat.open');
+            } catch (chatError: any) {
+                // Команда может быть недоступна в некоторых версиях CursorAI
+                console.debug('Chat command not available, message copied to clipboard:', chatError.message);
+            }
 
             // Показываем уведомление
             const action = await vscode.window.showInformationMessage(
                 'Задача подготовлена для передачи в чат. Сообщение скопировано в буфер обмена.',
-                'Открыть чат',
                 'OK'
             );
-
-            if (action === 'Открыть чат') {
-                vscode.window.showInformationMessage(
-                    'Вставьте сообщение из буфера обмена в чат CursorAI (Ctrl+V или Cmd+V)',
-                    'OK'
-                );
-            }
         } catch (error: any) {
             console.warn('Failed to send task to chat:', error);
             // Fallback: просто копируем в буфер обмена

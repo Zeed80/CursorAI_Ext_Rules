@@ -1564,9 +1564,11 @@ ${agent.description}
                             console.log(`   - Model: ${assignedModel}`);
                             console.log(`   - Instructions: ${(instructions || description).substring(0, 100)}...`);
                             
-                            // Сохраняем ID в настройках
-                            const config = vscode.workspace.getConfiguration('cursor-autonomous');
-                            await config.update(`agents.${agentId}.backgroundAgentId`, agentIdStr, vscode.ConfigurationTarget.Global);
+                            // Сохраняем ID в настройках только для постоянных агентов (не временных)
+                            if (!agentId.startsWith('variation-generator-')) {
+                                const config = vscode.workspace.getConfiguration('cursor-autonomous');
+                                await config.update(`agents.${agentId}.backgroundAgentId`, agentIdStr, vscode.ConfigurationTarget.Global);
+                            }
                             
                             return agentIdStr;
                         }
@@ -1620,9 +1622,11 @@ ${agent.description}
                             console.log(`   - Model: ${assignedModel}`);
                             console.log(`   - Instructions: ${(instructions || description).substring(0, 100)}...`);
                             
-                            // Сохраняем ID в настройках
-                            const config = vscode.workspace.getConfiguration('cursor-autonomous');
-                            await config.update(`agents.${agentId}.backgroundAgentId`, agentIdStr, vscode.ConfigurationTarget.Global);
+                            // Сохраняем ID в настройках только для постоянных агентов (не временных)
+                            if (!agentId.startsWith('variation-generator-')) {
+                                const config = vscode.workspace.getConfiguration('cursor-autonomous');
+                                await config.update(`agents.${agentId}.backgroundAgentId`, agentIdStr, vscode.ConfigurationTarget.Global);
+                            }
                             
                             return agentIdStr;
                         }
@@ -1641,9 +1645,11 @@ ${agent.description}
             }
         }
 
-        // Fallback: сохранение в настройках расширения
-        const config = vscode.workspace.getConfiguration('cursor-autonomous');
-        await config.update(`agents.${agentId}.backgroundAgentId`, existingBackgroundAgentId || null, vscode.ConfigurationTarget.Global);
+        // Fallback: сохранение в настройках расширения только для постоянных агентов (не временных)
+        if (!agentId.startsWith('variation-generator-') && existingBackgroundAgentId) {
+            const config = vscode.workspace.getConfiguration('cursor-autonomous');
+            await config.update(`agents.${agentId}.backgroundAgentId`, existingBackgroundAgentId, vscode.ConfigurationTarget.Global);
+        }
         
         return existingBackgroundAgentId || null;
     }

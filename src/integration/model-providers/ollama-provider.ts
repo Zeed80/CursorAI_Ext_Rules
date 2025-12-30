@@ -164,6 +164,12 @@ export class OllamaProvider extends BaseModelProvider {
         const startTime = Date.now();
         const model = options?.model || this.config.model || this.defaultModel;
 
+        console.log(`OllamaProvider: Calling model "${model}"`);
+        console.log(`OllamaProvider: options.model = ${options?.model}`);
+        console.log(`OllamaProvider: this.config.model = ${this.config.model}`);
+        console.log(`OllamaProvider: this.defaultModel = ${this.defaultModel}`);
+        console.log(`OllamaProvider: Selected model = ${model}`);
+
         try {
             const requestBody: any = {
                 model: model,
@@ -289,7 +295,12 @@ export class OllamaProvider extends BaseModelProvider {
     }
 
     updateConfig(config: Partial<ProviderConfig>): void {
+        console.log(`OllamaProvider: Updating config:`, JSON.stringify(config));
+        console.log(`OllamaProvider: Current config before update:`, JSON.stringify(this.config));
+        
         super.updateConfig(config);
+        
+        console.log(`OllamaProvider: Current config after update:`, JSON.stringify(this.config));
         
         // Обновляем baseUrl если изменился
         if (config.baseUrl) {
@@ -306,6 +317,7 @@ export class OllamaProvider extends BaseModelProvider {
         // Обновляем defaultModel если изменился
         if (config.model) {
             this.defaultModel = config.model;
+            console.log(`OllamaProvider: Updated defaultModel to ${this.defaultModel}`);
         }
     }
 }

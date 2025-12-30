@@ -122,10 +122,15 @@ class TaskExecutor {
      */
     async sendToChat(message) {
         try {
-            // Пытаемся открыть чат CursorAI
-            await vscode.commands.executeCommand('workbench.action.chat.open');
-            // Небольшая задержка для открытия чата
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Пытаемся открыть чат CursorAI (если команда доступна)
+            try {
+                await vscode.commands.executeCommand('workbench.action.chat.open');
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            catch (chatError) {
+                // Команда может быть недоступна в некоторых версиях CursorAI
+                console.debug('Chat command not available:', chatError.message);
+            }
             // Копируем сообщение в буфер обмена
             await vscode.env.clipboard.writeText(message);
             // Показываем уведомление пользователю
@@ -154,9 +159,15 @@ class TaskExecutor {
         // Пытаемся использовать команды VS Code для вставки
         // Это может не работать, так как чат CursorAI может иметь свой API
         try {
-            // Фокус на чат
-            await vscode.commands.executeCommand('workbench.action.chat.open');
-            await new Promise(resolve => setTimeout(resolve, 300));
+            // Фокус на чат (если команда доступна)
+            try {
+                await vscode.commands.executeCommand('workbench.action.chat.open');
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+            catch (chatError) {
+                // Команда может быть недоступна в некоторых версиях CursorAI
+                console.debug('Chat command not available:', chatError.message);
+            }
             // Пытаемся вставить текст
             // В реальности это может потребовать специального API CursorAI
             await vscode.commands.executeCommand('editor.action.clipboardPasteAction');

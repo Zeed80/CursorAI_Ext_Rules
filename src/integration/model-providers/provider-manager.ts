@@ -116,10 +116,23 @@ export class ModelProviderManager {
             throw new Error(`No available provider found for agent ${agentId}`);
         }
 
-        console.log(`ModelProviderManager: Calling provider ${provider.getProviderType()} for agent ${agentId} with options:`, JSON.stringify(options));
+        // Получаем конфигурацию модели для агента, чтобы убедиться, что модель передается
+        const config = vscode.workspace.getConfiguration('cursor-autonomous');
+        const agentConfig = config.get<{ model?: string; modelConfig?: ProviderConfig }>(`agents.${agentId}`, {});
+        
+        // Объединяем options с конфигурацией агента, чтобы модель всегда передавалась
+        const finalOptions: CallOptions = {
+            ...options,
+            // Если модель не указана в options, используем из конфигурации агента
+            model: options?.model || agentConfig.modelConfig?.model || undefined
+        };
+
+        console.log(`ModelProviderManager: Calling provider ${provider.getProviderType()} for agent ${agentId}`);
+        console.log(`ModelProviderManager: Agent config:`, JSON.stringify(agentConfig));
+        console.log(`ModelProviderManager: Final options:`, JSON.stringify(finalOptions));
 
         try {
-            return await provider.call(prompt, options);
+            return await provider.call(prompt, finalOptions);
         } catch (error: any) {
             console.error(`ModelProviderManager: Error calling provider for agent ${agentId}:`, error);
             
@@ -127,7 +140,7 @@ export class ModelProviderManager {
             const fallbackProvider = await this.getFallbackProvider(provider.getProviderType());
             if (fallbackProvider) {
                 console.log(`ModelProviderManager: Trying fallback provider for agent ${agentId}`);
-                return await fallbackProvider.call(prompt, options);
+                return await fallbackProvider.call(prompt, finalOptions);
             }
             
             throw error;
