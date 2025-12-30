@@ -497,7 +497,7 @@
     "test:jest:watch": "jest --watch",
     "test:jest:coverage": "jest --coverage",
     "test:api": "jest src/integration/__tests__/cursor-api-models.test.ts",
-    "package": "vsce package --no-dependencies",
+    "package": "vsce package",
     "build": "npm run compile && npm run package",
     "install:auto": "node install.js",
     "build:standalone": "node build-standalone.js",
@@ -519,5 +519,8 @@
   },
   "dependencies": {
     "axios": "^1.6.0"
-  }
+  },
+  "bundledDependencies": [
+    "axios"
+  ]
 }

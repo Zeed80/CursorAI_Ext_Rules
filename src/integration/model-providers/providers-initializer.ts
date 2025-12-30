@@ -87,27 +87,26 @@ export class ProvidersInitializer {
             }
         }
 
-        // Регистрируем Ollama провайдер
-        if (providersConfig.ollama?.enabled !== false) {
-            const ollamaConfig: ProviderConfig = {
-                baseUrl: providersConfig.ollama?.baseUrl || 'http://localhost:11434',
-                timeout: 120000
-            };
-            const ollamaProvider = new OllamaProvider(ollamaConfig);
-            manager.registerProvider(ollamaProvider);
-            console.log('ProvidersInitializer: Ollama provider registered');
-        }
+        // Регистрируем Ollama провайдер (всегда, даже если не включен)
+        // Это нужно для возможности проверки подключения в настройках
+        const ollamaConfig: ProviderConfig = {
+            baseUrl: providersConfig.ollama?.baseUrl || 'http://localhost:11434',
+            timeout: 120000,
+            enabled: providersConfig.ollama?.enabled !== false
+        };
+        const ollamaProvider = new OllamaProvider(ollamaConfig);
+        manager.registerProvider(ollamaProvider);
+        console.log('ProvidersInitializer: Ollama provider registered with baseUrl:', ollamaConfig.baseUrl);
 
-        // Регистрируем LLM Studio провайдер
-        if (providersConfig['llm-studio']?.enabled !== false) {
-            const llmStudioConfig: ProviderConfig = {
-                baseUrl: providersConfig['llm-studio']?.baseUrl || 'http://localhost:11434',
-                timeout: 120000
-            };
-            const llmStudioProvider = new LLMStudioProvider(llmStudioConfig);
-            manager.registerProvider(llmStudioProvider);
-            console.log('ProvidersInitializer: LLM Studio provider registered');
-        }
+        // Регистрируем LLM Studio провайдер (всегда, даже если не включен)
+        const llmStudioConfig: ProviderConfig = {
+            baseUrl: providersConfig['llm-studio']?.baseUrl || 'http://localhost:1234/v1',
+            timeout: 120000,
+            enabled: providersConfig['llm-studio']?.enabled !== false
+        };
+        const llmStudioProvider = new LLMStudioProvider(llmStudioConfig);
+        manager.registerProvider(llmStudioProvider);
+        console.log('ProvidersInitializer: LLM Studio provider registered with baseUrl:', llmStudioConfig.baseUrl);
 
         // Устанавливаем провайдер по умолчанию
         const defaultProvider = providersConfig.defaultProvider || 'cursorai';

@@ -53,11 +53,14 @@ export class ModelProviderManager {
             const config = vscode.workspace.getConfiguration('cursor-autonomous');
             const agentConfig = config.get<{ model?: string; modelConfig?: ProviderConfig }>(`agents.${agentId}`, {});
             
+            console.log(`ModelProviderManager: Getting provider for agent ${agentId}, config:`, JSON.stringify(agentConfig));
+            
             const providerType = (agentConfig.model || this.defaultProviderType) as ModelProviderType;
             const provider = this.getProvider(providerType);
 
             if (provider && agentConfig.modelConfig) {
                 // Обновляем конфигурацию провайдера из настроек
+                console.log(`ModelProviderManager: Updating provider ${providerType} config for agent ${agentId}:`, JSON.stringify(agentConfig.modelConfig));
                 provider.updateConfig(agentConfig.modelConfig);
             }
 
@@ -112,6 +115,8 @@ export class ModelProviderManager {
         if (!provider) {
             throw new Error(`No available provider found for agent ${agentId}`);
         }
+
+        console.log(`ModelProviderManager: Calling provider ${provider.getProviderType()} for agent ${agentId} with options:`, JSON.stringify(options));
 
         try {
             return await provider.call(prompt, options);

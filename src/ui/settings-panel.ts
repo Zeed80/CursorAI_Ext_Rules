@@ -155,22 +155,36 @@ export class SettingsPanel {
     }
 
     private async handleMessage(message: any): Promise<void> {
-        switch (message.command) {
-            case 'loadSettings':
-                await this.loadSettings();
-                return;
-            case 'saveSettings':
-                await this.saveSettings(message.settings);
-                return;
-            case 'testProvider':
-                await this.testProviderConnection(message.providerType, message.baseUrl);
-                return;
-            case 'getModels':
-                await this.getModelsForProvider(message.providerType);
-                return;
-            case 'refresh':
-                this.update();
-                return;
+        try {
+            console.log(`SettingsPanel: Received message:`, message.command, message);
+            
+            switch (message.command) {
+                case 'loadSettings':
+                    await this.loadSettings();
+                    return;
+                case 'saveSettings':
+                    await this.saveSettings(message.settings);
+                    return;
+                case 'testProvider':
+                    console.log(`SettingsPanel: Testing provider ${message.providerType} with baseUrl: ${message.baseUrl}`);
+                    await this.testProviderConnection(message.providerType, message.baseUrl);
+                    return;
+                case 'getModels':
+                    console.log(`SettingsPanel: Getting models for provider ${message.providerType}`);
+                    await this.getModelsForProvider(message.providerType);
+                    return;
+                case 'refresh':
+                    this.update();
+                    return;
+                default:
+                    console.warn(`SettingsPanel: Unknown command: ${message.command}`);
+            }
+        } catch (error: any) {
+            console.error(`SettingsPanel: Error handling message:`, error);
+            this._panel.webview.postMessage({
+                command: 'error',
+                message: `Ошибка обработки команды: ${error.message || 'Неизвестная ошибка'}`
+            });
         }
     }
 
@@ -277,6 +291,7 @@ export class SettingsPanel {
             for (const [agentId, agentConfig] of Object.entries(settings.agents)) {
                 if (agentConfig.providerType) {
                     await this._settingsManager.setAgentModelProvider(agentId, agentConfig.providerType, {
+                        model: agentConfig.modelId, // Сохраняем выбранную модель (например, 'llama2' для Ollama)
                         temperature: agentConfig.temperature,
                         maxTokens: agentConfig.maxTokens
                     });
@@ -304,8 +319,46 @@ export class SettingsPanel {
 
     private async testProviderConnection(providerType: string, baseUrl?: string): Promise<void> {
         try {
+            console.log(`SettingsPanel: testProviderConnection called for ${providerType}, baseUrl: ${baseUrl}`);
+            
             // Получаем провайдер
             let provider = this._modelProviderManager.getProvider(providerType as ModelProviderType);
+            
+            // Если провайдер не найден, пытаемся инициализировать его
+            if (!provider) {
+                console.warn(`SettingsPanel: Provider ${providerType} not found, attempting to initialize...`);
+                
+                // Для локальных провайдеров создаем новый экземпляр
+                if (providerType === 'ollama') {
+                    const { OllamaProvider } = await import('../integration/model-providers/ollama-provider');
+                    const config: ProviderConfig = {
+                        baseUrl: baseUrl || 'http://localhost:11434',
+                        timeout: 120000
+                    };
+                    provider = new OllamaProvider(config);
+                    this._modelProviderManager.registerProvider(provider);
+                    console.log(`SettingsPanel: Ollama provider created and registered`);
+                } else if (providerType === 'llm-studio') {
+                    const { LLMStudioProvider } = await import('../integration/model-providers/llm-studio-provider');
+                    const config: ProviderConfig = {
+                        baseUrl: baseUrl || 'http://localhost:1234/v1',
+                        timeout: 120000
+                    };
+                    provider = new LLMStudioProvider(config);
+                    this._modelProviderManager.registerProvider(provider);
+                    console.log(`SettingsPanel: LLM Studio provider created and registered`);
+                } else {
+                    this._panel.webview.postMessage({
+                        command: 'providerTestResult',
+                        providerType: providerType,
+                        success: false,
+                        message: 'Провайдер не найден. Убедитесь, что провайдер включен и расширение перезапущено.',
+                        models: []
+                    });
+                    return;
+                }
+            }
+            
             if (!provider) {
                 this._panel.webview.postMessage({
                     command: 'providerTestResult',
@@ -852,15 +905,32 @@ export class SettingsPanel {
         }
 
         function testProvider(providerType) {
+            console.log(\`testProvider called for \${providerType}\`);
+            
+            // Показываем индикацию загрузки
+            const statusEl = document.getElementById(\`provider-\${providerType}-status\`);
+            if (statusEl) {
+                statusEl.className = 'status-indicator unavailable';
+                statusEl.title = 'Проверка подключения...';
+            }
+            
             // Получаем текущий baseUrl из UI перед проверкой
             const baseUrlEl = document.getElementById(\`provider-\${providerType}-baseUrl\`);
             const baseUrl = baseUrlEl ? baseUrlEl.value : undefined;
             
-            vscode.postMessage({ 
-                command: 'testProvider', 
-                providerType: providerType,
-                baseUrl: baseUrl
-            });
+            console.log(\`Sending testProvider message for \${providerType} with baseUrl: \${baseUrl}\`);
+            
+            try {
+                vscode.postMessage({ 
+                    command: 'testProvider', 
+                    providerType: providerType,
+                    baseUrl: baseUrl
+                });
+                console.log(\`Message sent successfully for \${providerType}\`);
+            } catch (error) {
+                console.error(\`Error sending message for \${providerType}:\`, error);
+                showError(\`Ошибка отправки запроса: \${error.message || error}\`);
+            }
         }
 
         function getModelsForProvider(providerType) {
@@ -1090,6 +1160,8 @@ export class SettingsPanel {
         }
 
         function handleProviderTestResult(providerType, success, message, models = []) {
+            console.log(\`handleProviderTestResult: \${providerType}, success: \${success}, message: \${message}, models: \${models.length}\`);
+            
             const statusEl = document.getElementById(\`provider-\${providerType}-status\`);
             if (statusEl) {
                 statusEl.className = \`status-indicator \${success ? 'available' : 'unavailable'}\`;

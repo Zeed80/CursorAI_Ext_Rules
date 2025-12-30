@@ -73,9 +73,10 @@ export class OllamaProvider extends BaseModelProvider {
                 const isHttps = url.protocol === 'https:';
                 const httpModule = isHttps ? https : http;
 
+                const port = url.port ? parseInt(url.port) : (isHttps ? 443 : 80);
                 const options = {
                     hostname: url.hostname,
-                    port: url.port || (isHttps ? 443 : 80),
+                    port: port,
                     path: url.pathname + url.search,
                     method: method,
                     headers: {
@@ -83,6 +84,8 @@ export class OllamaProvider extends BaseModelProvider {
                     },
                     timeout: this.timeout
                 };
+                
+                console.log(`OllamaProvider: Making ${method} request to ${url.hostname}:${port}${url.pathname}`);
 
                 const req = httpModule.request(options, (res) => {
                     let data = '';
@@ -134,12 +137,25 @@ export class OllamaProvider extends BaseModelProvider {
     async isAvailable(): Promise<boolean> {
         try {
             console.log(`OllamaProvider: Checking availability at ${this.baseUrl}/api/tags`);
-            // Проверяем доступность через список моделей
-            const response = await this.makeRequest<{ models: OllamaModel[] }>('/api/tags', 'GET');
-            console.log(`OllamaProvider: Available! Response received`);
-            return true;
+            // Используем короткий таймаут для проверки доступности
+            const originalTimeout = this.timeout;
+            this.timeout = 5000; // 5 секунд для проверки
+            
+            try {
+                // Проверяем доступность через список моделей
+                const response = await this.makeRequest<{ models: OllamaModel[] }>('/api/tags', 'GET');
+                console.log(`OllamaProvider: Available! Response received, models count: ${response.models?.length || 0}`);
+                this.timeout = originalTimeout; // Восстанавливаем таймаут
+                return true;
+            } finally {
+                this.timeout = originalTimeout; // Восстанавливаем таймаут в любом случае
+            }
         } catch (error: any) {
-            console.error(`OllamaProvider: Not available at ${this.baseUrl}:`, error.message || error);
+            const errorMsg = error.message || String(error);
+            console.error(`OllamaProvider: Not available at ${this.baseUrl}:`, errorMsg);
+            if (error.code) {
+                console.error(`OllamaProvider: Error code: ${error.code}`);
+            }
             return false;
         }
     }

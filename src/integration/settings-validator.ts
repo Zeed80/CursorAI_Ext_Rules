@@ -72,13 +72,9 @@ export class SettingsValidator {
 
             // Проверка облачных провайдеров
             if (cloudProviders.includes(providerType as ModelProviderType)) {
-                if (config.enabled && !config.apiKey) {
-                    errors.push({
-                        field: `providers.${providerType}.apiKey`,
-                        message: `API ключ обязателен для провайдера ${providerType}`
-                    });
-                }
-
+                // API ключ не обязателен - можно сохранить настройки без ключа
+                // Ключ будет проверяться только при попытке использовать провайдер
+                
                 if (config.baseUrl && !this.isValidUrl(config.baseUrl)) {
                     errors.push({
                         field: `providers.${providerType}.baseUrl`,
