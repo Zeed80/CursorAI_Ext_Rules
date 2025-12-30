@@ -46,6 +46,9 @@ const cursor_api_1 = require("./integration/cursor-api");
 const agents_status_tree_1 = require("./ui/agents-status-tree");
 const status_panel_1 = require("./ui/status-panel");
 const analytics_panel_1 = require("./ui/analytics-panel");
+const settings_panel_1 = require("./ui/settings-panel");
+const provider_manager_1 = require("./integration/model-providers/provider-manager");
+const usage_tracker_1 = require("./integration/model-providers/usage-tracker");
 let orchestrator;
 let virtualUser;
 let selfImprover;
@@ -175,7 +178,7 @@ function activate(context) {
                     await vscode.commands.executeCommand('cursor-autonomous.showAnalytics');
                     break;
                 case '$(settings) Настройки':
-                    await vscode.commands.executeCommand('workbench.action.openSettings', '@ext:cursor-autonomous.cursor-ai-autonomous-extension');
+                    await vscode.commands.executeCommand('cursor-autonomous.openSettings');
                     break;
             }
         }
@@ -426,6 +429,11 @@ function activate(context) {
         else {
             vscode.window.showErrorMessage('Оркестратор не инициализирован');
         }
+    });
+    const openSettings = vscode.commands.registerCommand('cursor-autonomous.openSettings', () => {
+        const modelProviderManager = provider_manager_1.ModelProviderManager.getInstance();
+        const usageTracker = usage_tracker_1.UsageTracker.getInstance(context);
+        settings_panel_1.SettingsPanel.createOrShow(context.extensionUri, settingsManager, modelProviderManager, usageTracker);
     });
     const refreshAgentsStatus = vscode.commands.registerCommand('cursor-autonomous.refreshAgentsStatus', () => {
         updateAgentsStatus();
@@ -764,7 +772,7 @@ function activate(context) {
     });
     context.subscriptions.push(virtualUserButton);
     // Регистрация всех команд
-    context.subscriptions.push(startOrchestrator, stopOrchestrator, toggleVirtualUser, enableVirtualUser, disableVirtualUser, showStatus, analyzeProject, createTask, runQualityCheck, showStatusPanel, showAnalytics, refreshAgentsStatus, showAgentDetails, sendTaskToChat);
+    context.subscriptions.push(startOrchestrator, stopOrchestrator, toggleVirtualUser, enableVirtualUser, disableVirtualUser, showStatus, analyzeProject, createTask, runQualityCheck, showStatusPanel, showAnalytics, openSettings, refreshAgentsStatus, showAgentDetails, sendTaskToChat);
     const analyzeButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 98);
     analyzeButton.command = 'cursor-autonomous.analyzeProject';
     analyzeButton.text = '$(search) Analyze';

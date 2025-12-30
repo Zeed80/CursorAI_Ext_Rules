@@ -198,4 +198,83 @@ export class SettingsManager {
 
         return (providersConfig.defaultProvider || 'cursorai') as ModelProviderType;
     }
+
+    /**
+     * Получение всех настроек в структурированном виде для UI
+     */
+    async getAllSettings(): Promise<any> {
+        const settings: any = {
+            general: {
+                apiKey: this.getSetting<string>('apiKey', ''),
+                enableVirtualUser: this.enableVirtualUser,
+                autoImprove: this.autoImprove,
+                monitoringInterval: this.monitoringInterval,
+                improvementInterval: this.improvementInterval,
+                virtualUserDecisionThreshold: this.virtualUserDecisionThreshold,
+                enableOrchestrator: this.enableOrchestrator
+            },
+            providers: {},
+            agents: {},
+            orchestrator: {
+                useCursorAIForRefinement: this.getSetting<boolean>('useCursorAIForRefinement', false),
+                cursorAIRefinementOnlyForCritical: this.getSetting<boolean>('cursorAIRefinementOnlyForCritical', true)
+            }
+        };
+
+        // Загружаем настройки провайдеров
+        const providerTypes: ModelProviderType[] = ['openai', 'google', 'anthropic', 'ollama', 'llm-studio', 'cursorai'];
+        for (const providerType of providerTypes) {
+            const config = this.getProviderConfig(providerType);
+            settings.providers[providerType] = {
+                apiKey: config.apiKey,
+                baseUrl: config.baseUrl,
+                enabled: config.enabled !== false
+            };
+        }
+
+        // Загружаем настройки агентов
+        const agentIds = ['backend', 'frontend', 'architect', 'analyst', 'devops', 'qa', 'orchestrator', 'virtual-user'];
+        for (const agentId of agentIds) {
+            const model = await this.getAgentModel(agentId);
+            const modelConfig = this.getAgentModelConfig(agentId);
+            settings.agents[agentId] = {
+                providerType: modelConfig.model as ModelProviderType | undefined,
+                modelId: model?.id,
+                temperature: modelConfig.modelConfig?.temperature,
+                maxTokens: modelConfig.modelConfig?.maxTokens
+            };
+        }
+
+        return settings;
+    }
+
+    /**
+     * Обновление настроек провайдера
+     */
+    async updateProviderSettings(providerType: ModelProviderType, config: Partial<ProviderConfig>): Promise<void> {
+        await this.updateProviderConfig(providerType, config);
+    }
+
+    /**
+     * Обновление настроек агента
+     */
+    async updateAgentSettings(
+        agentId: string,
+        providerType: ModelProviderType | undefined,
+        modelId: string | undefined,
+        modelConfig?: Partial<ProviderConfig>
+    ): Promise<void> {
+        if (providerType) {
+            await this.setAgentModelProvider(agentId, providerType, modelConfig);
+        } else {
+            // Удаляем настройки агента (автоматический выбор)
+            const agentsConfig = this.config.get<{ [key: string]: any }>('agents', {});
+            if (agentsConfig[agentId]) {
+                delete agentsConfig[agentId].model;
+                delete agentsConfig[agentId].modelConfig;
+                await this.config.update('agents', agentsConfig, vscode.ConfigurationTarget.Global);
+                this.config = vscode.workspace.getConfiguration('cursor-autonomous');
+            }
+        }
+    }
 }

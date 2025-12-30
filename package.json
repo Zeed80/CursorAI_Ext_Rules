@@ -101,6 +101,12 @@
         "title": "Передать в чат",
         "category": "Cursor Autonomous",
         "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "cursor-autonomous.openSettings",
+        "title": "Открыть настройки расширения",
+        "category": "Cursor Autonomous",
+        "icon": "$(settings)"
       }
     ],
     "viewsContainers": {
@@ -449,6 +455,9 @@
         },
         {
           "command": "cursor-autonomous.showAnalytics"
+        },
+        {
+          "command": "cursor-autonomous.openSettings"
         }
       ],
       "statusBar/toolbar": [

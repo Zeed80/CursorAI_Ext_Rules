@@ -179,6 +179,75 @@ class SettingsManager {
         const providersConfig = this.config.get('providers', {});
         return (providersConfig.defaultProvider || 'cursorai');
     }
+    /**
+     * Получение всех настроек в структурированном виде для UI
+     */
+    async getAllSettings() {
+        const settings = {
+            general: {
+                apiKey: this.getSetting('apiKey', ''),
+                enableVirtualUser: this.enableVirtualUser,
+                autoImprove: this.autoImprove,
+                monitoringInterval: this.monitoringInterval,
+                improvementInterval: this.improvementInterval,
+                virtualUserDecisionThreshold: this.virtualUserDecisionThreshold,
+                enableOrchestrator: this.enableOrchestrator
+            },
+            providers: {},
+            agents: {},
+            orchestrator: {
+                useCursorAIForRefinement: this.getSetting('useCursorAIForRefinement', false),
+                cursorAIRefinementOnlyForCritical: this.getSetting('cursorAIRefinementOnlyForCritical', true)
+            }
+        };
+        // Загружаем настройки провайдеров
+        const providerTypes = ['openai', 'google', 'anthropic', 'ollama', 'llm-studio', 'cursorai'];
+        for (const providerType of providerTypes) {
+            const config = this.getProviderConfig(providerType);
+            settings.providers[providerType] = {
+                apiKey: config.apiKey,
+                baseUrl: config.baseUrl,
+                enabled: config.enabled !== false
+            };
+        }
+        // Загружаем настройки агентов
+        const agentIds = ['backend', 'frontend', 'architect', 'analyst', 'devops', 'qa', 'orchestrator', 'virtual-user'];
+        for (const agentId of agentIds) {
+            const model = await this.getAgentModel(agentId);
+            const modelConfig = this.getAgentModelConfig(agentId);
+            settings.agents[agentId] = {
+                providerType: modelConfig.model,
+                modelId: model?.id,
+                temperature: modelConfig.modelConfig?.temperature,
+                maxTokens: modelConfig.modelConfig?.maxTokens
+            };
+        }
+        return settings;
+    }
+    /**
+     * Обновление настроек провайдера
+     */
+    async updateProviderSettings(providerType, config) {
+        await this.updateProviderConfig(providerType, config);
+    }
+    /**
+     * Обновление настроек агента
+     */
+    async updateAgentSettings(agentId, providerType, modelId, modelConfig) {
+        if (providerType) {
+            await this.setAgentModelProvider(agentId, providerType, modelConfig);
+        }
+        else {
+            // Удаляем настройки агента (автоматический выбор)
+            const agentsConfig = this.config.get('agents', {});
+            if (agentsConfig[agentId]) {
+                delete agentsConfig[agentId].model;
+                delete agentsConfig[agentId].modelConfig;
+                await this.config.update('agents', agentsConfig, vscode.ConfigurationTarget.Global);
+                this.config = vscode.workspace.getConfiguration('cursor-autonomous');
+            }
+        }
+    }
 }
 exports.SettingsManager = SettingsManager;
 //# sourceMappingURL=settings-manager.js.map

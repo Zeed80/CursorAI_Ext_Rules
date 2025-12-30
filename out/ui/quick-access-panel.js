@@ -205,7 +205,7 @@ class QuickAccessPanel {
             });
 
             document.getElementById('btnOpenSettings')?.addEventListener('click', function() {
-                executeCommand('workbench.action.openSettings', '@ext:cursor-autonomous.cursor-ai-autonomous-extension');
+                executeCommand('cursor-autonomous.openSettings');
             });
 
             // Начальное обновление статуса

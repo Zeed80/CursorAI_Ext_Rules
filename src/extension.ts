@@ -10,7 +10,10 @@ import { CursorAPI } from './integration/cursor-api';
 import { AgentsStatusTreeProvider } from './ui/agents-status-tree';
 import { StatusPanel } from './ui/status-panel';
 import { AnalyticsPanel } from './ui/analytics-panel';
+import { SettingsPanel } from './ui/settings-panel';
 import { AgentThoughts } from './agents/local-agent';
+import { ModelProviderManager } from './integration/model-providers/provider-manager';
+import { UsageTracker } from './integration/model-providers/usage-tracker';
 
 let orchestrator: SelfLearningOrchestrator | undefined;
 let virtualUser: VirtualUser | undefined;
@@ -151,7 +154,7 @@ export function activate(context: vscode.ExtensionContext) {
                     await vscode.commands.executeCommand('cursor-autonomous.showAnalytics');
                     break;
                 case '$(settings) Настройки':
-                    await vscode.commands.executeCommand('workbench.action.openSettings', '@ext:cursor-autonomous.cursor-ai-autonomous-extension');
+                    await vscode.commands.executeCommand('cursor-autonomous.openSettings');
                     break;
             }
         }
@@ -436,6 +439,17 @@ export function activate(context: vscode.ExtensionContext) {
         } else {
             vscode.window.showErrorMessage('Оркестратор не инициализирован');
         }
+    });
+
+    const openSettings = vscode.commands.registerCommand('cursor-autonomous.openSettings', () => {
+        const modelProviderManager = ModelProviderManager.getInstance();
+        const usageTracker = UsageTracker.getInstance(context);
+        SettingsPanel.createOrShow(
+            context.extensionUri,
+            settingsManager,
+            modelProviderManager,
+            usageTracker
+        );
     });
 
     const refreshAgentsStatus = vscode.commands.registerCommand('cursor-autonomous.refreshAgentsStatus', () => {
@@ -862,6 +876,7 @@ export function activate(context: vscode.ExtensionContext) {
         runQualityCheck,
         showStatusPanel,
         showAnalytics,
+        openSettings,
         refreshAgentsStatus,
         showAgentDetails,
         sendTaskToChat
