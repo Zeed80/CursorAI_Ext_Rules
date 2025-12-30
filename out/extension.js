@@ -787,14 +787,13 @@ function activate(context) {
     context.subscriptions.push(statusPanelButton);
     // Автообновление статуса агентов
     startStatusUpdates();
-    // Инициализация виртуального пользователя (если включен)
+    // Инициализация виртуального пользователя (если включен в настройках)
+    // НЕ запускаем автоматически - пользователь должен включить вручную
     if (settingsManager.getSetting('enableVirtualUser', false)) {
         virtualUser = new virtual_user_1.VirtualUser(context, orchestrator, settingsManager);
         context.subscriptions.push(virtualUser);
-        // Автоматический запуск виртуального пользователя
-        virtualUser.start().catch(err => {
-            console.error('Error starting virtual user:', err);
-        });
+        // НЕ запускаем автоматически - пользователь должен включить через команду
+        console.log('Virtual User instance created but not started (user must enable manually)');
     }
     // Инициализация системы самосовершенствования
     if (settingsManager.getSetting('autoImprove', true)) {
@@ -831,22 +830,10 @@ function activate(context) {
             rulesIntegration.dispose();
         }
     });
-    // Автоматический запуск оркестратора при активации
-    // Запускаем с небольшой задержкой, чтобы все компоненты успели инициализироваться
-    setTimeout(async () => {
-        try {
-            if (orchestrator) {
-                await orchestrator.start();
-                updateStatusBar('active');
-                console.log('Orchestrator auto-started on activation');
-                // Обновляем статусы агентов после запуска
-                updateAgentsStatus();
-            }
-        }
-        catch (error) {
-            console.error('Error auto-starting orchestrator:', error);
-        }
-    }, 1000);
+    // НЕ запускаем оркестратор автоматически при активации
+    // Пользователь должен запустить его вручную через команду или меню
+    console.log('Orchestrator initialized but not started (user must start manually)');
+    updateStatusBar('stopped');
     // Обновление статус-бара при изменении настроек
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
         if (e.affectsConfiguration('cursor-autonomous')) {
