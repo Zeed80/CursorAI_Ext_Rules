@@ -239,10 +239,78 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const analyzeProject = vscode.commands.registerCommand('cursor-autonomous.analyzeProject', async () => {
-        if (orchestrator) {
-            vscode.window.showInformationMessage('Analyzing project...');
-            await orchestrator.analyzeProject();
-            vscode.window.showInformationMessage('Project analysis completed');
+        if (!orchestrator) {
+            vscode.window.showErrorMessage('Оркестратор не инициализирован');
+            return;
+        }
+
+        const currentOrchestrator = orchestrator; // Сохраняем ссылку для использования в замыкании
+
+        try {
+            // Показываем прогресс
+            await vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: 'Анализ проекта',
+                cancellable: false
+            }, async (progress) => {
+                progress.report({ increment: 0, message: 'Запуск комплексного анализа проекта...' });
+
+                // Комплексный анализ проекта
+                progress.report({ increment: 20, message: 'Анализ технологий и архитектуры...' });
+                await currentOrchestrator.analyzeProject();
+
+                progress.report({ increment: 40, message: 'Генерация правил...' });
+                
+                // Генерация правил
+                const { ProjectAnalyzer } = await import('./orchestrator/project-analyzer');
+                const { RuleGenerator } = await import('./orchestrator/rule-generator');
+                const { ChatRuleEnhancer } = await import('./orchestrator/chat-rule-enhancer');
+                
+                const projectAnalyzer = new ProjectAnalyzer();
+                const ruleGenerator = new RuleGenerator();
+                const chatEnhancer = new ChatRuleEnhancer();
+                
+                const profile = await projectAnalyzer.loadProfile();
+                if (!profile) {
+                    throw new Error('Профиль проекта не найден');
+                }
+
+                progress.report({ increment: 60, message: 'Генерация базовых правил...' });
+                const rules = await ruleGenerator.generateRulesFromProfile();
+                
+                progress.report({ increment: 80, message: 'Сохранение правил...' });
+                await ruleGenerator.saveRules(rules);
+
+                progress.report({ increment: 90, message: 'Обновление индекса правил...' });
+                const { RulesIntegration } = await import('./storage/rules-integration');
+                const rulesIntegration = new RulesIntegration();
+                await rulesIntegration.adaptRulesToProject();
+
+                progress.report({ increment: 100, message: 'Завершено!' });
+
+                // Предложение улучшения через чат
+                const enhanceChoice = await vscode.window.showInformationMessage(
+                    `Анализ проекта завершен! Сгенерировано ${rules.length} правил. Хотите улучшить правила через чат CursorAI?`,
+                    'Улучшить через чат',
+                    'Пропустить'
+                );
+
+                if (enhanceChoice === 'Улучшить через чат') {
+                    await chatEnhancer.enhanceRulesViaChat(rules, profile);
+                    vscode.window.showInformationMessage(
+                        'Промпт для улучшения правил подготовлен. После улучшения в чате, правила будут автоматически использоваться CursorAI.',
+                        'OK'
+                    );
+                } else {
+                    vscode.window.showInformationMessage(
+                        `Анализ проекта завершен! Сгенерировано ${rules.length} правил. Правила сохранены и готовы к использованию CursorAI.`,
+                        'OK'
+                    );
+                }
+            });
+        } catch (error: any) {
+            console.error('Error analyzing project:', error);
+            vscode.window.showErrorMessage(`Ошибка при анализе проекта: ${error.message}`);
         }
     });
 

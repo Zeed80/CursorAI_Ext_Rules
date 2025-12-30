@@ -186,34 +186,181 @@ export class RulesIntegration {
         const indexPath = path.join(this.rulesPath, 'rules-index.mdc');
         const rules = this.getRulesList();
         
+        // Загружаем профиль проекта для статистики
+        const profile = await this.projectAnalyzer.loadProfile();
+        
+        // Анализ правил по категориям и приоритетам
+        const rulesByCategory: { [category: string]: string[] } = {};
+        const rulesByPriority: { [priority: string]: string[] } = { high: [], medium: [], low: [] };
+        let enhancedViaChat = 0;
+        
+        for (const rulePath of rules) {
+            const category = this.getRuleCategory(rulePath);
+            if (!rulesByCategory[category]) {
+                rulesByCategory[category] = [];
+            }
+            rulesByCategory[category].push(rulePath);
+            
+            // Попытка определить приоритет из содержимого файла
+            try {
+                const content = fs.readFileSync(rulePath, 'utf-8');
+                const priorityMatch = content.match(/priority:\s*(high|medium|low)/i);
+                if (priorityMatch) {
+                    const priority = priorityMatch[1].toLowerCase();
+                    rulesByPriority[priority].push(rulePath);
+                } else {
+                    rulesByPriority['medium'].push(rulePath);
+                }
+                
+                // Проверка на улучшение через чат
+                if (content.includes('Улучшено через чат') || content.includes('enhanced via chat')) {
+                    enhancedViaChat++;
+                }
+            } catch (error) {
+                // Игнорируем ошибки чтения
+                rulesByPriority['medium'].push(rulePath);
+            }
+        }
+        
+        // Статистика покрытия проекта
+        let coverageStats = '';
+        if (profile) {
+            coverageStats = `
+## Статистика покрытия проекта
+
+### Технологии
+- Языки: ${profile.languages.length > 0 ? '✅ Покрыто' : '❌ Не покрыто'}
+- Фреймворки: ${profile.frameworks.length > 0 ? '✅ Покрыто' : '❌ Не покрыто'}
+- Архитектура: ${profile.architecture ? '✅ Покрыто' : '❌ Не покрыто'}
+- База данных: ${profile.database ? '✅ Покрыто' : '❌ Не покрыто'}
+
+### Аспекты проекта
+- Безопасность: ${profile.security ? '✅ Покрыто' : '❌ Не покрыто'}
+- Производительность: ${profile.performance ? '✅ Покрыто' : '❌ Не покрыто'}
+- Тестирование: ${profile.testing ? '✅ Покрыто' : '❌ Не покрыто'}
+- Документация: ${profile.documentation ? '✅ Покрыто' : '❌ Не покрыто'}
+- CI/CD: ${profile.cicd ? '✅ Покрыто' : '❌ Не покрыто'}
+- Зависимости: ${profile.dependenciesAnalysis ? '✅ Покрыто' : '❌ Не покрыто'}
+
+`;
+        }
+        
         let indexContent = `---
 name: Rules Index
-description: Автоматически сгенерированный индекс правил
+description: Автоматически сгенерированный индекс правил с категоризацией и метаданными
 globs: ["**/*"]
 alwaysApply: false
 ---
 
 # Индекс правил
 
-## Всего правил: ${rules.length}
+## Общая статистика
 
-## Список правил:
+- **Всего правил:** ${rules.length}
+- **Высокий приоритет:** ${rulesByPriority.high.length}
+- **Средний приоритет:** ${rulesByPriority.medium.length}
+- **Низкий приоритет:** ${rulesByPriority.low.length}
+- **Улучшено через чат:** ${enhancedViaChat}
+- **Дата обновления:** ${new Date().toISOString()}
+${coverageStats}
+## Правила по категориям
 
 `;
 
-        for (const rulePath of rules) {
-            const relativePath = path.relative(this.rulesPath, rulePath);
+        for (const [category, categoryRules] of Object.entries(rulesByCategory)) {
+            indexContent += `### ${category} (${categoryRules.length} правил)\n\n`;
+            for (const rulePath of categoryRules) {
+                const relativePath = path.relative(this.rulesPath, rulePath).replace(/\\/g, '/');
+                const ruleName = path.basename(rulePath);
+                
+                // Попытка получить приоритет
+                let priority = 'medium';
+                try {
+                    const content = fs.readFileSync(rulePath, 'utf-8');
+                    const priorityMatch = content.match(/priority:\s*(high|medium|low)/i);
+                    if (priorityMatch) {
+                        priority = priorityMatch[1].toLowerCase();
+                    }
+                } catch (error) {
+                    // Игнорируем ошибки
+                }
+                
+                const priorityEmoji = priority === 'high' ? '🔴' : priority === 'medium' ? '🟡' : '🟢';
+                indexContent += `- ${priorityEmoji} [${ruleName}](${relativePath}) (${priority})\n`;
+            }
+            indexContent += `\n`;
+        }
+
+        indexContent += `
+## Правила по приоритетам
+
+### Высокий приоритет (${rulesByPriority.high.length} правил)
+
+`;
+
+        for (const rulePath of rulesByPriority.high) {
+            const relativePath = path.relative(this.rulesPath, rulePath).replace(/\\/g, '/');
             indexContent += `- [${path.basename(rulePath)}](${relativePath})\n`;
         }
 
-        indexContent += `\n---\n*Обновлено: ${new Date().toISOString()}*\n`;
+        indexContent += `
+### Средний приоритет (${rulesByPriority.medium.length} правил)
+
+`;
+
+        for (const rulePath of rulesByPriority.medium) {
+            const relativePath = path.relative(this.rulesPath, rulePath).replace(/\\/g, '/');
+            indexContent += `- [${path.basename(rulePath)}](${relativePath})\n`;
+        }
+
+        indexContent += `
+### Низкий приоритет (${rulesByPriority.low.length} правил)
+
+`;
+
+        for (const rulePath of rulesByPriority.low) {
+            const relativePath = path.relative(this.rulesPath, rulePath).replace(/\\/g, '/');
+            indexContent += `- [${path.basename(rulePath)}](${relativePath})\n`;
+        }
+
+        indexContent += `
+## Метаданные
+
+- **Дата генерации:** ${new Date().toISOString()}
+- **Улучшено через чат:** ${enhancedViaChat} из ${rules.length} правил
+- **Профиль проекта:** ${profile ? `${profile.type} (${profile.languages.join(', ')})` : 'Не загружен'}
+
+---
+*Автоматически сгенерировано: ${new Date().toISOString()}*
+`;
 
         try {
             fs.writeFileSync(indexPath, indexContent, 'utf-8');
-            console.log('Rules index updated');
+            console.log('Rules index updated with categorization and metadata');
         } catch (error) {
             console.error('Error updating rules index:', error);
         }
+    }
+
+    /**
+     * Получение категории правила из пути
+     */
+    private getRuleCategory(rulePath: string): string {
+        const fileName = path.basename(rulePath).toLowerCase();
+        if (fileName.includes('security')) return 'Безопасность';
+        if (fileName.includes('performance')) return 'Производительность';
+        if (fileName.includes('testing') || fileName.includes('test')) return 'Тестирование';
+        if (fileName.includes('documentation') || fileName.includes('doc')) return 'Документация';
+        if (fileName.includes('cicd') || fileName.includes('ci-cd')) return 'CI/CD';
+        if (fileName.includes('dependencies') || fileName.includes('dependency')) return 'Зависимости';
+        if (fileName.includes('javascript') || fileName.includes('typescript')) return 'JavaScript/TypeScript';
+        if (fileName.includes('php')) return 'PHP';
+        if (fileName.includes('python')) return 'Python';
+        if (fileName.includes('framework')) return 'Фреймворки';
+        if (fileName.includes('architecture')) return 'Архитектура';
+        if (fileName.includes('pattern')) return 'Паттерны';
+        if (fileName.includes('main') || fileName.includes('project-main')) return 'Главные правила';
+        return 'Общие';
     }
 
     /**

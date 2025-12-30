@@ -73,6 +73,14 @@ class ProjectAnalyzer {
         const codePatterns = await this.analyzeCodePatterns(workspacePath, technologies.languages);
         const structure = await this.analyzeStructure(workspacePath);
         const bestPractices = await this.analyzeBestPractices(workspacePath, technologies, architecture);
+        // Комплексный анализ
+        console.log('Project Analyzer: Starting comprehensive analysis...');
+        const security = await this.analyzeSecurity(workspacePath, technologies, dependencies);
+        const performance = await this.analyzePerformance(workspacePath, codeMetrics);
+        const testing = await this.analyzeTesting(workspacePath);
+        const documentation = await this.analyzeDocumentation(workspacePath);
+        const cicd = await this.analyzeCICD(workspacePath);
+        const dependenciesAnalysis = await this.analyzeDependenciesComprehensive(workspacePath, dependencies);
         // Улучшенное определение архитектуры на основе кода
         const enhancedArchitecture = architecture || await this.detectArchitectureFromCode(workspacePath);
         // Улучшенное определение стиля кода на основе реального кода
@@ -102,7 +110,13 @@ class ProjectAnalyzer {
             codePatterns,
             structure,
             bestPractices,
-            agentRecommendations
+            agentRecommendations,
+            security,
+            performance,
+            testing,
+            documentation,
+            cicd,
+            dependenciesAnalysis
         };
         // Сохранение профиля
         await this.saveProfile(profile);
@@ -830,6 +844,497 @@ class ProjectAnalyzer {
         return {
             recommendedAgents,
             agentConfig
+        };
+    }
+    /**
+     * Анализ безопасности
+     */
+    async analyzeSecurity(workspacePath, technologies, dependencies) {
+        const vulnerabilities = [];
+        const dependencyIssues = [];
+        const securityPractices = [];
+        const recommendations = [];
+        // Проверка наличия .env файлов без .env.example
+        if (fs.existsSync(path.join(workspacePath, '.env')) && !fs.existsSync(path.join(workspacePath, '.env.example'))) {
+            vulnerabilities.push('Секреты могут быть закоммичены (.env без .env.example)');
+            recommendations.push('Создайте .env.example с примерами переменных окружения');
+        }
+        // Проверка наличия секретов в коде (базовая проверка)
+        const secretPatterns = [
+            /password\s*=\s*['"][^'"]+['"]/i,
+            /api[_-]?key\s*=\s*['"][^'"]+['"]/i,
+            /secret\s*=\s*['"][^'"]+['"]/i,
+            /token\s*=\s*['"][^'"]+['"]/i
+        ];
+        const checkForSecrets = (dir, depth = 0) => {
+            if (depth > 3)
+                return;
+            try {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    if (entry.isDirectory() && !['node_modules', '.git', 'out', 'dist', 'build', '.vscode', 'vendor'].includes(entry.name)) {
+                        checkForSecrets(path.join(dir, entry.name), depth + 1);
+                    }
+                    else if (entry.isFile() && ['.ts', '.js', '.php', '.py'].includes(path.extname(entry.name))) {
+                        try {
+                            const content = fs.readFileSync(path.join(dir, entry.name), 'utf-8');
+                            for (const pattern of secretPatterns) {
+                                if (pattern.test(content)) {
+                                    vulnerabilities.push(`Возможные секреты в коде: ${path.relative(workspacePath, path.join(dir, entry.name))}`);
+                                    break;
+                                }
+                            }
+                        }
+                        catch (error) {
+                            // Игнорируем ошибки чтения
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        };
+        checkForSecrets(workspacePath);
+        // Проверка безопасности зависимостей
+        if (Object.keys(dependencies).length > 0) {
+            dependencyIssues.push('Рекомендуется проверить зависимости на уязвимости (npm audit, composer audit)');
+            recommendations.push('Регулярно проверяйте зависимости на уязвимости');
+        }
+        // Проверка использования параметризованных запросов для БД
+        if (technologies.database) {
+            securityPractices.push('Использование параметризованных запросов обязательно');
+            recommendations.push('Всегда используйте prepared statements для работы с БД');
+        }
+        // Проверка наличия HTTPS
+        const configFiles = ['docker-compose.yml', 'nginx.conf', '.htaccess'];
+        let hasHttpsConfig = false;
+        for (const configFile of configFiles) {
+            const configPath = path.join(workspacePath, configFile);
+            if (fs.existsSync(configPath)) {
+                try {
+                    const content = fs.readFileSync(configPath, 'utf-8');
+                    if (content.includes('ssl') || content.includes('https') || content.includes('TLS')) {
+                        hasHttpsConfig = true;
+                        break;
+                    }
+                }
+                catch (error) {
+                    // Игнорируем ошибки
+                }
+            }
+        }
+        if (!hasHttpsConfig && technologies.frameworks.length > 0) {
+            recommendations.push('Настройте HTTPS для продакшн окружения');
+        }
+        return {
+            vulnerabilities,
+            dependencyIssues,
+            securityPractices,
+            recommendations
+        };
+    }
+    /**
+     * Анализ производительности
+     */
+    async analyzePerformance(workspacePath, codeMetrics) {
+        const bottlenecks = [];
+        const optimizationOpportunities = [];
+        const cachingStrategies = [];
+        const recommendations = [];
+        // Анализ размера файлов
+        if (codeMetrics && codeMetrics.averageFileSize > 500) {
+            bottlenecks.push(`Большие файлы (средний размер: ${codeMetrics.averageFileSize} строк)`);
+            recommendations.push('Разбейте большие файлы на меньшие модули');
+        }
+        // Поиск потенциальных узких мест
+        const checkForPerformanceIssues = (dir, depth = 0) => {
+            if (depth > 3)
+                return;
+            try {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    if (entry.isDirectory() && !['node_modules', '.git', 'out', 'dist', 'build', '.vscode', 'vendor'].includes(entry.name)) {
+                        checkForPerformanceIssues(path.join(dir, entry.name), depth + 1);
+                    }
+                    else if (entry.isFile() && ['.ts', '.js', '.php'].includes(path.extname(entry.name))) {
+                        try {
+                            const content = fs.readFileSync(path.join(dir, entry.name), 'utf-8');
+                            // Проверка на N+1 запросы
+                            if (content.includes('foreach') && content.includes('SELECT') || content.includes('query')) {
+                                optimizationOpportunities.push('Возможные N+1 запросы в циклах');
+                            }
+                            // Проверка на отсутствие кэширования
+                            if (content.includes('SELECT') && !content.includes('cache') && !content.includes('Cache')) {
+                                cachingStrategies.push('Рассмотрите кэширование запросов к БД');
+                            }
+                        }
+                        catch (error) {
+                            // Игнорируем ошибки чтения
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        };
+        checkForPerformanceIssues(workspacePath);
+        // Рекомендации по производительности
+        if (codeMetrics && codeMetrics.complexity === 'high') {
+            recommendations.push('Высокая сложность проекта - рассмотрите рефакторинг');
+        }
+        if (optimizationOpportunities.length === 0) {
+            recommendations.push('Используйте индексы БД для оптимизации запросов');
+        }
+        return {
+            bottlenecks,
+            optimizationOpportunities: [...new Set(optimizationOpportunities)],
+            cachingStrategies: [...new Set(cachingStrategies)],
+            recommendations
+        };
+    }
+    /**
+     * Анализ тестирования
+     */
+    async analyzeTesting(workspacePath) {
+        const testFrameworks = [];
+        const testTypes = [];
+        const recommendations = [];
+        // Поиск тестовых директорий
+        const testDirs = ['tests', 'test', '__tests__', 'spec', 'tests/unit', 'tests/integration', 'tests/e2e'];
+        const foundTestDirs = [];
+        for (const testDir of testDirs) {
+            const testPath = path.join(workspacePath, testDir);
+            if (fs.existsSync(testPath)) {
+                foundTestDirs.push(testDir);
+                testTypes.push(testDir.includes('unit') ? 'unit' : testDir.includes('integration') ? 'integration' : testDir.includes('e2e') ? 'e2e' : 'general');
+            }
+        }
+        // Определение фреймворков тестирования
+        const packageJsonPath = path.join(workspacePath, 'package.json');
+        if (fs.existsSync(packageJsonPath)) {
+            try {
+                const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+                const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
+                if (deps.jest || deps['@jest/globals'])
+                    testFrameworks.push('Jest');
+                if (deps.mocha)
+                    testFrameworks.push('Mocha');
+                if (deps.jasmine)
+                    testFrameworks.push('Jasmine');
+                if (deps.cypress)
+                    testFrameworks.push('Cypress');
+                if (deps.playwright)
+                    testFrameworks.push('Playwright');
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        }
+        const composerJsonPath = path.join(workspacePath, 'composer.json');
+        if (fs.existsSync(composerJsonPath)) {
+            try {
+                const composerJson = JSON.parse(fs.readFileSync(composerJsonPath, 'utf-8'));
+                if (composerJson.require || composerJson['require-dev']) {
+                    const deps = { ...composerJson.require, ...composerJson['require-dev'] };
+                    if (deps['phpunit/phpunit'])
+                        testFrameworks.push('PHPUnit');
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        }
+        // Рекомендации
+        if (foundTestDirs.length === 0) {
+            recommendations.push('Добавьте тесты для улучшения качества кода');
+        }
+        else {
+            if (!testTypes.includes('unit')) {
+                recommendations.push('Добавьте unit-тесты для тестирования отдельных компонентов');
+            }
+            if (!testTypes.includes('integration')) {
+                recommendations.push('Добавьте integration-тесты для тестирования взаимодействия компонентов');
+            }
+        }
+        // Оценка покрытия (базовая)
+        let testCoverage;
+        if (foundTestDirs.length > 0) {
+            // Подсчет тестовых файлов
+            let testFiles = 0;
+            let sourceFiles = 0;
+            const countFiles = (dir, isTestDir, depth = 0) => {
+                if (depth > 5)
+                    return;
+                try {
+                    const entries = fs.readdirSync(dir, { withFileTypes: true });
+                    for (const entry of entries) {
+                        if (entry.isDirectory() && !['node_modules', '.git', 'out', 'dist', 'build', '.vscode', 'vendor'].includes(entry.name)) {
+                            countFiles(path.join(dir, entry.name), isTestDir || foundTestDirs.some(td => dir.includes(td)), depth + 1);
+                        }
+                        else if (entry.isFile()) {
+                            const ext = path.extname(entry.name);
+                            if (['.ts', '.js', '.php', '.py'].includes(ext)) {
+                                if (isTestDir || entry.name.includes('.test.') || entry.name.includes('.spec.')) {
+                                    testFiles++;
+                                }
+                                else {
+                                    sourceFiles++;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (error) {
+                    // Игнорируем ошибки
+                }
+            };
+            countFiles(workspacePath, false);
+            if (sourceFiles > 0) {
+                testCoverage = Math.min(100, Math.round((testFiles / sourceFiles) * 100));
+            }
+        }
+        return {
+            testFrameworks,
+            testCoverage,
+            testTypes: [...new Set(testTypes)],
+            recommendations
+        };
+    }
+    /**
+     * Анализ документации
+     */
+    async analyzeDocumentation(workspacePath) {
+        const recommendations = [];
+        let hasReadme = false;
+        let hasApiDocs = false;
+        let commentCoverage;
+        // Проверка README
+        const readmeFiles = ['README.md', 'README.txt', 'README.rst', 'README'];
+        for (const readme of readmeFiles) {
+            if (fs.existsSync(path.join(workspacePath, readme))) {
+                hasReadme = true;
+                break;
+            }
+        }
+        if (!hasReadme) {
+            recommendations.push('Добавьте README.md с описанием проекта');
+        }
+        // Проверка API документации
+        const apiDocDirs = ['docs', 'documentation', 'api-docs', 'swagger'];
+        for (const docDir of apiDocDirs) {
+            const docPath = path.join(workspacePath, docDir);
+            if (fs.existsSync(docPath)) {
+                hasApiDocs = true;
+                break;
+            }
+        }
+        // Проверка наличия swagger/openapi файлов
+        const apiDocFiles = ['swagger.json', 'swagger.yaml', 'openapi.json', 'openapi.yaml', 'api.json'];
+        for (const apiDocFile of apiDocFiles) {
+            if (fs.existsSync(path.join(workspacePath, apiDocFile))) {
+                hasApiDocs = true;
+                break;
+            }
+        }
+        if (!hasApiDocs) {
+            recommendations.push('Добавьте API документацию (Swagger/OpenAPI)');
+        }
+        // Анализ покрытия комментариями (базовая оценка)
+        let filesWithComments = 0;
+        let totalFiles = 0;
+        const analyzeComments = (dir, depth = 0) => {
+            if (depth > 3)
+                return;
+            try {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    if (entry.isDirectory() && !['node_modules', '.git', 'out', 'dist', 'build', '.vscode', 'vendor', 'tests', 'test'].includes(entry.name)) {
+                        analyzeComments(path.join(dir, entry.name), depth + 1);
+                    }
+                    else if (entry.isFile()) {
+                        const ext = path.extname(entry.name);
+                        if (['.ts', '.js', '.php', '.py'].includes(ext)) {
+                            totalFiles++;
+                            try {
+                                const content = fs.readFileSync(path.join(dir, entry.name), 'utf-8');
+                                // Проверка на наличие комментариев
+                                if (content.includes('//') || content.includes('/*') || content.includes('#') || content.includes('/**')) {
+                                    filesWithComments++;
+                                }
+                            }
+                            catch (error) {
+                                // Игнорируем ошибки
+                            }
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        };
+        analyzeComments(workspacePath);
+        if (totalFiles > 0) {
+            commentCoverage = Math.round((filesWithComments / totalFiles) * 100);
+            if (commentCoverage < 50) {
+                recommendations.push('Увеличьте покрытие кода комментариями');
+            }
+        }
+        return {
+            hasReadme,
+            hasApiDocs,
+            commentCoverage,
+            recommendations
+        };
+    }
+    /**
+     * Анализ CI/CD
+     */
+    async analyzeCICD(workspacePath) {
+        const pipelines = [];
+        const configFiles = [];
+        const stages = [];
+        const recommendations = [];
+        // Проверка GitHub Actions
+        const githubActionsPath = path.join(workspacePath, '.github', 'workflows');
+        if (fs.existsSync(githubActionsPath)) {
+            pipelines.push('GitHub Actions');
+            try {
+                const workflows = fs.readdirSync(githubActionsPath);
+                configFiles.push(...workflows.map(w => `.github/workflows/${w}`));
+                // Анализ стадий в workflow файлах
+                for (const workflow of workflows) {
+                    try {
+                        const content = fs.readFileSync(path.join(githubActionsPath, workflow), 'utf-8');
+                        if (content.includes('test'))
+                            stages.push('test');
+                        if (content.includes('build'))
+                            stages.push('build');
+                        if (content.includes('deploy'))
+                            stages.push('deploy');
+                        if (content.includes('lint'))
+                            stages.push('lint');
+                    }
+                    catch (error) {
+                        // Игнорируем ошибки
+                    }
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        }
+        // Проверка GitLab CI
+        const gitlabCiPath = path.join(workspacePath, '.gitlab-ci.yml');
+        if (fs.existsSync(gitlabCiPath)) {
+            pipelines.push('GitLab CI');
+            configFiles.push('.gitlab-ci.yml');
+            try {
+                const content = fs.readFileSync(gitlabCiPath, 'utf-8');
+                if (content.includes('test'))
+                    stages.push('test');
+                if (content.includes('build'))
+                    stages.push('build');
+                if (content.includes('deploy'))
+                    stages.push('deploy');
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        }
+        // Проверка Jenkins
+        const jenkinsPath = path.join(workspacePath, 'Jenkinsfile');
+        if (fs.existsSync(jenkinsPath)) {
+            pipelines.push('Jenkins');
+            configFiles.push('Jenkinsfile');
+            stages.push('build', 'test', 'deploy');
+        }
+        // Проверка CircleCI
+        const circleCiPath = path.join(workspacePath, '.circleci', 'config.yml');
+        if (fs.existsSync(circleCiPath)) {
+            pipelines.push('CircleCI');
+            configFiles.push('.circleci/config.yml');
+        }
+        // Рекомендации
+        if (pipelines.length === 0) {
+            recommendations.push('Настройте CI/CD пайплайн для автоматизации тестирования и деплоя');
+        }
+        else {
+            if (!stages.includes('test')) {
+                recommendations.push('Добавьте стадию тестирования в CI/CD пайплайн');
+            }
+            if (!stages.includes('lint')) {
+                recommendations.push('Добавьте стадию линтинга в CI/CD пайплайн');
+            }
+        }
+        return {
+            pipelines,
+            configFiles,
+            stages: [...new Set(stages)],
+            recommendations
+        };
+    }
+    /**
+     * Комплексный анализ зависимостей
+     */
+    async analyzeDependenciesComprehensive(workspacePath, dependencies) {
+        const outdated = [];
+        const conflicts = [];
+        const securityIssues = [];
+        const recommendations = [];
+        // Анализ package.json
+        const packageJsonPath = path.join(workspacePath, 'package.json');
+        if (fs.existsSync(packageJsonPath)) {
+            try {
+                const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+                const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
+                // Проверка на использование диапазонов версий (могут быть устаревшими)
+                for (const [dep, version] of Object.entries(deps)) {
+                    if (typeof version === 'string') {
+                        if (version.startsWith('^') || version.startsWith('~')) {
+                            // Это нормально, но можно рекомендовать зафиксировать версии
+                        }
+                        else if (version.includes('*') || version === 'latest') {
+                            outdated.push(`${dep}: использует latest или *`);
+                            recommendations.push(`Зафиксируйте версию для ${dep}`);
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        }
+        // Анализ composer.json
+        const composerJsonPath = path.join(workspacePath, 'composer.json');
+        if (fs.existsSync(composerJsonPath)) {
+            try {
+                const composerJson = JSON.parse(fs.readFileSync(composerJsonPath, 'utf-8'));
+                const deps = { ...composerJson.require, ...composerJson['require-dev'] };
+                for (const [dep, version] of Object.entries(deps)) {
+                    if (typeof version === 'string' && (version === '*' || version === 'dev-master')) {
+                        outdated.push(`${dep}: использует dev-master или *`);
+                        recommendations.push(`Зафиксируйте версию для ${dep}`);
+                    }
+                }
+            }
+            catch (error) {
+                // Игнорируем ошибки
+            }
+        }
+        // Рекомендации по безопасности зависимостей
+        if (Object.keys(dependencies).length > 0) {
+            securityIssues.push('Рекомендуется регулярно проверять зависимости на уязвимости');
+            recommendations.push('Используйте npm audit, composer audit или Snyk для проверки безопасности');
+            recommendations.push('Обновляйте зависимости регулярно, но тестируйте после обновления');
+        }
+        return {
+            outdated,
+            conflicts,
+            securityIssues,
+            recommendations
         };
     }
     /**
