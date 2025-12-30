@@ -142,8 +142,22 @@ export class SettingsManager {
             agentsConfig[agentId].modelConfig = config;
         }
 
+        console.log(`SettingsManager: Saving agent ${agentId} config:`, JSON.stringify({
+            model: providerType,
+            modelConfig: config
+        }));
+
         await this.config.update('agents', agentsConfig, vscode.ConfigurationTarget.Global);
         this.config = vscode.workspace.getConfiguration('cursor-autonomous');
+        
+        // Проверяем, что настройки сохранились
+        const savedConfig = this.config.get<{ 
+            [key: string]: { 
+                model?: string; 
+                modelConfig?: ProviderConfig 
+            } 
+        }>('agents', {});
+        console.log(`SettingsManager: Saved agent ${agentId} config:`, JSON.stringify(savedConfig[agentId]));
     }
 
     /**

@@ -223,11 +223,12 @@ export class SettingsPanel {
             // Загружаем настройки агентов
             const agentIds = ['backend', 'frontend', 'architect', 'analyst', 'devops', 'qa', 'orchestrator', 'virtual-user'];
             for (const agentId of agentIds) {
-                const model = await this._settingsManager.getAgentModel(agentId);
                 const modelConfig = this._settingsManager.getAgentModelConfig(agentId);
+                // Используем model из modelConfig напрямую, так как для локальных моделей (Ollama) 
+                // getAgentModel может не работать
                 settings.agents[agentId] = {
                     providerType: modelConfig.model as ModelProviderType | undefined,
-                    modelId: model?.id,
+                    modelId: modelConfig.modelConfig?.model, // Используем model напрямую из modelConfig
                     temperature: modelConfig.modelConfig?.temperature,
                     maxTokens: modelConfig.modelConfig?.maxTokens
                 };
@@ -290,11 +291,19 @@ export class SettingsPanel {
             // Сохраняем настройки агентов
             for (const [agentId, agentConfig] of Object.entries(settings.agents)) {
                 if (agentConfig.providerType) {
-                    await this._settingsManager.setAgentModelProvider(agentId, agentConfig.providerType, {
-                        model: agentConfig.modelId, // Сохраняем выбранную модель (например, 'llama2' для Ollama)
+                    const modelConfig: ProviderConfig = {
                         temperature: agentConfig.temperature,
                         maxTokens: agentConfig.maxTokens
-                    });
+                    };
+                    
+                    // Сохраняем модель только если она указана (не пустая строка)
+                    if (agentConfig.modelId && agentConfig.modelId.trim() !== '') {
+                        modelConfig.model = agentConfig.modelId;
+                    }
+                    
+                    console.log(`SettingsPanel: Saving agent ${agentId} with provider ${agentConfig.providerType}, model: ${modelConfig.model || 'auto'}`);
+                    
+                    await this._settingsManager.setAgentModelProvider(agentId, agentConfig.providerType, modelConfig);
                 }
             }
 
@@ -1123,12 +1132,28 @@ export class SettingsPanel {
             agentsList.innerHTML = html;
 
             // Загружаем модели для агентов с выбранными провайдерами
-            for (const agentId of Object.keys(agentNames)) {
-                const providerEl = document.getElementById(\`agent-\${agentId}-provider\`);
-                if (providerEl && providerEl.value) {
-                    onAgentProviderChange(agentId, providerEl.value);
+            // Используем setTimeout, чтобы дать время DOM обновиться
+            setTimeout(() => {
+                for (const agentId of Object.keys(agentNames)) {
+                    const providerEl = document.getElementById(\`agent-\${agentId}-provider\`);
+                    if (providerEl && providerEl.value) {
+                        // Загружаем модели для провайдера
+                        getModelsForProvider(providerEl.value);
+                        
+                        // Устанавливаем сохраненную модель после загрузки
+                        const agentData = agents[agentId] || {};
+                        if (agentData.modelId) {
+                            // Ждем загрузки моделей и устанавливаем сохраненную модель
+                            setTimeout(() => {
+                                const modelEl = document.getElementById(\`agent-\${agentId}-model\`);
+                                if (modelEl) {
+                                    modelEl.value = agentData.modelId;
+                                }
+                            }, 500);
+                        }
+                    }
                 }
-            }
+            }, 100);
         }
 
         function populateStatistics() {
@@ -1254,7 +1279,18 @@ export class SettingsPanel {
                         
                         // Восстанавливаем выбранную модель если есть
                         if (currentSettings && currentSettings.agents[agentId] && currentSettings.agents[agentId].modelId) {
-                            modelEl.value = currentSettings.agents[agentId].modelId;
+                            // Устанавливаем значение модели
+                            const savedModelId = currentSettings.agents[agentId].modelId;
+                            modelEl.value = savedModelId;
+                            
+                            // Если модель не найдена в списке, добавляем её
+                            if (!Array.from(modelEl.options).some(opt => opt.value === savedModelId)) {
+                                const option = document.createElement('option');
+                                option.value = savedModelId;
+                                option.textContent = \`\${savedModelId} (сохраненная)\`;
+                                modelEl.appendChild(option);
+                                modelEl.value = savedModelId;
+                            }
                         }
                     }
                 }
