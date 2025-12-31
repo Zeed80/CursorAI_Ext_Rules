@@ -6,32 +6,43 @@
 
 </div>
 
-> ## ⚠️ **IMPORTANT RISK WARNING** ⚠️
+> ## 🌟 **NEW IN VERSION 0.2.0** 🌟
+> 
+> ### **True Autonomous Operation with Local Models**
+> 
+> The extension now supports **fully autonomous operation** using local models (Ollama, LLM Studio) **without requiring CursorAI's Background Agents API**!
+> 
+> ### **Key Features:**
+> 
+> - ✅ **$0 cost operation** - use only local models (Ollama, LLM Studio)
+> - ✅ **Hybrid mode** - combine local models with cloud APIs (OpenAI, Google, Anthropic)
+> - ✅ **Optional CursorAI integration** - use CursorAI only for specific tasks (consolidation, file editing)
+> - ✅ **Swarm orchestration** - autonomous agents work continuously in the background
+> - ✅ **Prioritized task queue** - immediate, high, medium, low priorities
+> - ✅ **Real-time monitoring** - file watcher triggers tasks automatically
+> - ✅ **Health monitoring** - auto-restart agents on failures
+> - ✅ **Cost optimization** - prompt caching, request batching, cost monitoring
+> - ✅ **UI improvements** - context menu for task creation, dashboard panel
+
+> ## ⚠️ **IMPORTANT INFORMATION** ⚠️
 > 
 > ### **Research Project**
 > 
-> This project was created for **research purposes** to explore CursorAI capabilities and demonstrate the potential of AI-assisted development. The project was created **100% automatically** in CursorAI.
+> This project was created for **research purposes** to explore autonomous AI development capabilities. The project was created **100% automatically** in CursorAI.
 > 
-> ### **Usage Risks**
+> ### **No CursorAI Background Agents Required**
 > 
-> ⚠️ **WARNING: Using this extension carries a risk of significantly exceeding CursorAI limits and unexpected financial expenses.**
+> Unlike version 0.1.0, the extension **no longer requires** CursorAI's Background Agents API or Usage-based pricing! You can:
 > 
-> The extension uses CursorAI's **Background Agents API**, which operates on **Usage-based pricing** (pay-per-token). When actively using the extension, especially in autonomous mode with a virtual user, the following may occur:
+> - ✅ **Use only local models** (Ollama, LLM Studio) - $0 cost
+> - ✅ **Use cloud APIs** (OpenAI, Google, Anthropic) - pay only for what you use
+> - ✅ **Optional CursorAI integration** - if you have a Pro plan
 > 
-> - **Exceeding set spending limits** (Spend Limit)
-> - **Accumulating significant expenses** for API usage
-> - **Automatic charges** to your linked payment card
-> - **Unexpected expenses** when multiple agents work simultaneously
-> 
-> **Recommendations:**
-> 
-> - Set a **strict Spend Limit** in Cursor settings (recommended to start with a minimum value)
-> - Regularly **monitor expenses** in Cursor Dashboard
-> - **Disable the virtual user** and autonomous mode when not needed
-> - Use the extension **consciously** and control its operation
-> - **Do not leave the extension in autonomous mode** unattended for extended periods
-> 
-> Use the extension **at your own risk**. The project authors are not responsible for financial losses associated with using the extension.
+> **Minimal Configuration:**
+> - Install Ollama (free)
+> - Download models (codellama, mistral, etc.)
+> - Enable autonomous mode
+> - Done! System works continuously
 
 ---
 
@@ -56,18 +67,31 @@
 
 ## 📋 Description
 
-**CursorAI Autonomous Extension** — an extension for CursorAI that transforms your IDE into a fully autonomous development system. The extension automatically adapts rules to your project, coordinates specialized AI agents, and continuously self-improves, ensuring high code quality even when using weak language models.
+**CursorAI Autonomous Extension** — an extension that transforms your IDE into a fully autonomous development system. The extension works **without requiring CursorAI's Background Agents API**, using local models (Ollama, LLM Studio) or cloud APIs (OpenAI, Google, Anthropic).
 
 ### 🎯 Core Idea
 
-Even the weakest coding model can write better code than top models if it:
-- ✅ Uses deep code analysis before writing
-- ✅ Checks syntax via MCP Context7
-- ✅ Verifies facts via web search
-- ✅ Follows adaptive project rules
-- ✅ Coordinates specialized agents
+Even weak coding models can write better code than top models if they:
+- ✅ Use deep code analysis before writing
+- ✅ Check syntax via MCP Context7
+- ✅ Verify facts via web search
+- ✅ Follow adaptive project rules
+- ✅ Coordinate specialized agents
+- ✅ **Work autonomously in the background**
 
 ## ✨ Features
+
+### 🤖 Autonomous Mode (NEW!)
+
+**True autonomous operation:**
+
+- **SwarmOrchestrator** — coordinates multiple agent workers
+- **AgentWorker** — autonomous agents running in infinite loops
+- **TaskQueue** — prioritized task queue (immediate, high, medium, low)
+- **MessageBus** — peer-to-peer communication between agents
+- **FileWatcher** — real-time file monitoring triggers automatic tasks
+- **HealthMonitor** — auto-restart agents on failures
+- **No supervision required** — agents work continuously when IDE is open
 
 ### 🎭 Agent Orchestrator
 
@@ -85,9 +109,55 @@ Automatically coordinates specialized AI agents:
 - Coordinates work between agents
 - Checks quality via MCP Context7 and web search
 - Manages tasks and their priorities
-- **Brainstorming with task variations** — creates different formulations of one task for different agents
-- **Deviation control** — checks solution alignment with the original task
-- **Ensemble refinement** — multiple models propose solution improvements
+- **Brainstorming with task variations** — creates different formulations
+- **Deviation control** — checks solution alignment
+- **Ensemble refinement** — multiple models propose improvements
+
+### 💰 Cost Optimization (NEW!)
+
+**Intelligent model selection:**
+
+- **HybridModelProvider** — automatically chooses the best model:
+  - Local models (Ollama, LLM Studio) for simple tasks - $0
+  - Cheap cloud APIs (OpenAI GPT-3.5) for medium tasks - ~$0.01/task
+  - Expensive models (GPT-4, Claude) for complex tasks only
+- **SmartModelSelector** — assesses task complexity
+- **PromptCache** — caches prompts to reduce API calls (LRU, configurable TTL)
+- **RequestBatcher** — batches multiple small requests
+- **CostMonitor** — tracks expenses per model and agent
+- **Monthly budget control** — stops when budget is reached
+
+**Cost scenarios:**
+- **$0/month** — use only local models (Ollama)
+- **$5-30/month** — hybrid (local + cheap cloud APIs)
+- **Optional CursorAI** — use only for specific tasks (consolidation, file editing)
+
+### 🔧 Model Providers (NEW!)
+
+**Support for multiple LLM providers:**
+
+- **Ollama** — local models (codellama, mistral, etc.)
+- **LLM Studio** — local models via API
+- **OpenAI** — GPT-3.5, GPT-4
+- **Anthropic** — Claude (all versions)
+- **Google** — Gemini Pro
+- **CursorAI** — optional, only for specific tasks
+
+**Configuration per agent:**
+- Each agent can use a different provider
+- Automatic fallback if primary provider fails
+- Provider priorities in hybrid mode
+
+### 🎨 CursorAI Integration (Optional, NEW!)
+
+**Strategic use of CursorAI:**
+
+- **Chat API** — solution consolidation from multiple agents
+- **Composer API** — safe file editing with preview
+- **Configurable usage** — choose when to use CursorAI:
+  - `consolidation` — for merging agent solutions
+  - `file-editing` — for applying file changes
+  - `never` — don't use CursorAI at all
 
 ### 👤 Virtual User
 
@@ -127,22 +197,25 @@ Automatically adapts rules to the project:
 - ✅ Best practices search
 - ✅ Security checking
 
-### 🧠 Brainstorming System (v0.2.0)
+### 🧠 Advanced MCP Client (NEW!)
 
-**New features in version 0.2.0:**
+**Expanded capabilities:**
 
-- **Task variation generator** — creates different formulations of one task for different agents, preserving the essence
-- **Deviation controller** — checks solution alignment with the original task in real-time
-- **Ensemble refinement** — multiple models propose improvements, then consolidated into a final solution
-- **Smart consolidation** — prioritization of relevant solutions when merging
-- **Alignment monitoring** — automatic checking of solutions for task deviation
+- **File operations** — read, write, move, delete, search
+- **Git operations** — status, commit, diff, branch, merge, stash, rebase
+- **Code search** — semantic search, grep, find references
+- **Context management** — analyze dependencies, get file summaries
+- **Test runner integration** — auto-detect framework, run tests
+- **Linter integration** — read diagnostics, suggest fixes
 
-### 🎨 Modern UI
+### 🎨 Modern UI (Improved!)
 
 - **Agent status panel** — TreeView with real-time updates
-- **WebView panel** — detailed system information
+- **Settings panel** — WebView with tabbed interface (NEW: Autonomous Mode tab)
+- **Dashboard panel** (NEW!) — cost statistics, agent activity, system health
 - **Quick menu** — quick access to all tools
-- **Status bar** — system state indicators
+- **Status bar** — system state indicators (shows autonomous mode status)
+- **Context menu** (NEW!) — create tasks directly from Explorer
 - **Analytics** — task execution statistics
 
 ## 🚀 Installation
@@ -151,7 +224,7 @@ Automatically adapts rules to the project:
 
 1. Build the extension:
    ```bash
-   npm run build
+   npm run package
    ```
 
 2. Open CursorAI
@@ -206,7 +279,7 @@ The autonomous installer automatically:
 
 3. Build the extension:
    ```bash
-   npm run build
+   npm run package
    ```
 
 4. Install the built .vsix file in CursorAI:
@@ -218,359 +291,249 @@ The autonomous installer automatically:
 
 ## ⚡ Quick Start
 
-### 0. ⚠️ Critical: Setup and Security
+### 0. Prerequisites
 
-**Before using the extension, you MUST:**
+**Option A: Local Models Only ($0 cost)**
 
-1. ✅ Set a **strict Spend Limit** in Cursor settings (recommended to start with $5-10)
-2. ✅ Enable **Usage-based pricing** in Cursor settings
-3. ✅ Link a payment card (if required)
-4. ✅ **Configure notifications** about spending in Cursor Dashboard
-5. ✅ Regularly **check expenses** when using the extension
+1. Install [Ollama](https://ollama.ai/)
+2. Download models:
+   ```bash
+   ollama pull codellama
+   ollama pull mistral
+   ollama pull llama2
+   ```
+3. Configure extension settings (see below)
 
-**⚠️ Security usage:**
+**Option B: Hybrid Mode ($5-30/month)**
 
-- **DO NOT leave** the extension in autonomous mode unattended
-- **Disable the virtual user** when not needed
-- **Monitor expenses** in real-time via Cursor Dashboard
-- **Set reasonable limits** for expenses
+1. Install Ollama (optional)
+2. Get API keys:
+   - OpenAI: https://platform.openai.com/api-keys
+   - Anthropic: https://console.anthropic.com/
+   - Google: https://makersuite.google.com/app/apikey
+3. Configure extension settings (see below)
 
-Without this, Background Agents will not work. See more in the [Usage-based Pricing](#-important-information-usage-based-pricing) section.
+**Option C: With CursorAI Integration (Optional)**
+
+1. Have a CursorAI Pro plan
+2. Complete Option A or B
+3. Enable CursorAI integration in settings
 
 ### 1. Extension Activation
 
-After installation, the extension activates automatically when opening a project. The orchestrator starts automatically a few seconds after activation.
+After installation, the extension activates automatically when opening a project.
 
-### 2. Extension Interface
+### 2. Configure Settings
 
-The extension provides several ways to interact:
+**Method 1: Through Settings Panel (Recommended)**
 
-#### Sidebar "Agents" (TreeView)
+1. Press `Ctrl+Shift+A` (Quick Menu)
+2. Select "⚙ Settings"
+3. Configure:
+   - **Agents tab** — select providers and models for each agent
+   - **Autonomous Mode tab** (NEW!) — configure autonomous operation:
+     - Enable autonomous mode
+     - Set up hybrid mode (preferLocal, monthlyBudget)
+     - Choose when to use CursorAI (useCursorAIFor)
+     - Configure CursorAI integration (useChat, useComposer)
 
-**Location**: Left sidebar → 🤖 CursorAI icon → "Agents"
+**Method 2: Through settings.json**
 
-**Shows:**
-- All system agents with their statuses
-- Current tasks for each agent (expand on click)
-- Statistics: tasks in progress and completed
-- Status indicators: Working, Idle, Error, Disabled
+```json
+{
+  // Autonomous Mode Settings (NEW!)
+  "cursor-autonomous.autonomousMode": true,
+  
+  // Hybrid Model Provider (NEW!)
+  "cursor-autonomous.hybridMode": {
+    "enabled": true,
+    "preferLocal": true,
+    "monthlyBudget": 20
+  },
+  
+  // CursorAI Integration (NEW!)
+  "cursor-autonomous.useCursorAIFor": ["consolidation", "file-editing"],
+  "cursor-autonomous.cursorIntegration": {
+    "useChat": true,
+    "useComposer": true,
+    "autoApplyComposer": false
+  },
+  
+  // Agent Configuration
+  "cursor-autonomous.agents": {
+    "backend": {
+      "enabled": true,
+      "provider": "ollama",
+      "model": "codellama",
+      "temperature": 0.7
+    },
+    "frontend": {
+      "enabled": true,
+      "provider": "ollama",
+      "model": "mistral",
+      "temperature": 0.7
+    }
+    // ... other agents
+  },
+  
+  // General Settings
+  "cursor-autonomous.enableVirtualUser": false,
+  "cursor-autonomous.autoImprove": true,
+  "cursor-autonomous.enableOrchestrator": true
+}
+```
 
-**Actions:**
-- **Click on agent** → expand list of its tasks
-- **Click on task** → view task details
-- **Right-click on agent** → context menu:
-  - "Show agent details"
-  - "Select model for agent"
-- **Right-click on task** → "Send to chat"
+### 3. Enable Autonomous Mode
 
-**Auto-update**: every 3 seconds
+**Method 1: Through Quick Menu**
+1. Press `Ctrl+Shift+A`
+2. Select "🤖 Enable Autonomous Mode"
 
-#### Status Bar (bottom right)
+**Method 2: Through Command Palette**
+- `Ctrl+Shift+P` → "CursorAI Autonomous: Enable Autonomous Mode"
 
-**Buttons in status bar:**
-
-1. **🤖 CursorAI** — Quick menu (Ctrl+Shift+A)
-   - Status indicators:
-     - `🤖 CursorAI ✓` (green background) — Autonomous mode active
-     - `🤖 CursorAI` — Orchestrator running
-     - `🤖 CursorAI ⊘` — Orchestrator stopped
-
-2. **👤 Virtual User** — Toggle virtual user (Ctrl+Shift+V)
-
-3. **🔍 Analyze** — Quick project analysis (Ctrl+Shift+P)
-
-4. **📊 Status** — Agent status panel (Ctrl+Shift+S)
-
-#### Status Panel (WebView)
-
-**Opening:**
-- Command: `Cursor Autonomous: Show Status Panel`
-- Hotkey: `Ctrl+Shift+S` (Mac: `Cmd+Shift+S`)
-- Status bar button: `📊 Status`
-
-**Features:**
-- Overall system statistics (active agents, tasks in progress, completed)
-- Cards for all agents with detailed information:
-  - Status and current task
-  - Execution statistics
-  - Agent thoughts (if available)
-  - Model selection for agent (dropdown)
-  - "Send to chat" button for tasks
-- Auto-update every 5 seconds
-- Manual refresh button
-- Click on agent card → view details
-
-#### Quick Menu (QuickPick)
-
-**Opening:**
-- Hotkey: `Ctrl+Shift+A` (Mac: `Cmd+Shift+A`)
+**Method 3: Through Status Bar**
 - Click on `🤖 CursorAI` button in status bar
 
-**Available actions:**
-- ▶ Start orchestrator
-- ⏹ Stop orchestrator
-- 👤 Enable virtual user
-- 👤 Disable virtual user
-- 🔍 Analyze project
-- ➕ Create task
-- ℹ System status
-- 📊 Status panel
-- 📈 Task analytics
-- ⚙ Settings
+**What happens:**
+- SwarmOrchestrator starts
+- Agent workers initialize
+- FileWatcher starts monitoring
+- HealthMonitor starts tracking
+- Status bar shows "Autonomous Mode Active" with green background
 
-#### Analytics Panel
+### 4. Create Tasks
 
-**Opening:**
-- Command: `Cursor Autonomous: Show Task Analytics`
-- Hotkey: `Ctrl+Shift+A` → "Task Analytics"
+**Method 1: Context Menu (NEW!)**
+1. Right-click on file/folder in Explorer
+2. Select "CursorAI Autonomous" submenu:
+   - Create Task
+   - Refactor (Extract Function/Class/Method/Component/Module)
+   - Check Quality
+   - Add Tests
+   - Optimize Code
 
-**Features:**
-- Statistics by task types
-- Statistics by agents
-- Performance metrics
-- Improvement recommendations
-- Report export
-
-### 3. Hotkeys
-
-| Key | Action |
-|-----|--------|
-| `Ctrl+Shift+A` (Mac: `Cmd+Shift+A`) | Quick menu |
-| `Ctrl+Shift+V` (Mac: `Cmd+Shift+V`) | Toggle virtual user |
-| `Ctrl+Shift+S` (Mac: `Cmd+Shift+S`) | Agent status panel |
-| `Ctrl+Shift+P` (Mac: `Cmd+Shift+P`) | Analyze project |
-
-### 4. Working with Agents
-
-#### Viewing Agent Status
-
-**Method 1: Sidebar**
-1. Open CursorAI sidebar (🤖 icon on the left)
-2. Select "Agents"
-3. Expand an agent to view its tasks
-
-**Method 2: Status Panel**
-1. Press `Ctrl+Shift+S` or click the `📊 Status` button in the status bar
-2. View cards for all agents
-3. Click on an agent card to view details
-
-#### Selecting Model for Agent
-
-**Method 1: Through Status Panel**
-1. Open status panel (`Ctrl+Shift+S`)
-2. Find the needed agent
-3. Select model from dropdown list
-
-**Method 2: Through Context Menu**
-1. Right-click on agent in sidebar
-2. Select "Select model for agent"
-3. Select model from list
-
-**Method 3: Through Command**
-1. Command: `Cursor Autonomous: Select Model for Agent`
-2. Select agent
-3. Select model
-
-#### Viewing Agent Details
-
-**Method 1: Through Status Panel**
-- Click on agent card in status panel
-
-**Method 2: Through Context Menu**
-- Right-click on agent → "Show agent details"
-
-**Method 3: Through Command**
-- Command: `Cursor Autonomous: Show Agent Details`
-
-**Information in details:**
-- Agent name and status
-- Number of tasks in progress and completed
-- Current task (if any)
-- Selected model
-- List of all agent tasks
-
-### 5. Working with Tasks
-
-#### Creating Task
-
-**Method 1: Quick Menu**
+**Method 2: Quick Menu**
 1. Press `Ctrl+Shift+A`
-2. Select "➕ Create task"
-3. Select task type (feature, bug, improvement, refactoring, documentation, quality-check)
-4. Enter description
-5. Select priority (high, medium, low)
+2. Select "➕ Create Task" or "➕ Create Prioritized Task" (NEW!)
+3. Enter description
+4. Select priority (immediate, high, medium, low)
 
-**Method 2: Command**
-- Command: `Cursor Autonomous: Create Task`
+**Method 3: Command**
+- `Ctrl+Shift+P` → "CursorAI Autonomous: Create Task"
 
-**What happens:**
-- Task is created automatically
-- Brainstorming with task variations starts
-- Agents work in parallel on the task
-- Solutions are consolidated and the best is selected
-- Ensemble refinement is launched if necessary
+### 5. Monitor System
 
-#### Viewing Tasks
+**Status Bar:**
+- `🤖 CursorAI ✓` (green) — Autonomous mode active
+- `👤 Virtual User` — Toggle virtual user
+- `📊 Status` — Open status panel
 
-**Method 1: Sidebar**
-- Expand agent in sidebar → see all its tasks
+**Dashboard Panel (NEW!):**
+1. Press `Ctrl+Shift+A` → "📊 Autonomous Stats"
+2. View:
+   - Cost statistics per model/agent
+   - Agent activity (tasks completed, time spent)
+   - System health (worker status, queue size)
+   - Budget usage (daily, monthly)
 
-**Method 2: Status Panel**
-- Open status panel → each agent's card shows its tasks
-
-#### Sending Task to Chat
-
-**Method 1: Context Menu**
-- Right-click on task in sidebar → "Send to chat"
-
-**Method 2: Status Panel**
-- Click "Send to chat" button in agent card
-
-**What happens:**
-- Task is formatted and copied to clipboard
-- CursorAI chat opens (if possible)
-- You can paste the task into chat (Ctrl+V)
-
-### 6. Automatic Functions
-
-#### Auto-start Orchestrator
-
-The orchestrator automatically starts when the extension is activated (after a few seconds).
-
-#### Auto-update Statuses
-
-- **Sidebar**: every 3 seconds
-- **Status panel**: every 5 seconds
-- **Status bar**: every 5 seconds
-
-#### Automatic Project Analysis
-
-On first launch, the extension may automatically analyze the project (if enabled in settings).
+**Status Panel:**
+1. Press `Ctrl+Shift+S`
+2. View all agents and their tasks
 
 ## 📖 Usage
-
-### Project Analysis
-
-The extension can automatically analyze the project on first launch or on request:
-
-**What is analyzed:**
-1. Project type (web application, mobile, desktop, library)
-2. Technologies (languages, frameworks, databases)
-3. Architecture (MVC, Clean Architecture, Component-based)
-4. Code style (PSR-12, ESLint, Prettier, PEP 8)
-5. Patterns and dependencies
-6. Generation of adaptive rules
-
-**Launch analysis:**
-- Hotkey: `Ctrl+Shift+P`
-- Status bar button: `🔍 Analyze`
-- Quick menu: `Ctrl+Shift+A` → "🔍 Analyze project"
-- Command: `Cursor Autonomous: Analyze Project`
 
 ### Working with Agents
 
 #### Viewing Agent Status
 
 **Sidebar (TreeView):**
-1. Open CursorAI sidebar (🤖 icon on the left)
+1. Open CursorAI sidebar (🤖 icon)
 2. Select "Agents"
-3. Expand an agent to view its tasks
-4. Click on a task to view details
+3. Expand agent to view tasks
 
 **Status Panel (WebView):**
-1. Press `Ctrl+Shift+S` or click the `📊 Status` button in the status bar
-2. View overall system statistics
-3. View cards for all agents
-4. Click on an agent card to view details
+1. Press `Ctrl+Shift+S`
+2. View agent cards with details
 
 #### Selecting Model for Agent
 
-Each agent can use its own CursorAI language model:
+**Through Settings Panel:**
+1. Press `Ctrl+Shift+A` → "⚙ Settings"
+2. Go to "Agents" tab
+3. For each agent:
+   - Select provider (Ollama, OpenAI, Anthropic, Google, LLM Studio, CursorAI)
+   - Select model
+   - Set temperature
 
-**Ways to select:**
-1. **Through status panel**: select model from dropdown in agent card
-2. **Through context menu**: right-click on agent → "Select model for agent"
-3. **Through command**: `Cursor Autonomous: Select Model for Agent`
-
-**Available models:**
-- Automatic selection (CursorAI selects optimal model)
-- List of all available CursorAI models (excluding paid ones)
-
-#### Viewing Agent Details
-
-**Information in details:**
-- Agent name and status
-- Number of tasks in progress and completed
-- Current task (if any)
-- Selected language model
-- List of all agent tasks
-- Agent thoughts (if available)
-- Diagnostic information (LLM available, errors)
-
-**Ways to view:**
-- Click on agent card in status panel
-- Right-click on agent → "Show agent details"
-- Command: `Cursor Autonomous: Show Agent Details`
+**Available providers:**
+- `ollama` — Ollama (local, free)
+- `llmstudio` — LLM Studio (local, free)
+- `openai` — OpenAI (GPT-3.5, GPT-4)
+- `anthropic` — Anthropic (Claude)
+- `google` — Google (Gemini)
+- `cursorai` — CursorAI (requires Pro plan)
 
 ### Working with Tasks
 
-#### Creating Task
+#### Task Priorities (NEW!)
 
-**Creation process:**
-1. Open quick menu (`Ctrl+Shift+A`) → "➕ Create task"
-2. Select task type:
-   - `feature` — New feature
-   - `bug` — Bug fix
-   - `improvement` — Improvement
-   - `refactoring` — Refactoring
-   - `documentation` — Documentation
-   - `quality-check` — Project quality check
-3. Enter task description
-4. Select priority (high, medium, low)
+- **immediate** — Interrupts current work, executes immediately
+- **high** — Executes as soon as possible
+- **medium** — Normal queue
+- **low** — Executes when agents are idle
 
-**What happens after creation:**
-- Task is automatically assigned to a suitable agent
-- **Brainstorming with task variations** starts:
-  - Task variations are created for different agents
-  - Each agent receives its own task formulation
-  - Agents work in parallel
-  - Solutions are checked for alignment with the original task
-  - Best solution is selected
-  - Ensemble refinement is launched if necessary
-- Task is executed automatically
+#### Creating Prioritized Task
 
-#### Viewing Tasks
+1. Press `Ctrl+Shift+A`
+2. Select "➕ Create Prioritized Task"
+3. Enter description
+4. Select priority
+5. Task is added to queue with specified priority
 
-**Sidebar:**
-- Expand agent → see all its tasks
-- Tasks are shown with status icons:
-  - ⏳ pending — Waiting for execution
-  - 🔄 in-progress — In progress
-  - ✅ completed — Completed
-  - ⚠️ blocked — Blocked
+#### Viewing Task Queue
 
-**Status Panel:**
-- Each agent's card shows its tasks
-- You can click on a task to view details
+**Dashboard Panel:**
+- Shows tasks in queue grouped by priority
+- Shows currently executing tasks
+- Shows completed tasks
 
-#### Sending Task to CursorAI Chat
+### Cost Management (NEW!)
 
-**Ways:**
-1. Right-click on task in sidebar → "Send to chat"
-2. "Send to chat" button in agent card in status panel
-3. Command: `Cursor Autonomous: Send Task to Chat`
+#### Monitoring Costs
 
-**What happens:**
-- Task is formatted in a chat-friendly format
-- Message is copied to clipboard
-- CursorAI chat opens (if possible)
-- You can paste the task into chat (Ctrl+V or Cmd+V)
+**Dashboard Panel:**
+1. Press `Ctrl+Shift+A` → "📊 Autonomous Stats"
+2. "Cost Statistics" section shows:
+   - Total spent today/this month
+   - Cost per model
+   - Cost per agent
+   - Budget usage percentage
+
+#### Setting Budget
+
+**Settings Panel:**
+1. Go to "Autonomous Mode" tab
+2. Set "Monthly Budget" (in USD)
+3. System will:
+   - Prefer free local models
+   - Use cheap cloud APIs sparingly
+   - Stop when budget is reached
+
+#### Optimizing Costs
+
+**Best practices:**
+- ✅ Enable `preferLocal` in hybrid mode
+- ✅ Set reasonable monthly budget ($10-30)
+- ✅ Use CursorAI only for specific tasks
+- ✅ Enable prompt caching (enabled by default)
+- ✅ Monitor costs daily through dashboard
 
 ### Project Quality Check
 
 **Launch check:**
 - Command: `Cursor Autonomous: Run Quality Check`
-- Quick menu: `Ctrl+Shift+A` → "Quality check"
+- Context menu: Right-click on folder → "Check Quality"
 
 **Check areas:**
 - `full` — Full quality check
@@ -579,72 +542,6 @@ Each agent can use its own CursorAI language model:
 - `performance` — Performance check
 - `security` — Security check
 
-**Results:**
-- Saved in quality check task
-- Can be viewed in status panel
-- Include improvement recommendations
-
-### Analytics and Metrics
-
-**Opening analytics panel:**
-- Command: `Cursor Autonomous: Show Task Analytics`
-- Quick menu: `Ctrl+Shift+A` → "📈 Task Analytics"
-
-**Available information:**
-- Statistics by task types
-- Statistics by agents
-- Performance metrics
-- Average task execution time
-- Percentage of successful tasks
-- Improvement recommendations
-- Report export
-
-### Configuration
-
-#### Opening Settings
-
-**Method 1: Through Quick Menu**
-- `Ctrl+Shift+A` → "⚙ Settings"
-
-**Method 2: Through Command Palette**
-- `Ctrl+Shift+P` → "Preferences: Open Settings (UI)"
-- Find "Cursor Autonomous"
-
-**Method 3: Through settings.json**
-- `Ctrl+Shift+P` → "Preferences: Open User Settings (JSON)"
-
-#### Main Settings
-
-```json
-{
-  "cursor-autonomous.apiKey": "",
-  "cursor-autonomous.enableVirtualUser": false,
-  "cursor-autonomous.autoImprove": true,
-  "cursor-autonomous.enableOrchestrator": true,
-  "cursor-autonomous.monitoringInterval": 300000,
-  "cursor-autonomous.improvementInterval": 86400000,
-  "cursor-autonomous.virtualUserDecisionThreshold": 0.7
-}
-```
-
-#### Settings Description
-
-- **`apiKey`** — CursorAI API key for accessing Background Agents API (optional, can be obtained in Cursor team settings)
-- **`enableVirtualUser`** — enable virtual user (autonomous mode)
-- **`autoImprove`** — enable automatic self-improvement
-- **`enableOrchestrator`** — enable orchestrator in agent selector
-- **`monitoringInterval`** — project monitoring interval in milliseconds (default 5 minutes = 300000)
-- **`improvementInterval`** — self-improvement interval in milliseconds (default 24 hours = 86400000)
-- **`virtualUserDecisionThreshold`** — confidence threshold for virtual user decisions (0-1, default 0.7)
-
-#### Configuring Models for Agents
-
-Each agent can use its own model. Configuration is done through UI:
-- Status panel → select model from dropdown
-- Or through agent context menu → "Select model for agent"
-
-Models are automatically saved in extension settings.
-
 ## 🏗️ Architecture
 
 ### Project Structure
@@ -652,41 +549,71 @@ Models are automatically saved in extension settings.
 ```
 CursorAI_Ext_Rules/
 ├── src/
-│   ├── extension.ts              # Entry point
-│   ├── orchestrator/             # Orchestrator
-│   │   ├── orchestrator.ts      # Main orchestrator
-│   │   ├── self-learning-orchestrator.ts  # Self-learning orchestrator
-│   │   ├── project-analyzer.ts  # Project analyzer
-│   │   ├── rule-generator.ts    # Rule generator
-│   │   ├── task-planner.ts      # Task planner
-│   │   ├── task-executor.ts     # Task executor
+│   ├── extension.ts                          # Entry point
+│   ├── orchestrator/                         # Orchestrator
+│   │   ├── orchestrator.ts                  # Main orchestrator
+│   │   ├── self-learning-orchestrator.ts    # Self-learning
+│   │   ├── swarm-orchestrator.ts           # Swarm coordination (NEW!)
+│   │   ├── file-watcher.ts                  # Real-time monitoring (NEW!)
+│   │   ├── autonomous-orchestrator-integration.ts  # Integration (NEW!)
+│   │   ├── brainstorming-manager.ts         # Brainstorming
+│   │   ├── solution-evaluator.ts            # Solution evaluation
+│   │   ├── task-deviation-controller.ts     # Deviation control
+│   │   ├── ensemble-refinement-manager.ts   # Ensemble refinement
+│   │   ├── project-analyzer.ts              # Project analysis
 │   │   └── ...
-│   ├── agents/                   # Agents
-│   │   ├── backend-agent.ts     # Backend Developer
-│   │   ├── frontend-agent.ts    # Frontend Developer
-│   │   ├── architect-agent.ts   # Software Architect
-│   │   ├── analyst-agent.ts     # Data Analyst
-│   │   ├── devops-agent.ts      # DevOps Engineer
-│   │   ├── qa-agent.ts         # QA Engineer
-│   │   ├── virtual-user.ts      # Virtual user
-│   │   └── self-improver.ts     # Self-improvement system
-│   ├── self-improvement/         # Self-improvement system
+│   ├── agents/                               # Agents
+│   │   ├── local-agent.ts                   # Base agent
+│   │   ├── backend-agent.ts                 # Backend Developer
+│   │   ├── frontend-agent.ts                # Frontend Developer
+│   │   ├── architect-agent.ts               # Software Architect
+│   │   ├── analyst-agent.ts                 # Data Analyst
+│   │   ├── devops-agent.ts                  # DevOps Engineer
+│   │   ├── qa-agent.ts                      # QA Engineer
+│   │   ├── virtual-user.ts                  # Virtual user
+│   │   ├── self-improver.ts                 # Self-improvement
+│   │   └── worker/                          # Autonomous workers (NEW!)
+│   │       ├── agent-worker.ts              # Agent worker
+│   │       ├── task-queue.ts                # Task queue
+│   │       ├── message-bus.ts               # Message bus
+│   │       ├── mcp-client.ts                # MCP client
+│   │       └── health-monitor.ts            # Health monitor
+│   ├── integration/                          # Integration
+│   │   ├── cursor-api.ts                    # CursorAI API
+│   │   ├── cursor-chat-integration.ts       # Chat integration (NEW!)
+│   │   ├── cursor-composer-integration.ts   # Composer integration (NEW!)
+│   │   ├── model-provider.ts                # Model provider
+│   │   ├── model-providers/                 # Model providers (NEW!)
+│   │   │   ├── provider-manager.ts          # Provider manager
+│   │   │   ├── hybrid-provider.ts           # Hybrid provider
+│   │   │   ├── ollama-provider.ts           # Ollama
+│   │   │   ├── openai-provider.ts           # OpenAI
+│   │   │   ├── anthropic-provider.ts        # Anthropic
+│   │   │   ├── google-provider.ts           # Google
+│   │   │   └── cursorai-provider.ts         # CursorAI
+│   │   ├── settings-manager.ts              # Settings manager
+│   │   └── ui-integration.ts                # UI integration
+│   ├── optimization/                         # Optimization (NEW!)
+│   │   ├── model-selector.ts                # Smart model selector
+│   │   ├── prompt-cache.ts                  # Prompt caching
+│   │   ├── request-batcher.ts               # Request batching
+│   │   └── cost-monitor.ts                  # Cost monitoring
+│   ├── self-improvement/                     # Self-improvement
 │   │   ├── performance-monitor.ts
 │   │   ├── knowledge-searcher.ts
 │   │   ├── rule-updater.ts
 │   │   └── agent-optimizer.ts
-│   ├── integration/             # CursorAI integration
-│   │   ├── cursor-api.ts        # CursorAI API
-│   │   ├── settings-manager.ts  # Settings manager
-│   │   └── ui-integration.ts    # UI integration
-│   ├── storage/                  # Data storage
-│   │   ├── rules-integration.ts # Rules integration
-│   │   └── rules-versioning.ts   # Rules versioning
-│   └── ui/                       # UI components
-│       ├── agents-status-tree.ts # TreeView agent status
-│       ├── status-panel.ts       # WebView status panel
-│       ├── analytics-panel.ts    # Analytics panel
-│       └── quick-access-panel.ts # Quick menu
+│   ├── storage/                              # Storage
+│   │   ├── rules-integration.ts
+│   │   └── rules-versioning.ts
+│   └── ui/                                   # UI
+│       ├── agents-status-tree.ts            # TreeView
+│       ├── status-panel.ts                  # Status panel
+│       ├── settings-panel.ts                # Settings panel (updated)
+│       ├── dashboard-panel.ts               # Dashboard (NEW!)
+│       ├── context-menu-provider.ts         # Context menu (NEW!)
+│       ├── analytics-panel.ts               # Analytics
+│       └── quick-access-panel.ts            # Quick menu
 ├── package.json
 ├── tsconfig.json
 ├── README.md (English)
@@ -695,36 +622,72 @@ CursorAI_Ext_Rules/
 
 ### System Components
 
-#### Orchestrator
+#### SwarmOrchestrator (NEW!)
 
-Coordinates work of all agents:
-- Analyzes user requests
-- Selects suitable agents
-- Manages tasks and priorities
-- Checks solution quality
+Coordinates autonomous agent workers:
+- Creates and manages AgentWorker instances
+- Distributes tasks from TaskQueue
+- Monitors worker health
+- Handles real-time file changes
 
-#### Agents
+#### AgentWorker (NEW!)
 
-Specialized AI agents for different development areas:
-- Each agent has its own specialization
-- Agents can consult with each other
-- Agents work through CursorAI API or fallback methods
+Autonomous agent running in infinite loop:
+- Pulls tasks from TaskQueue
+- Communicates via MessageBus
+- Uses MCPClient for operations
+- Reports health status
+- Auto-restarts on failures
 
-#### Self-Improvement System
+#### TaskQueue (NEW!)
 
-Continuously improves work quality:
-- Monitors performance
-- Searches for best practices
-- Updates rules
-- Optimizes agents
+Prioritized task queue:
+- 4 priority levels (immediate, high, medium, low)
+- Swarm coordination (agents negotiate task assignment)
+- Thread-safe operations
+- Task persistence
 
-#### Rules Integration
+#### MessageBus (NEW!)
 
-Automatically adapts rules to the project:
-- Analyzes project
-- Generates rules
-- Updates rules when project changes
-- Versions rules
+Peer-to-peer communication:
+- Topic-based pub/sub
+- Direct agent-to-agent messaging
+- Event broadcasting
+- Message history
+
+#### HybridModelProvider (NEW!)
+
+Intelligent model selection:
+- Assesses task complexity
+- Chooses optimal model (local, cheap cloud, expensive cloud)
+- Respects monthly budget
+- Automatic fallback
+- Cost tracking
+
+#### FileWatcher (NEW!)
+
+Real-time project monitoring:
+- Watches file changes
+- Triggers automatic tasks
+- Debouncing for efficiency
+- Pattern filtering
+
+#### HealthMonitor (NEW!)
+
+Agent health tracking:
+- Checks worker heartbeats
+- Detects stuck agents
+- Auto-restarts failed workers
+- Reports system health
+
+#### MCPClient (NEW!)
+
+Multi-Agent Communication Protocol:
+- File operations (CRUD, search)
+- Git operations (status, commit, branch, merge, stash, rebase)
+- Code search (semantic, grep, references)
+- Test runner integration
+- Linter integration
 
 ## 🛠️ Development
 
@@ -747,7 +710,7 @@ npm install
 npm run compile
 ```
 
-Or for automatic recompilation on changes:
+Or for automatic recompilation:
 
 ```bash
 npm run watch
@@ -756,7 +719,7 @@ npm run watch
 ### Build
 
 ```bash
-npm run build
+npm run package
 ```
 
 ### Testing
@@ -768,15 +731,9 @@ npm test
 ### Running in Development Mode
 
 1. Open the project in VS Code
-2. Press `F5` to run the extension in development mode
-3. A new "Extension Development Host" window will open
-4. In this window, the extension will work in debug mode
-
-### Viewing Logs
-
-Extension logs can be viewed in:
-- **Output panel** → select "Log (Extension Host)"
-- **Developer Tools** → `Help → Toggle Developer Tools`
+2. Press `F5`
+3. Extension Development Host window opens
+4. Extension runs in debug mode
 
 ## 📚 Documentation
 
@@ -785,14 +742,67 @@ Extension logs can be viewed in:
 - [BUILD.md](BUILD.md) — Build instructions
 - [INSTALL.md](INSTALL.md) — Installation instructions
 - [QUICK_INSTALL.md](QUICK_INSTALL.md) — Quick installation
-- [QUICK_ACCESS.md](QUICK_ACCESS.md) — Quick access
-- [UI_FEATURES.md](UI_FEATURES.md) — UI features description
+- [QUICK_ACCESS.md](QUICK_ACCESS.md) — Quick access guide
+- [UI_FEATURES.md](UI_FEATURES.md) — UI features
 - [IMPROVEMENTS.md](IMPROVEMENTS.md) — Integration improvements
 - [CHANGELOG.md](CHANGELOG.md) — Change history
 
+## 💰 Cost Comparison
+
+### Scenario 1: Free ($0/month)
+```json
+{
+  "hybridMode": {
+    "enabled": true,
+    "preferLocal": true,
+    "monthlyBudget": 0
+  },
+  "useCursorAIFor": ["never"],
+  "agents": {
+    "backend": { "provider": "ollama", "model": "codellama" },
+    "frontend": { "provider": "ollama", "model": "mistral" }
+  }
+}
+```
+**Result:** Fully functional with local models only
+
+### Scenario 2: Budget ($5-10/month)
+```json
+{
+  "hybridMode": {
+    "enabled": true,
+    "preferLocal": true,
+    "monthlyBudget": 10
+  },
+  "useCursorAIFor": ["never"],
+  "agents": {
+    "backend": { "provider": "openai", "model": "gpt-3.5-turbo" },
+    "frontend": { "provider": "ollama", "model": "mistral" }
+  }
+}
+```
+**Result:** Hybrid mode with cheap cloud APIs for complex tasks
+
+### Scenario 3: Premium ($20-50/month)
+```json
+{
+  "hybridMode": {
+    "enabled": true,
+    "preferLocal": false,
+    "monthlyBudget": 50
+  },
+  "useCursorAIFor": ["consolidation", "file-editing"],
+  "agents": {
+    "backend": { "provider": "openai", "model": "gpt-4" },
+    "frontend": { "provider": "anthropic", "model": "claude-3-opus" }
+  }
+}
+```
+**Result:** Best quality with top models + CursorAI integration
+
 ## 🤝 Contributing
 
-We welcome contributions to the project! Please follow these steps:
+We welcome contributions! Please follow these steps:
 
 1. **Fork** the repository
 2. Create a **feature branch** (`git checkout -b feature/AmazingFeature`)
@@ -802,23 +812,14 @@ We welcome contributions to the project! Please follow these steps:
 
 ### Development Rules
 
-- Follow the project code style (TypeScript, ESLint)
+- Follow TypeScript/ESLint code style
 - Add tests for new functionality
 - Update documentation when changing API
 - Write clear commit messages
 
 ## 📝 License
 
-This project is distributed under the **MIT License** - a fully free license that allows:
-
-- ✅ **Commercial use** - can be used in commercial projects
-- ✅ **Modification** - can modify code as needed
-- ✅ **Distribution** - can distribute source and compiled code
-- ✅ **Private use** - can be used in closed projects
-- ✅ **Patent use** - can use any patents of the authors
-- ✅ **Sublicensing** - can release under another license
-
-**Only requirement:** include the license text and copyright notice when distributing.
+This project is distributed under the **MIT License**.
 
 Full license text: [LICENSE](LICENSE)
 
@@ -826,172 +827,75 @@ Full license text: [LICENSE](LICENSE)
 
 ### Report an Issue
 
-If you found a bug or have a suggestion, please:
 1. Check existing [Issues](https://github.com/Zeed80/CursorAI_Ext_Rules/issues)
-2. Create a new Issue with detailed problem description
+2. Create a new Issue with detailed description
 
 ### Ask a Question
 
-For questions and discussions:
 - Create a [Discussion](https://github.com/Zeed80/CursorAI_Ext_Rules/discussions)
-- Or contact us through Issues
+- Or contact through Issues
 
 ### Troubleshooting
 
 #### Extension Not Activating
 
-1. Check logs in Output panel (View → Output → select "Log (Extension Host)")
-2. Make sure all dependencies are installed (`npm install`)
-3. Check that files are compiled in the `out/` directory
+1. Check logs: View → Output → "Log (Extension Host)"
+2. Ensure dependencies are installed: `npm install`
+3. Check compiled files in `out/` directory
 4. Reload window: `Ctrl+Shift+P` → "Developer: Reload Window"
 
-#### Orchestrator Not Starting
+#### Autonomous Mode Not Starting
 
-1. Check extension settings: `cursor-autonomous.enableOrchestrator` should be `true`
-2. Check logs in Output panel for errors
-3. Make sure Usage-based pricing is enabled in Cursor (see section above)
-4. Restart CursorAI
+1. Check settings: `cursor-autonomous.autonomousMode` should be `true`
+2. Check if agents are configured in settings
+3. For local models: ensure Ollama is running
+4. Check logs for errors
 
-#### Virtual User Not Working
+#### "Local agent X not found"
 
-1. Check settings: `cursor-autonomous.enableVirtualUser` should be `true`
-2. Check confidence threshold: `cursor-autonomous.virtualUserDecisionThreshold`
-3. Check logs for details
-4. Make sure orchestrator is running
+1. Open Settings Panel: `Ctrl+Shift+A` → "⚙ Settings"
+2. Go to "Agents" tab
+3. Enable and configure all required agents
+4. Ensure providers are installed (Ollama, API keys)
 
-#### Agents Not Displaying in Sidebar
+#### Ollama Connection Failed
 
-1. Make sure sidebar is open (🤖 icon on the left)
-2. Expand "Agents" section
-3. Press `Ctrl+Shift+A` → "Refresh agent status"
-4. Reload window if problem persists
+1. Check Ollama is running: `ollama list`
+2. Check Ollama server: `curl http://localhost:11434/api/tags`
+3. Install models: `ollama pull codellama`
+4. Restart extension: `Ctrl+Shift+P` → "Developer: Reload Window"
 
-#### Status Panel Not Opening
+#### High API Costs
 
-1. Check that extension is activated (icon in status bar is visible)
-2. Try opening through command: `Ctrl+Shift+P` → "Cursor Autonomous: Show Status Panel"
-3. Check logs for errors
-
-#### Models Not Selecting for Agents
-
-1. Make sure Usage-based pricing is enabled
-2. Check that CursorAI API is available
-3. Try updating model list: reload window
-4. Check logs for API errors
-
-#### Tasks Not Creating
-
-1. Make sure orchestrator is running
-2. Check logs for errors
-3. Make sure agents are initialized (check in status panel)
-4. Try creating task through command: `Ctrl+Shift+P` → "Cursor Autonomous: Create Task"
+1. Enable `preferLocal` in hybrid mode
+2. Lower `monthlyBudget`
+3. Use cheaper models (gpt-3.5-turbo instead of gpt-4)
+4. Disable CursorAI integration: `useCursorAIFor: ["never"]`
+5. Monitor costs in Dashboard Panel
 
 ## 🎯 Roadmap
 
 ### Planned Features
 
-- [ ] Support for more programming languages
-- [ ] Integration with additional MCP servers
-- [ ] Improved agent work visualization
-- [ ] Rules export/import
-- [ ] Cloud rules synchronization
-- [ ] Team collaboration support
-- [ ] Extended analytics
+- [ ] More LLM providers (Cohere, Mistral AI, Llama API)
+- [ ] Enhanced swarm intelligence (voting, consensus)
+- [ ] Cloud synchronization for rules and settings
+- [ ] Team collaboration features
+- [ ] Advanced cost analytics and predictions
+- [ ] Automatic model fine-tuning on project data
 
-### Known Limitations and Risks
+### Known Limitations
 
-- CursorAI Background Agents API is in beta
-- Some features may work through fallback methods
-- Active internet connection required for web search
-- **Usage-based pricing in Cursor required for Background Agents to work** (see section below)
-- **High risk of exceeding spending limits** with active use
-- **Unexpected financial expenses possible** when working in autonomous mode
-
-## ⚠️ Important Information: Usage-based Pricing
-
-### Problem: "Usage-based pricing required"
-
-If you see errors like:
-
-```
-HTTP error! status: 400: Usage-based pricing required. 
-Background Agent requires at least $2 remaining until your hard limit.
-```
-
-or
-
-```
-Failed to create v0 agent for devops
-Failed to create v0 agent for qa
-```
-
-**This is not an extension or Cursor error.** This is a CursorAI requirement for Background Agents API.
-
-### What This Means
-
-The extension uses CursorAI's **Background Agents API** to create specialized agents (Backend, Frontend, Architect, Analyst, DevOps, QA). These agents require:
-
-1. **Usage-based pricing option enabled** in Cursor settings
-2. **Spend Limit (spending limit) set** to at least $2
-
-This is a "safety cushion" that allows agents to use tokens beyond your subscription, but not more than the specified amount.
-
-### How to Fix
-
-1. **Open Cursor Dashboard** (team settings in Cursor)
-2. **Find the "Usage-based pricing" section**
-3. **Enable this option**
-4. **Set Spend Limit to at least $2** (or more, as desired)
-5. **Link a payment card** (if required)
-6. **Reload CursorAI**
-
-After this, agents should initialize successfully.
-
-### Additional Error: OTLPExporterError
-
-If you see an error:
-
-```
-OTLPExporterError: Bad Request ... Trace spans collection is not enabled for this user
-```
-
-**This error can be ignored.** This is a telemetry error - Cursor tries to send debug data to the server, but for your account, collection of this data is disabled. This does not affect the editor or extension functionality.
-
-### Summary
-
-**Your problem is not in the code or a Cursor breakdown.** You are trying to use "autonomous mode" functions (through the cursor-autonomous extension), which require direct payment for tokens (API usage).
-
-**To make it work:**
-- You need to link a card in Cursor dashboard
-- Allow charges beyond subscription for at least $2 per month
-- After this, reload the editor, and agents should initialize successfully
-
-**⚠️ IMPORTANT: Set a reasonable Spend Limit!**
-
-It's recommended to start with a minimum limit ($5-10) and increase it gradually while monitoring expenses. When actively using the extension, especially in autonomous mode, expenses can significantly exceed the set limit.
-
-### Alternative
-
-If you don't want to enable Usage-based pricing, the extension will work in limited mode:
-- Basic orchestrator functions will be available
-- Background Agents will not be created
 - Some features may use fallback methods
-
-### Risk Management
-
-To minimize financial loss risks:
-
-1. **Set a strict Spend Limit** - start with a minimum value ($5-10)
-2. **Enable notifications** about spending in Cursor Dashboard
-3. **Regularly check expenses** - at least once a day with active use
-4. **Disable autonomous mode** when not needed
-5. **Use the extension consciously** - don't leave it running unattended
-6. **Monitor agent activity** through the extension status panel
+- Internet connection required for cloud APIs and web search
+- Local models may be slower than cloud APIs
+- Autonomous mode consumes system resources
 
 ## 🙏 Acknowledgments
 
-- [CursorAI](https://cursor.sh/) — for excellent IDE
-- [VS Code Extension API](https://code.visualstudio.com/api) — for powerful API
+- [CursorAI](https://cursor.sh/) — excellent IDE
+- [Ollama](https://ollama.ai/) — local LLM runner
+- [VS Code Extension API](https://code.visualstudio.com/api) — powerful API
 - All project contributors
 
 ## 📞 Contacts
@@ -1005,5 +909,7 @@ To minimize financial loss risks:
 <div align="center">
 
 [English](#-cursorai-autonomous-extension-english) | [Русский](README_RU.md)
+
+**Made with ❤️ by the power of AI**
 
 </div>

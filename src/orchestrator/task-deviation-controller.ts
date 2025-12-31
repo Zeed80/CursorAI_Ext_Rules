@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import { Task } from './orchestrator';
 import { AgentSolution } from '../agents/local-agent';
 import { CursorAPI } from '../integration/cursor-api';
@@ -74,8 +75,19 @@ export class TaskDeviationController {
      * Извлечение ключевых требований из задачи
      */
     async extractKeyRequirements(task: Task): Promise<string[]> {
+        // Проверяем доступность CursorAI Background Agents
+        const config = vscode.workspace.getConfiguration('cursor-autonomous');
+        const useCursorAIFor = config.get<string[]>('useCursorAIFor', []);
+        const apiKey = config.get<string>('apiKey', '');
+        
+        // Если CursorAI не настроен или не должен использоваться, сразу используем fallback
+        if (!apiKey || useCursorAIFor.includes('never') || useCursorAIFor.length === 0) {
+            console.log('TaskDeviationController: Using fallback (CursorAI not configured)');
+            return this.extractRequirementsFallback(task);
+        }
+        
         try {
-            // Используем LLM для извлечения ключевых требований
+            // Пытаемся использовать LLM для извлечения ключевых требований
             const extractionAgentId = `requirement-extractor-${Date.now()}`;
             await CursorAPI.createOrUpdateBackgroundAgent(
                 extractionAgentId,
@@ -101,7 +113,8 @@ export class TaskDeviationController {
             
             return requirements.length > 0 ? requirements : this.extractRequirementsFallback(task);
         } catch (error) {
-            console.error('Error extracting requirements:', error);
+            // Используем fallback без громких ошибок
+            console.warn('TaskDeviationController: CursorAPI unavailable, using fallback');
             return this.extractRequirementsFallback(task);
         }
     }

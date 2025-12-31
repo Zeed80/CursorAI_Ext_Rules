@@ -106,7 +106,8 @@ export class TaskExecutor {
             'improvement': '🔧',
             'refactoring': '♻️',
             'documentation': '📝',
-            'quality-check': '🔍'
+            'quality-check': '🔍',
+            'analysis': '📊'
         };
         return emojis[type] || '📋';
     }
@@ -289,6 +290,7 @@ export class TaskExecutor {
      */
     private getTaskTimeout(task: Task): number {
         const timeouts: Record<Task['priority'], number> = {
+            'immediate': 300000, // 5 минут
             'high': 600000,    // 10 минут
             'medium': 900000,  // 15 минут
             'low': 1200000     // 20 минут

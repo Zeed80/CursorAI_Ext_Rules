@@ -171,6 +171,95 @@
           "default": true,
           "description": "Enable orchestrator in agent selector"
         },
+        "cursor-autonomous.autonomousMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable fully autonomous mode with background workers",
+          "order": 3
+        },
+        "cursor-autonomous.hybridMode": {
+          "type": "object",
+          "description": "Настройки гибридного режима (локальные + облачные + CursorAI)",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "Включить умный выбор моделей"
+            },
+            "preferLocal": {
+              "type": "boolean",
+              "default": true,
+              "description": "Предпочитать локальные модели когда возможно"
+            },
+            "monthlyBudget": {
+              "type": "number",
+              "default": 50,
+              "description": "Месячный бюджет на облачные API в долларах",
+              "minimum": 0
+            },
+            "maxCursorCallsPerDay": {
+              "type": "number",
+              "default": 100,
+              "description": "Максимум вызовов CursorAI в день",
+              "minimum": 0
+            }
+          },
+          "default": {
+            "enabled": true,
+            "preferLocal": true,
+            "monthlyBudget": 50,
+            "maxCursorCallsPerDay": 100
+          }
+        },
+        "cursor-autonomous.useCursorAIFor": {
+          "type": "array",
+          "description": "Когда использовать CursorAI Chat/Composer",
+          "items": {
+            "type": "string",
+            "enum": [
+              "consolidation",
+              "complex-refactoring",
+              "file-editing",
+              "architecture",
+              "multiple-files",
+              "never"
+            ]
+          },
+          "default": ["consolidation", "complex-refactoring", "file-editing"],
+          "uniqueItems": true
+        },
+        "cursor-autonomous.cursorIntegration": {
+          "type": "object",
+          "description": "Настройки интеграции с CursorAI",
+          "properties": {
+            "useChat": {
+              "type": "boolean",
+              "default": true,
+              "description": "Использовать CursorAI Chat для консолидации решений"
+            },
+            "useComposer": {
+              "type": "boolean",
+              "default": true,
+              "description": "Использовать CursorAI Composer для изменения файлов"
+            },
+            "useTab": {
+              "type": "boolean",
+              "default": false,
+              "description": "Использовать CursorAI Tab для автодополнения (пока не реализовано)"
+            },
+            "autoApplyComposer": {
+              "type": "boolean",
+              "default": false,
+              "description": "Автоматически применять изменения Composer (без подтверждения)"
+            }
+          },
+          "default": {
+            "useChat": true,
+            "useComposer": true,
+            "useTab": false,
+            "autoApplyComposer": false
+          }
+        },
         "cursor-autonomous.agents": {
           "type": "object",
           "description": "Настройки моделей для каждого агента",

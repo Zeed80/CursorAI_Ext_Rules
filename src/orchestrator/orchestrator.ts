@@ -12,10 +12,10 @@ import { ModelProviderManager } from '../integration/model-providers/provider-ma
 
 export interface Task {
     id: string;
-    type: 'feature' | 'bug' | 'improvement' | 'refactoring' | 'documentation' | 'quality-check';
+    type: 'feature' | 'bug' | 'improvement' | 'refactoring' | 'documentation' | 'quality-check' | 'analysis';
     description: string;
-    priority: 'high' | 'medium' | 'low';
-    status: 'pending' | 'in-progress' | 'completed' | 'blocked';
+    priority: 'immediate' | 'high' | 'medium' | 'low';
+    status: 'pending' | 'in-progress' | 'completed' | 'blocked' | 'cancelled';
     assignedAgent?: string;
     createdAt: Date;
     // Расширенные поля для отслеживания прогресса

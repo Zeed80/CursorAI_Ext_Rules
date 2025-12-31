@@ -14,6 +14,7 @@ export interface SettingsData {
         improvementInterval: number;
         virtualUserDecisionThreshold: number;
         enableOrchestrator: boolean;
+        autonomousMode: boolean;
     };
     providers: {
         [key in ModelProviderType]?: {
@@ -34,6 +35,19 @@ export interface SettingsData {
     orchestrator: {
         useCursorAIForRefinement: boolean;
         cursorAIRefinementOnlyForCritical: boolean;
+    };
+    hybridMode: {
+        enabled: boolean;
+        preferLocal: boolean;
+        monthlyBudget: number;
+        maxCursorCallsPerDay: number;
+    };
+    useCursorAIFor: string[];
+    cursorIntegration: {
+        useChat: boolean;
+        useComposer: boolean;
+        useTab: boolean;
+        autoApplyComposer: boolean;
     };
 }
 
@@ -198,14 +212,30 @@ export class SettingsPanel {
                     monitoringInterval: this._settingsManager.monitoringInterval,
                     improvementInterval: this._settingsManager.improvementInterval,
                     virtualUserDecisionThreshold: this._settingsManager.virtualUserDecisionThreshold,
-                    enableOrchestrator: this._settingsManager.enableOrchestrator
+                    enableOrchestrator: this._settingsManager.enableOrchestrator,
+                    autonomousMode: this._settingsManager.getSetting<boolean>('autonomousMode', false)
                 },
                 providers: {},
                 agents: {},
                 orchestrator: {
                     useCursorAIForRefinement: this._settingsManager.getSetting<boolean>('useCursorAIForRefinement', false),
                     cursorAIRefinementOnlyForCritical: this._settingsManager.getSetting<boolean>('cursorAIRefinementOnlyForCritical', true)
-                }
+                },
+                hybridMode: this._settingsManager.getSetting('hybridMode', {
+                    enabled: true,
+                    preferLocal: true,
+                    monthlyBudget: 50,
+                    maxCursorCallsPerDay: 100
+                }),
+                useCursorAIFor: this._settingsManager.getSetting<string[]>('useCursorAIFor', [
+                    'consolidation', 'complex-refactoring', 'file-editing'
+                ]),
+                cursorIntegration: this._settingsManager.getSetting('cursorIntegration', {
+                    useChat: true,
+                    useComposer: true,
+                    useTab: false,
+                    autoApplyComposer: false
+                })
             };
 
             // Загружаем настройки провайдеров
@@ -310,6 +340,23 @@ export class SettingsPanel {
             // Сохраняем настройки оркестратора
             await this._settingsManager.updateSetting('useCursorAIForRefinement', settings.orchestrator.useCursorAIForRefinement);
             await this._settingsManager.updateSetting('cursorAIRefinementOnlyForCritical', settings.orchestrator.cursorAIRefinementOnlyForCritical);
+
+            // Сохраняем настройки автономного режима
+            if (settings.general.autonomousMode !== undefined) {
+                await this._settingsManager.updateSetting('autonomousMode', settings.general.autonomousMode);
+            }
+            
+            if (settings.hybridMode) {
+                await this._settingsManager.updateSetting('hybridMode', settings.hybridMode);
+            }
+            
+            if (settings.useCursorAIFor) {
+                await this._settingsManager.updateSetting('useCursorAIFor', settings.useCursorAIFor);
+            }
+            
+            if (settings.cursorIntegration) {
+                await this._settingsManager.updateSetting('cursorIntegration', settings.cursorIntegration);
+            }
 
             this._panel.webview.postMessage({
                 command: 'settingsSaved',
@@ -694,6 +741,7 @@ export class SettingsPanel {
         <button class="tab" data-tab="providers">Провайдеры</button>
         <button class="tab" data-tab="agents">Агенты</button>
         <button class="tab" data-tab="orchestrator">Оркестратор</button>
+        <button class="tab" data-tab="autonomous">Автономный режим</button>
         <button class="tab" data-tab="statistics">Статистика</button>
     </div>
 
@@ -782,6 +830,96 @@ export class SettingsPanel {
         </div>
     </div>
 
+    <!-- Автономный режим -->
+    <div class="tab-content" id="tab-autonomous">
+        <h2>🤖 Автономный режим</h2>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="autonomousMode">
+                Включить полностью автономный режим
+            </label>
+            <div class="help-text">Воркеры будут работать постоянно в фоне при открытии проекта</div>
+        </div>
+        
+        <h3>Гибридный выбор моделей</h3>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="hybridModeEnabled">
+                Включить умный выбор моделей
+            </label>
+            <div class="help-text">Автоматический выбор: локальные → облачные → CursorAI</div>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="preferLocal">
+                Предпочитать локальные модели
+            </label>
+            <div class="help-text">Использовать Ollama/LLM Studio когда возможно (бесплатно)</div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="monthlyBudget">Месячный бюджет ($)</label>
+                <input type="number" id="monthlyBudget" min="0" value="50">
+                <div class="help-text">Максимальные затраты на облачные API в месяц</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="maxCursorCallsPerDay">Лимит CursorAI вызовов/день</label>
+                <input type="number" id="maxCursorCallsPerDay" min="0" value="100">
+                <div class="help-text">Максимум вызовов CursorAI в день (если используете)</div>
+            </div>
+        </div>
+        
+        <h3>Использование CursorAI для:</h3>
+        
+        <div class="form-group">
+            <label><input type="checkbox" class="use-cursor-for" value="consolidation" checked> Консолидация решений</label>
+            <label><input type="checkbox" class="use-cursor-for" value="complex-refactoring" checked> Сложный рефакторинг</label>
+            <label><input type="checkbox" class="use-cursor-for" value="file-editing" checked> Изменение файлов</label>
+            <label><input type="checkbox" class="use-cursor-for" value="architecture"> Архитектурные решения</label>
+            <label><input type="checkbox" class="use-cursor-for" value="multiple-files"> Множественные файлы</label>
+            <label><input type="checkbox" class="use-cursor-for" value="never"> Никогда не использовать CursorAI</label>
+        </div>
+        
+        <h3>Интеграция с CursorAI</h3>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="useChat" checked>
+                Использовать CursorAI Chat для консолидации
+            </label>
+            <div class="help-text">Если включено, лучшее решение обрабатывается через CursorAI Chat</div>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="useComposer" checked>
+                Использовать CursorAI Composer для изменений файлов
+            </label>
+            <div class="help-text">Если включено, изменения применяются через Composer (безопаснее)</div>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="useTab">
+                Использовать CursorAI Tab для автодополнения
+            </label>
+            <div class="help-text">⚠️ Пока не реализовано</div>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="autoApplyComposer">
+                Автоматически применять изменения Composer
+            </label>
+            <div class="help-text">⚠️ ОСТОРОЖНО: изменения будут применяться без подтверждения пользователя!</div>
+        </div>
+    </div>
+
     <!-- Статистика -->
     <div class="tab-content" id="tab-statistics">
         <div id="statisticsContent">
@@ -836,13 +974,27 @@ export class SettingsPanel {
                     monitoringInterval: parseInt(document.getElementById('monitoringInterval').value) || 300000,
                     improvementInterval: parseInt(document.getElementById('improvementInterval').value) || 86400000,
                     virtualUserDecisionThreshold: parseFloat(document.getElementById('virtualUserDecisionThreshold').value) || 0.7,
-                    enableOrchestrator: document.getElementById('enableOrchestrator').checked
+                    enableOrchestrator: document.getElementById('enableOrchestrator').checked,
+                    autonomousMode: document.getElementById('autonomousMode').checked
                 },
                 providers: collectProviderSettings(),
                 agents: collectAgentSettings(),
                 orchestrator: {
                     useCursorAIForRefinement: document.getElementById('useCursorAIForRefinement').checked,
                     cursorAIRefinementOnlyForCritical: document.getElementById('cursorAIRefinementOnlyForCritical').checked
+                },
+                hybridMode: {
+                    enabled: document.getElementById('hybridModeEnabled').checked,
+                    preferLocal: document.getElementById('preferLocal').checked,
+                    monthlyBudget: parseInt(document.getElementById('monthlyBudget').value) || 50,
+                    maxCursorCallsPerDay: parseInt(document.getElementById('maxCursorCallsPerDay').value) || 100
+                },
+                useCursorAIFor: Array.from(document.querySelectorAll('.use-cursor-for:checked')).map(el => el.value),
+                cursorIntegration: {
+                    useChat: document.getElementById('useChat').checked,
+                    useComposer: document.getElementById('useComposer').checked,
+                    useTab: document.getElementById('useTab').checked,
+                    autoApplyComposer: document.getElementById('autoApplyComposer').checked
                 }
             };
 
@@ -979,10 +1131,34 @@ export class SettingsPanel {
             document.getElementById('improvementInterval').value = settings.general.improvementInterval || 86400000;
             document.getElementById('virtualUserDecisionThreshold').value = settings.general.virtualUserDecisionThreshold || 0.7;
             document.getElementById('enableOrchestrator').checked = settings.general.enableOrchestrator;
+            if (settings.general.autonomousMode !== undefined) {
+                document.getElementById('autonomousMode').checked = settings.general.autonomousMode;
+            }
 
             // Заполняем настройки оркестратора
             document.getElementById('useCursorAIForRefinement').checked = settings.orchestrator.useCursorAIForRefinement;
             document.getElementById('cursorAIRefinementOnlyForCritical').checked = settings.orchestrator.cursorAIRefinementOnlyForCritical;
+            
+            // Заполняем настройки автономного режима
+            if (settings.hybridMode) {
+                document.getElementById('hybridModeEnabled').checked = settings.hybridMode.enabled;
+                document.getElementById('preferLocal').checked = settings.hybridMode.preferLocal;
+                document.getElementById('monthlyBudget').value = settings.hybridMode.monthlyBudget;
+                document.getElementById('maxCursorCallsPerDay').value = settings.hybridMode.maxCursorCallsPerDay;
+            }
+            
+            if (settings.useCursorAIFor) {
+                document.querySelectorAll('.use-cursor-for').forEach(el => {
+                    el.checked = settings.useCursorAIFor.includes(el.value);
+                });
+            }
+            
+            if (settings.cursorIntegration) {
+                document.getElementById('useChat').checked = settings.cursorIntegration.useChat;
+                document.getElementById('useComposer').checked = settings.cursorIntegration.useComposer;
+                document.getElementById('useTab').checked = settings.cursorIntegration.useTab;
+                document.getElementById('autoApplyComposer').checked = settings.cursorIntegration.autoApplyComposer;
+            }
 
             // Заполняем провайдеры и агенты (будет реализовано в следующих шагах)
             populateProviders(settings.providers);

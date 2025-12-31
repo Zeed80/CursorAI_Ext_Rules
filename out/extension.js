@@ -49,10 +49,13 @@ const analytics_panel_1 = require("./ui/analytics-panel");
 const settings_panel_1 = require("./ui/settings-panel");
 const provider_manager_1 = require("./integration/model-providers/provider-manager");
 const usage_tracker_1 = require("./integration/model-providers/usage-tracker");
+const autonomous_orchestrator_integration_1 = require("./orchestrator/autonomous-orchestrator-integration");
+const context_menu_provider_1 = require("./ui/context-menu-provider");
 let orchestrator;
 let virtualUser;
 let selfImprover;
 let statusBarItem;
+let autonomousIntegration; // AutonomousOrchestratorIntegration
 let agentsStatusTreeProvider;
 let statusUpdateInterval;
 function activate(context) {
@@ -84,6 +87,11 @@ function activate(context) {
     agentsStatusTreeProvider = new agents_status_tree_1.AgentsStatusTreeProvider();
     // Инициализация самообучаемого оркестратора ПЕРЕД регистрацией команд
     orchestrator = new self_learning_orchestrator_1.SelfLearningOrchestrator(context, settingsManager, agentsStatusTreeProvider);
+    // Инициализация автономной системы
+    autonomousIntegration = new autonomous_orchestrator_integration_1.AutonomousOrchestratorIntegration(context, orchestrator);
+    // Регистрация контекстного меню
+    const contextMenuProvider = new context_menu_provider_1.ContextMenuProvider(autonomousIntegration);
+    contextMenuProvider.register(context);
     const agentsTreeView = vscode.window.createTreeView('cursorAutonomousAgents', {
         treeDataProvider: agentsStatusTreeProvider,
         showCollapseAll: true
@@ -122,6 +130,26 @@ function activate(context) {
                 label: '$(add) Создать задачу',
                 description: 'Создать новую задачу для агентов',
                 detail: 'Создать задачу и отправить её в чат CursorAI'
+            },
+            {
+                label: '$(robot) Включить автономный режим',
+                description: 'Активировать фоновые воркеры',
+                detail: 'Агенты будут работать постоянно'
+            },
+            {
+                label: '$(debug-pause) Выключить автономный режим',
+                description: 'Остановить фоновые воркеры',
+                detail: 'Вернуться к ручному режиму'
+            },
+            {
+                label: '$(pulse) Создать задачу с приоритетом',
+                description: 'Создать задачу для агентов с приоритетом',
+                detail: 'Немедленно, высокий, средний или низкий'
+            },
+            {
+                label: '$(graph-line) Статистика автономной системы',
+                description: 'Показать статистику воркеров и затрат',
+                detail: 'Задачи, воркеры, здоровье, бюджет'
             },
             {
                 label: '$(info) Статус системы',
@@ -179,6 +207,18 @@ function activate(context) {
                     break;
                 case '$(settings) Настройки':
                     await vscode.commands.executeCommand('cursor-autonomous.openSettings');
+                    break;
+                case '$(robot) Включить автономный режим':
+                    await vscode.commands.executeCommand('cursor-autonomous.enableAutonomousMode');
+                    break;
+                case '$(debug-pause) Выключить автономный режим':
+                    await vscode.commands.executeCommand('cursor-autonomous.disableAutonomousMode');
+                    break;
+                case '$(pulse) Создать задачу с приоритетом':
+                    await vscode.commands.executeCommand('cursor-autonomous.createTaskWithPriority');
+                    break;
+                case '$(graph-line) Статистика автономной системы':
+                    await vscode.commands.executeCommand('cursor-autonomous.showAutonomousStats');
                     break;
             }
         }
@@ -494,6 +534,82 @@ function activate(context) {
         }
     });
     // Команда для выбора модели агента (теперь открывает панель настроек)
+    // Команды автономной системы
+    const enableAutonomous = vscode.commands.registerCommand('cursor-autonomous.enableAutonomousMode', async () => {
+        if (!autonomousIntegration) {
+            vscode.window.showErrorMessage('Автономная система не инициализирована');
+            return;
+        }
+        await autonomousIntegration.enable();
+        updateStatusBar('autonomous');
+    });
+    const disableAutonomous = vscode.commands.registerCommand('cursor-autonomous.disableAutonomousMode', async () => {
+        if (!autonomousIntegration) {
+            return;
+        }
+        await autonomousIntegration.disable();
+        updateStatusBar(); // Обновляем без параметра, чтобы проверить реальное состояние
+    });
+    const createTaskWithPriority = vscode.commands.registerCommand('cursor-autonomous.createTaskWithPriority', async () => {
+        const description = await vscode.window.showInputBox({
+            prompt: 'Описание задачи',
+            placeHolder: 'Например: Исправить баг в auth.ts'
+        });
+        if (!description)
+            return;
+        const priority = await vscode.window.showQuickPick([
+            { label: '⚡ Немедленно', value: 'immediate' },
+            { label: '🔥 Высокий', value: 'high' },
+            { label: '📝 Средний', value: 'medium' },
+            { label: '📋 Низкий', value: 'low' }
+        ], {
+            placeHolder: 'Выберите приоритет'
+        });
+        if (!priority)
+            return;
+        const type = await vscode.window.showQuickPick([
+            { label: '✨ Новая функция', value: 'feature' },
+            { label: '🐛 Исправление бага', value: 'bug' },
+            { label: '♻️ Рефакторинг', value: 'refactoring' },
+            { label: '🎨 Улучшение', value: 'improvement' },
+            { label: '✅ Проверка качества', value: 'quality-check' }
+        ], {
+            placeHolder: 'Выберите тип задачи'
+        });
+        if (!type)
+            return;
+        if (!autonomousIntegration) {
+            vscode.window.showWarningMessage('Автономный режим не активирован. Активируйте его через Quick Menu.');
+            return;
+        }
+        await autonomousIntegration.createTask(description, priority.value, type.value);
+    });
+    const showAutonomousStats = vscode.commands.registerCommand('cursor-autonomous.showAutonomousStats', async () => {
+        if (!autonomousIntegration) {
+            vscode.window.showWarningMessage('Автономный режим не активирован');
+            return;
+        }
+        const stats = autonomousIntegration.getStatus();
+        const workersStatus = stats.workers.map((w) => `  • ${w.agentId}: ${w.state} ${w.isWorking ? '(работает)' : ''}`).join('\n');
+        const message = `
+📊 Автономная система
+
+Статус: ${stats.enabled ? '✅ Активна' : '❌ Неактивна'}
+
+Воркеры (${stats.workers.length}):
+${workersStatus}
+
+Задачи:
+  • В очереди: ${stats.tasks.pending}
+  • В работе: ${stats.tasks.processing}
+  • Завершено: ${stats.tasks.completed}
+
+${stats.health ? `Здоровье:
+  • Здоровых воркеров: ${stats.health.healthy}/${stats.health.total}
+  • Успешность: ${stats.health.successRate}` : ''}
+        `.trim();
+        vscode.window.showInformationMessage(message, { modal: true }, 'OK');
+    });
     const selectAgentModel = vscode.commands.registerCommand('cursor-autonomous.selectAgentModel', async (item) => {
         // Просто открываем панель настроек
         await vscode.commands.executeCommand('cursor-autonomous.openSettings');
@@ -709,7 +825,7 @@ function activate(context) {
         });
     }
     // Регистрация всех команд в subscriptions
-    context.subscriptions.push(quickMenu, toggleVirtualUser, startOrchestrator, stopOrchestrator, enableVirtualUser, disableVirtualUser, showStatus, analyzeProject, createTask, showStatusPanel, showAnalytics, refreshAgentsStatus, showAgentDetails, sendTaskToChat);
+    context.subscriptions.push(quickMenu, toggleVirtualUser, startOrchestrator, stopOrchestrator, enableVirtualUser, disableVirtualUser, showStatus, analyzeProject, runQualityCheck, createTask, showStatusPanel, showAnalytics, openSettings, refreshAgentsStatus, selectAgentModel, showAgentDetails, sendTaskToChat, enableAutonomous, disableAutonomous, createTaskWithPriority, showAutonomousStats);
     // Логирование для отладки
     console.log('All commands registered. toggleVirtualUser:', toggleVirtualUser ? 'registered' : 'NOT registered');
     // Регистрация оркестратора в UI CursorAI
@@ -823,22 +939,39 @@ function updateStatusBar(status) {
         return;
     const config = vscode.workspace.getConfiguration('cursor-autonomous');
     const virtualUserEnabled = config.get('enableVirtualUser', false);
+    const autonomousModeEnabled = config.get('autonomousMode', false);
     const orchestratorEnabled = config.get('enableOrchestrator', true);
     const isOrchestratorRunning = orchestrator?.isRunningState() || false;
-    if (virtualUserEnabled && isOrchestratorRunning) {
+    // Проверяем статус автономного режима
+    const isAutonomousActive = status === 'autonomous' || (autonomousModeEnabled && autonomousIntegration?.getStatus().enabled);
+    // Приоритет отображения:
+    // 1. Автономный режим (воркеры) - самый высокий приоритет
+    // 2. Виртуальный пользователь + Оркестратор
+    // 3. Только Оркестратор
+    // 4. Остановлен
+    if (isAutonomousActive) {
+        // Автономный режим активен - воркеры работают
+        statusBarItem.text = '$(robot) CursorAI $(pulse)';
+        statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.prominentBackground');
+        statusBarItem.tooltip = '🤖 Автономный режим активен - Воркеры работают\n\nКликните для быстрого меню (Ctrl+Shift+A)';
+    }
+    else if (virtualUserEnabled && isOrchestratorRunning) {
+        // Виртуальный пользователь активен
         statusBarItem.text = '$(robot) CursorAI $(check)';
         statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.prominentBackground');
-        statusBarItem.tooltip = 'Автономный режим активен - Виртуальный пользователь работает';
+        statusBarItem.tooltip = '👤 Виртуальный пользователь активен\n\nКликните для быстрого меню (Ctrl+Shift+A)';
     }
     else if (isOrchestratorRunning) {
+        // Только оркестратор
         statusBarItem.text = '$(robot) CursorAI';
         statusBarItem.backgroundColor = undefined;
-        statusBarItem.tooltip = 'Оркестратор работает - Нажмите для быстрого меню (Ctrl+Shift+A)';
+        statusBarItem.tooltip = '⚙️ Оркестратор работает\n\nКликните для быстрого меню (Ctrl+Shift+A)';
     }
     else {
+        // Всё остановлено
         statusBarItem.text = '$(robot) CursorAI $(circle-slash)';
         statusBarItem.backgroundColor = undefined;
-        statusBarItem.tooltip = 'Оркестратор остановлен - Нажмите для быстрого меню (Ctrl+Shift+A)';
+        statusBarItem.tooltip = '⏸️ Оркестратор остановлен\n\nКликните для быстрого меню (Ctrl+Shift+A)';
     }
 }
 function deactivate() {
