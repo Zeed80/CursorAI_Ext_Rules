@@ -64,6 +64,7 @@
 > - ✅ **Health monitoring** - auto-restart agents on failures
 > - ✅ **Cost optimization** - prompt caching, request batching, cost monitoring
 > - ✅ **UI improvements** - context menu for task creation, dashboard panel
+> - ✅ **Detailed logging** - Output Channel with detailed task progress, agent actions, and results
 
 ---
 
@@ -445,6 +446,19 @@ After installation, the extension activates automatically when opening a project
 
 ### 5. Monitor System
 
+**Output Channel for Logging (NEW!):**
+1. Press `Ctrl+Shift+U` (or `View > Output`)
+2. Select "CursorAI Autonomous" from dropdown
+3. View detailed orchestrator logs:
+   - ✅ Orchestrator start/stop
+   - 🚀 Task start with description and priority
+   - 📊 Task execution progress
+   - 🤖 Agent actions
+   - 📝 List of changed files
+   - ✅ Quality check results
+   - ❌ Errors with details
+   - ⏱️ Task execution time
+
 **Status Bar:**
 - `🤖 CursorAI ✓` (green) — Autonomous mode active
 - `👤 Virtual User` — Toggle virtual user
@@ -573,6 +587,7 @@ CursorAI_Ext_Rules/
 │   ├── extension.ts                          # Entry point
 │   ├── orchestrator/                         # Orchestrator
 │   │   ├── orchestrator.ts                  # Main orchestrator
+│   │   ├── orchestrator-logger.ts           # Output Channel logging (NEW!)
 │   │   ├── self-learning-orchestrator.ts    # Self-learning
 │   │   ├── swarm-orchestrator.ts           # Swarm coordination (NEW!)
 │   │   ├── file-watcher.ts                  # Real-time monitoring (NEW!)
@@ -700,6 +715,17 @@ Agent health tracking:
 - Detects stuck agents
 - Auto-restarts failed workers
 - Reports system health
+
+#### OrchestratorLogger (NEW!)
+
+Centralized logging to Output Channel:
+- Outputs detailed task execution progress
+- Shows agent actions in real-time
+- Displays list of changed files
+- Logs quality check results
+- Shows errors with details and stack traces
+- Automatically opens Output panel when orchestrator starts
+- Formatted messages with emojis for easy reading
 
 #### MCPClient (NEW!)
 
@@ -858,12 +884,29 @@ Full license text: [LICENSE](LICENSE)
 
 ### Troubleshooting
 
+#### Viewing Orchestrator Logs
+
+**Output Channel "CursorAI Autonomous":**
+1. Press `Ctrl+Shift+U` (or `View > Output`)
+2. Select "CursorAI Autonomous" from dropdown
+3. Logs automatically open when orchestrator starts
+4. View:
+   - Task execution progress
+   - Agent actions
+   - Changed files
+   - Errors with details
+
+**Extension Host Logs (for debugging):**
+1. View → Output → "Log (Extension Host)"
+2. Shows technical details and errors
+
 #### Extension Not Activating
 
 1. Check logs: View → Output → "Log (Extension Host)"
-2. Ensure dependencies are installed: `npm install`
-3. Check compiled files in `out/` directory
-4. Reload window: `Ctrl+Shift+P` → "Developer: Reload Window"
+2. Check Output Channel: View → Output → "CursorAI Autonomous"
+3. Ensure dependencies are installed: `npm install`
+4. Check compiled files in `out/` directory
+5. Reload window: `Ctrl+Shift+P` → "Developer: Reload Window"
 
 #### Autonomous Mode Not Starting
 
