@@ -6,43 +6,64 @@
 
 </div>
 
+> ## 🎉 **FREE & AUTONOMOUS AI DEVELOPMENT** 🎉
+> 
+> ### **Work Completely Free with Local Models!**
+> 
+> The extension provides **fully autonomous development system** that works:
+> 
+> - ✅ **100% FREE** - use local models (Ollama, LLM Studio) - **$0 cost forever**
+> - ✅ **Your own API keys** - use your OpenAI, Anthropic, Google accounts - pay only for usage
+> - ✅ **No CursorAI requirements** - works independently, no Background Agents API needed
+> - ✅ **Full autonomy** - agents work continuously in the background
+> - ✅ **Optional CursorAI integration** - if you have Pro plan and want to use it
+> 
+> ### **🚀 Quick Start (Free)**
+> 
+> ```bash
+> # 1. Install Ollama (takes 2 minutes)
+> # Download from https://ollama.ai/
+> 
+> # 2. Download free models
+> ollama pull codellama
+> ollama pull mistral
+> 
+> # 3. Install extension and enable autonomous mode
+> # Done! Your free AI development team is ready!
+> ```
+> 
+> **You pay NOTHING** - all processing happens on your computer!
+
+> ## ⚠️ **OPTIONAL: CursorAI Background Agents** ⚠️
+> 
+> ### **Only if you want to use CursorAI's official Background Agents**
+> 
+> If you decide to use CursorAI's **Background Agents API** (optional feature), be aware:
+> 
+> - ⚠️ Requires **Usage-based pricing** enabled in Cursor
+> - ⚠️ Requires **Spend Limit** (minimum $2)
+> - ⚠️ **Additional costs** beyond your subscription
+> - ⚠️ Can accumulate expenses with intensive use
+> 
+> **Recommendation:** Start with **free local models** (Ollama). Enable CursorAI integration only if you need it for specific tasks like:
+> - Solution consolidation from multiple agents
+> - File editing with Composer preview
+> 
+> **The extension works perfectly without CursorAI Background Agents!**
+
 > ## 🌟 **NEW IN VERSION 0.2.0** 🌟
 > 
 > ### **True Autonomous Operation with Local Models**
 > 
-> The extension now supports **fully autonomous operation** using local models (Ollama, LLM Studio) **without requiring CursorAI's Background Agents API**!
-> 
-> ### **Key Features:**
-> 
 > - ✅ **$0 cost operation** - use only local models (Ollama, LLM Studio)
 > - ✅ **Hybrid mode** - combine local models with cloud APIs (OpenAI, Google, Anthropic)
-> - ✅ **Optional CursorAI integration** - use CursorAI only for specific tasks (consolidation, file editing)
+> - ✅ **Optional CursorAI integration** - use CursorAI only for specific tasks
 > - ✅ **Swarm orchestration** - autonomous agents work continuously in the background
 > - ✅ **Prioritized task queue** - immediate, high, medium, low priorities
 > - ✅ **Real-time monitoring** - file watcher triggers tasks automatically
 > - ✅ **Health monitoring** - auto-restart agents on failures
 > - ✅ **Cost optimization** - prompt caching, request batching, cost monitoring
 > - ✅ **UI improvements** - context menu for task creation, dashboard panel
-
-> ## ⚠️ **IMPORTANT INFORMATION** ⚠️
-> 
-> ### **Research Project**
-> 
-> This project was created for **research purposes** to explore autonomous AI development capabilities. The project was created **100% automatically** in CursorAI.
-> 
-> ### **No CursorAI Background Agents Required**
-> 
-> Unlike version 0.1.0, the extension **no longer requires** CursorAI's Background Agents API or Usage-based pricing! You can:
-> 
-> - ✅ **Use only local models** (Ollama, LLM Studio) - $0 cost
-> - ✅ **Use cloud APIs** (OpenAI, Google, Anthropic) - pay only for what you use
-> - ✅ **Optional CursorAI integration** - if you have a Pro plan
-> 
-> **Minimal Configuration:**
-> - Install Ollama (free)
-> - Download models (codellama, mistral, etc.)
-> - Enable autonomous mode
-> - Done! System works continuously
 
 ---
 
