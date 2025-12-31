@@ -173,7 +173,9 @@ describe('CursorAPI - Получение списка моделей', () => {
         ok: false,
         status: 401,
         statusText: 'Unauthorized',
-      } as Response);
+        text: async () => 'Unauthorized',
+        json: async () => { throw new Error('Unauthorized'); }
+      } as Partial<Response>);
 
       const models = await CursorAPI.getModelsViaAPI();
 
@@ -185,7 +187,9 @@ describe('CursorAPI - Получение списка моделей', () => {
         ok: false,
         status: 403,
         statusText: 'Forbidden',
-      } as Response);
+        text: async () => 'Forbidden',
+        json: async () => { throw new Error('Forbidden'); }
+      } as Partial<Response>);
 
       const models = await CursorAPI.getModelsViaAPI();
 
