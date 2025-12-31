@@ -47,17 +47,29 @@ export class CursorAIProvider extends BaseModelProvider {
 
     async isAvailable(): Promise<boolean> {
         try {
+            console.log('CursorAIProvider.isAvailable: Checking availability...');
+            
             // Проверяем, инициализирован ли CursorAPI
             const apiKey = CursorAPI.getApiKey();
+            console.log('CursorAIProvider.isAvailable: API key check:', {
+                hasApiKey: !!apiKey,
+                apiKeyLength: apiKey?.length || 0,
+                configApiKey: !!this.config.apiKey,
+                configApiKeyLength: this.config.apiKey?.length || 0
+            });
+            
             if (!apiKey) {
+                console.warn('CursorAIProvider.isAvailable: No API key found');
                 return false;
             }
 
             // Пробуем получить список моделей
+            console.log('CursorAIProvider.isAvailable: Fetching models...');
             const models = await CursorAPI.getAvailableModels();
+            console.log('CursorAIProvider.isAvailable: Models fetched:', models.length);
             return models.length > 0;
         } catch (error) {
-            console.debug('CursorAIProvider: Not available:', error);
+            console.error('CursorAIProvider.isAvailable: Error:', error);
             return false;
         }
     }

@@ -43,6 +43,7 @@ const task_analytics_1 = require("./task-analytics");
 const task_executor_1 = require("./task-executor");
 const provider_manager_1 = require("../integration/model-providers/provider-manager");
 const quality_controller_1 = require("../quality/quality-controller");
+const orchestrator_logger_1 = require("./orchestrator-logger");
 class Orchestrator {
     constructor(context, settingsManager) {
         this.isRunning = false;
@@ -56,22 +57,25 @@ class Orchestrator {
         this.taskAnalytics = new task_analytics_1.TaskAnalytics(context, settingsManager);
         this.taskExecutor = new task_executor_1.TaskExecutor(context, this.taskAnalytics);
         this.qualityController = new quality_controller_1.QualityController();
+        this.logger = orchestrator_logger_1.OrchestratorLogger.getInstance();
     }
     async start() {
         if (this.isRunning) {
-            console.log('Orchestrator is already running');
+            this.logger.warn('Оркестратор уже запущен');
             return;
         }
         this.isRunning = true;
-        console.log('Orchestrator started');
+        this.logger.orchestratorStart();
+        this.logger.show(); // Показываем панель Output
         // Инициализация агентов
+        this.logger.info('Инициализация агентов...');
         await this.agentManager.initialize();
         // Обновляем статус оркестратора на "working"
         this.agentManager.updateAgentStatus('orchestrator', {
             status: 'working',
             lastActivity: new Date()
         });
-        console.log('Agents initialized and ready');
+        this.logger.success('Агенты инициализированы и готовы к работе');
     }
     async stop() {
         if (!this.isRunning) {
@@ -115,17 +119,22 @@ class Orchestrator {
             createdAt: new Date()
         };
         this.tasks.push(newTask);
+        // Логирование начала задачи
+        this.logger.taskStart(newTask.id, newTask.description);
+        this.logger.info(`Приоритет: ${newTask.priority.toUpperCase()}`);
+        this.logger.info(`Тип: ${newTask.type}`);
         // Планирование выполнения задачи
+        this.logger.taskProgress(newTask.id, 'Планирование задачи...');
         await this.taskPlanner.planTask(newTask, this.agentManager);
         // Обновляем статус назначенного агента
         if (newTask.assignedAgent) {
+            this.logger.taskProgress(newTask.id, `Назначен агент: ${newTask.assignedAgent}`);
             this.agentManager.updateAgentStatus(newTask.assignedAgent, {
                 status: 'working',
                 currentTask: newTask,
                 lastActivity: new Date()
             });
         }
-        console.log(`Task created: ${newTask.id} - ${newTask.description} (assigned to: ${newTask.assignedAgent})`);
         // Начинаем отслеживание задачи в аналитике
         this.taskAnalytics.trackTaskStart(newTask);
         // Автоматически начинаем выполнение задачи

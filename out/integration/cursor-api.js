@@ -306,16 +306,16 @@ class CursorAPI {
                 // Это соответствует curl -u YOUR_API_KEY: https://api.cursor.com/v0/models
                 const authString = `${this.apiKey}:`;
                 headers['Authorization'] = `Basic ${Buffer.from(authString).toString('base64')}`;
-                console.debug(`Using Basic Auth for v0 API (key length: ${this.apiKey.length})`);
+                console.log(`CursorAPI.request: Using Basic Auth for v0 API (key length: ${this.apiKey.length})`);
             }
             else {
                 // Bearer Auth для Cloud Agents API
                 headers['Authorization'] = `Bearer ${this.apiKey}`;
-                console.debug(`Using Bearer Auth for Cloud Agents API (key length: ${this.apiKey.length})`);
+                console.log(`CursorAPI.request: Using Bearer Auth for Cloud Agents API (key length: ${this.apiKey.length})`);
             }
         }
         else {
-            console.warn('No API key available for request');
+            console.warn('CursorAPI.request: No API key available for request to:', url);
         }
         // Используем fetch если доступен (Node.js 18+)
         if (typeof fetch !== 'undefined') {
@@ -643,16 +643,23 @@ ${agent.description}
     static async getModelsViaAPI() {
         // Проверяем и обновляем API ключ перед запросом
         const apiKey = this.getApiKey();
+        console.log('CursorAPI.getModelsViaAPI: API key check:', {
+            hasApiKey: !!apiKey,
+            apiKeyLength: apiKey?.length || 0,
+            isInitialized: this.isInitialized
+        });
         if (!apiKey) {
-            console.warn('No API key found, cannot fetch models via API');
+            console.warn('CursorAPI.getModelsViaAPI: No API key found, cannot fetch models via API');
             return [];
         }
         // Обновляем isInitialized если ключ был найден
         if (!this.isInitialized && apiKey) {
             this.isInitialized = true;
             this.apiKey = apiKey;
+            console.log('CursorAPI.getModelsViaAPI: Initialized with API key');
         }
         const apiVersion = await this.getApiVersion();
+        console.log('CursorAPI.getModelsViaAPI: Using API version:', apiVersion);
         // Пробуем Cloud Agents API
         if (apiVersion === 'cloud-agents') {
             try {

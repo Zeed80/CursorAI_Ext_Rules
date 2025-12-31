@@ -252,9 +252,19 @@ export class SettingsPanel {
             const providerTypes: ModelProviderType[] = ['openai', 'google', 'anthropic', 'ollama', 'llm-studio', 'cursorai'];
             for (const providerType of providerTypes) {
                 const config = this._settingsManager.getProviderConfig(providerType);
+                
+                // Для CursorAI устанавливаем дефолтный baseUrl если его нет или если там API ключ
+                let baseUrl = config.baseUrl;
+                if (providerType === 'cursorai') {
+                    // Проверяем, что baseUrl это действительно URL, а не API ключ
+                    if (!baseUrl || baseUrl.startsWith('key_') || !baseUrl.startsWith('http')) {
+                        baseUrl = 'https://api.cursor.com';
+                    }
+                }
+                
                 settings.providers[providerType] = {
                     apiKey: config.apiKey,
-                    baseUrl: config.baseUrl,
+                    baseUrl: baseUrl,
                     enabled: config.enabled !== false,
                     model: config.model // Загружаем выбранную модель для локальных провайдеров
                 };
@@ -319,9 +329,19 @@ export class SettingsPanel {
             // Сохраняем настройки провайдеров
             for (const [providerType, config] of Object.entries(settings.providers)) {
                 if (config) {
+                    // Валидация baseUrl для CursorAI
+                    let baseUrl = config.baseUrl;
+                    if (providerType === 'cursorai') {
+                        // Проверяем, что baseUrl это действительно URL, а не API ключ
+                        if (!baseUrl || baseUrl.startsWith('key_') || !baseUrl.startsWith('http')) {
+                            baseUrl = 'https://api.cursor.com';
+                            console.warn(`SettingsPanel: Invalid baseUrl for CursorAI in save, using default: ${baseUrl}`);
+                        }
+                    }
+                    
                     await this._settingsManager.updateProviderConfig(providerType as ModelProviderType, {
                         apiKey: config.apiKey,
-                        baseUrl: config.baseUrl,
+                        baseUrl: baseUrl,
                         enabled: config.enabled,
                         model: (config as any).model // Сохраняем выбранную модель для локальных провайдеров
                     });
@@ -446,16 +466,30 @@ export class SettingsPanel {
             // Загружаем актуальную конфигурацию из настроек
             const currentConfig = this._settingsManager.getProviderConfig(providerType as ModelProviderType);
             
+            // Валидация baseUrl для CursorAI
+            let validatedBaseUrl = baseUrl || currentConfig.baseUrl;
+            if (providerType === 'cursorai') {
+                // Проверяем, что baseUrl это действительно URL, а не API ключ
+                if (!validatedBaseUrl || validatedBaseUrl.startsWith('key_') || !validatedBaseUrl.startsWith('http')) {
+                    validatedBaseUrl = 'https://api.cursor.com';
+                    console.log(`SettingsPanel: Invalid baseUrl for CursorAI, using default: ${validatedBaseUrl}`);
+                }
+            }
+            
             // Если передан baseUrl из UI, используем его, иначе используем сохраненный
             const configToUse: ProviderConfig = {
                 ...currentConfig,
-                baseUrl: baseUrl || currentConfig.baseUrl
+                baseUrl: validatedBaseUrl
             };
 
             // Обновляем конфигурацию провайдера перед проверкой
             if (provider.updateConfig) {
                 provider.updateConfig(configToUse);
-                console.log(`SettingsPanel: Updated ${providerType} config with baseUrl: ${configToUse.baseUrl}`);
+                console.log(`SettingsPanel: Updated ${providerType} config:`, {
+                    baseUrl: configToUse.baseUrl,
+                    hasApiKey: !!configToUse.apiKey,
+                    apiKeyLength: configToUse.apiKey?.length || 0
+                });
             }
 
             // Проверяем доступность
@@ -1266,12 +1300,12 @@ export class SettingsPanel {
             if (!providersList) return;
 
             const providerConfigs = {
+                'cursorai': { name: 'CursorAI', needsApiKey: true, defaultBaseUrl: 'https://api.cursor.com', description: 'API ключ CursorAI (не путать с Base URL)' },
                 'openai': { name: 'OpenAI (ChatGPT)', needsApiKey: true, defaultBaseUrl: 'https://api.openai.com/v1' },
                 'google': { name: 'Google (Gemini)', needsApiKey: true, defaultBaseUrl: 'https://generativelanguage.googleapis.com/v1beta' },
                 'anthropic': { name: 'Anthropic (Claude)', needsApiKey: true, defaultBaseUrl: 'https://api.anthropic.com/v1' },
                 'ollama': { name: 'Ollama (Local)', needsApiKey: false, defaultBaseUrl: 'http://localhost:11434' },
-                'llm-studio': { name: 'LLM Studio (Local)', needsApiKey: false, defaultBaseUrl: 'http://localhost:1234/v1' },
-                'cursorai': { name: 'CursorAI', needsApiKey: false, defaultBaseUrl: '' }
+                'llm-studio': { name: 'LLM Studio (Local)', needsApiKey: false, defaultBaseUrl: 'http://localhost:1234/v1' }
             };
 
             let html = '';
@@ -1292,6 +1326,7 @@ export class SettingsPanel {
                                 <input type="text" id="provider-\${providerType}-apiKey" 
                                        value="\${providerData.apiKey || ''}" 
                                        placeholder="Введите API ключ">
+                                \${config.description ? \`<div class="help-text">\${config.description}</div>\` : ''}
                             </div>
                         \` : ''}
                         <div class="form-group">

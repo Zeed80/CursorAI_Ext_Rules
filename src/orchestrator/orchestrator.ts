@@ -10,6 +10,7 @@ import { QualityCheckResult } from './quality-checker';
 import { AgentSolution } from '../agents/local-agent';
 import { ModelProviderManager } from '../integration/model-providers/provider-manager';
 import { QualityController, QualityReport } from '../quality/quality-controller';
+import { OrchestratorLogger } from './orchestrator-logger';
 
 export interface Task {
     id: string;
@@ -50,6 +51,7 @@ export class Orchestrator {
     private taskAnalytics: TaskAnalytics;
     private taskExecutor: TaskExecutor;
     private qualityController: QualityController;
+    protected logger: OrchestratorLogger;
     private isRunning: boolean = false;
     private tasks: Task[] = [];
     private virtualUser?: any; // VirtualUser instance (избегаем циклической зависимости)
@@ -67,18 +69,21 @@ export class Orchestrator {
         this.taskAnalytics = new TaskAnalytics(context, settingsManager);
         this.taskExecutor = new TaskExecutor(context, this.taskAnalytics);
         this.qualityController = new QualityController();
+        this.logger = OrchestratorLogger.getInstance();
     }
 
     async start(): Promise<void> {
         if (this.isRunning) {
-            console.log('Orchestrator is already running');
+            this.logger.warn('Оркестратор уже запущен');
             return;
         }
 
         this.isRunning = true;
-        console.log('Orchestrator started');
+        this.logger.orchestratorStart();
+        this.logger.show(); // Показываем панель Output
         
         // Инициализация агентов
+        this.logger.info('Инициализация агентов...');
         await this.agentManager.initialize();
         
         // Обновляем статус оркестратора на "working"
@@ -87,7 +92,7 @@ export class Orchestrator {
             lastActivity: new Date()
         });
         
-        console.log('Agents initialized and ready');
+        this.logger.success('Агенты инициализированы и готовы к работе');
     }
 
     async stop(): Promise<void> {
@@ -141,19 +146,24 @@ export class Orchestrator {
 
         this.tasks.push(newTask);
         
+        // Логирование начала задачи
+        this.logger.taskStart(newTask.id, newTask.description);
+        this.logger.info(`Приоритет: ${newTask.priority.toUpperCase()}`);
+        this.logger.info(`Тип: ${newTask.type}`);
+        
         // Планирование выполнения задачи
+        this.logger.taskProgress(newTask.id, 'Планирование задачи...');
         await this.taskPlanner.planTask(newTask, this.agentManager);
         
         // Обновляем статус назначенного агента
         if (newTask.assignedAgent) {
+            this.logger.taskProgress(newTask.id, `Назначен агент: ${newTask.assignedAgent}`);
             this.agentManager.updateAgentStatus(newTask.assignedAgent, {
                 status: 'working',
                 currentTask: newTask,
                 lastActivity: new Date()
             });
         }
-        
-        console.log(`Task created: ${newTask.id} - ${newTask.description} (assigned to: ${newTask.assignedAgent})`);
         
         // Начинаем отслеживание задачи в аналитике
         this.taskAnalytics.trackTaskStart(newTask);

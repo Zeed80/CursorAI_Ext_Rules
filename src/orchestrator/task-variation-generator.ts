@@ -1,5 +1,5 @@
 import { Task } from './orchestrator';
-import { CursorAPI } from '../integration/cursor-api';
+import { ModelProviderManager } from '../integration/model-providers/provider-manager';
 
 /**
  * Вариация задачи
@@ -22,6 +22,11 @@ export interface TaskVariation {
 export class TaskVariationGenerator {
     private variationCache: Map<string, TaskVariation[]> = new Map();
     private readonly CACHE_TTL = 3600000; // 1 час
+    private modelProviderManager: ModelProviderManager;
+
+    constructor() {
+        this.modelProviderManager = ModelProviderManager.getInstance();
+    }
 
     /**
      * Генерация вариаций задачи для списка агентов
@@ -70,32 +75,38 @@ export class TaskVariationGenerator {
         const prompt = this.buildVariationPrompt(task, strategy);
 
         try {
-            // Используем CursorAPI для генерации вариации через специального агента
-            // Создаем временного агента для генерации вариаций
-            const variationAgentId = `variation-generator-${Date.now()}`;
-            await CursorAPI.createOrUpdateBackgroundAgent(
-                variationAgentId,
-                'Генератор вариаций задач',
-                'Специализируется на создании различных формулировок задач с сохранением их сути',
-                'Твоя задача - создавать различные формулировки задач, сохраняя их суть и ключевые требования. Адаптируй формулировку под специализацию агента, но не меняй функциональные требования.',
-                undefined // Автоматический выбор модели
-            );
+            // Используем ModelProviderManager для генерации вариации
+            // Это работает с любыми настроенными провайдерами (локальными или облачными)
+            console.log(`TaskVariationGenerator: Generating variation for agent ${agentId} using ModelProviderManager`);
+            
+            // Получаем провайдер для агента (используем настройки агента или default)
+            const provider = await this.modelProviderManager.getProviderForAgent(agentId);
+            
+            if (!provider) {
+                console.warn(`TaskVariationGenerator: No provider available for agent ${agentId}, using fallback`);
+                return this.createFallbackVariation(task, agentId, strategy);
+            }
 
             // Генерируем вариацию через LLM
-            const variationText = await CursorAPI.sendMessageToAgent(variationAgentId, prompt);
+            const result = await provider.call(prompt, {
+                temperature: 0.7,
+                maxTokens: 500
+            });
             
             // Парсим вариацию из ответа
-            const variation = this.parseVariationResponse(variationText, task, agentId, strategy);
+            const variation = this.parseVariationResponse(result.text, task, agentId, strategy);
 
             // Вычисляем схожесть с исходной задачей
             const similarity = await this.calculateSimilarity(task, variation.variation);
+
+            console.log(`TaskVariationGenerator: Successfully generated variation for agent ${agentId}`);
 
             return {
                 ...variation,
                 similarity
             };
         } catch (error) {
-            console.error(`Error generating variation for agent ${agentId}:`, error);
+            console.error(`TaskVariationGenerator: Error generating variation for agent ${agentId}:`, error);
             
             // Fallback: создаем простую вариацию на основе стратегии
             return this.createFallbackVariation(task, agentId, strategy);

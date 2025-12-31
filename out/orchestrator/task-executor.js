@@ -123,58 +123,167 @@ class TaskExecutor {
      */
     async sendToChat(message) {
         try {
-            // Пытаемся открыть чат CursorAI (если команда доступна)
-            try {
-                await vscode.commands.executeCommand('workbench.action.chat.open');
-                await new Promise(resolve => setTimeout(resolve, 500));
-            }
-            catch (chatError) {
-                // Команда может быть недоступна в некоторых версиях CursorAI
-                console.debug('Chat command not available:', chatError.message);
-            }
             // Копируем сообщение в буфер обмена
             await vscode.env.clipboard.writeText(message);
-            // Показываем уведомление пользователю
-            const action = await vscode.window.showInformationMessage('Задача отправлена в CursorAI Chat. Сообщение скопировано в буфер обмена.', 'Открыть чат', 'Продолжить автоматически');
-            if (action === 'Открыть чат') {
-                // Пользователь может вставить сообщение вручную
-                vscode.window.showInformationMessage('Вставьте сообщение из буфера обмена в чат CursorAI (Ctrl+V)', 'OK');
+            console.log('TaskExecutor: Message copied to clipboard, checking integration settings...');
+            // Проверяем настройки интеграции
+            const config = vscode.workspace.getConfiguration('cursor-autonomous');
+            const cursorIntegration = config.get('cursorIntegration', {
+                useChat: true,
+                useComposer: false,
+                useTab: false,
+                autoApplyComposer: false
+            });
+            let success = false;
+            // Пробуем Composer, если включен
+            if (cursorIntegration.useComposer) {
+                console.log('TaskExecutor: Trying Cursor Composer...');
+                success = await this.sendToComposer(message);
+                if (success) {
+                    vscode.window.showInformationMessage('✅ Задача отправлена в Cursor Composer', 'OK');
+                    return;
+                }
             }
-            else if (action === 'Продолжить автоматически') {
-                // Пытаемся автоматически вставить текст
-                // Это может не работать в зависимости от API CursorAI
-                await this.autoPasteToChat(message);
+            // Пробуем Chat, если включен (по умолчанию)
+            if (cursorIntegration.useChat || !cursorIntegration.useComposer) {
+                console.log('TaskExecutor: Trying Cursor Chat...');
+                const chatOpened = await this.openCursorChat();
+                if (chatOpened) {
+                    // Чат открыт, пытаемся автоматически отправить сообщение
+                    const sent = await this.sendMessageToChat(message);
+                    if (sent) {
+                        vscode.window.showInformationMessage('✅ Задача отправлена в Cursor Chat', 'OK');
+                        return;
+                    }
+                    else {
+                        // Не удалось автоматически отправить, но чат открыт
+                        vscode.window.showInformationMessage('📋 Чат Cursor открыт. Вставьте задачу из буфера обмена (Ctrl+V / Cmd+V)', 'OK');
+                        return;
+                    }
+                }
             }
+            // Если ничего не сработало
+            vscode.window.showWarningMessage('Задача подготовлена для передачи в чат. Сообщение скопировано в буфер обмена. Откройте Cursor Chat или Composer вручную и вставьте (Ctrl+V / Cmd+V).', 'Понятно');
         }
         catch (error) {
-            console.warn('Failed to send to chat:', error);
+            console.error('TaskExecutor: Failed to send to chat:', error);
             // Fallback: просто копируем в буфер обмена
             await vscode.env.clipboard.writeText(message);
-            vscode.window.showWarningMessage('Не удалось открыть чат автоматически. Сообщение скопировано в буфер обмена.', 'OK');
+            vscode.window.showWarningMessage('Не удалось открыть чат автоматически. Сообщение скопировано в буфер обмена. Откройте Cursor Chat и вставьте вручную.', 'OK');
         }
     }
     /**
-     * Автоматическая вставка текста в чат (экспериментально)
+     * Отправка задачи в Cursor Composer
      */
-    async autoPasteToChat(text) {
-        // Пытаемся использовать команды VS Code для вставки
-        // Это может не работать, так как чат CursorAI может иметь свой API
+    async sendToComposer(message) {
         try {
-            // Фокус на чат (если команда доступна)
-            try {
-                await vscode.commands.executeCommand('workbench.action.chat.open');
-                await new Promise(resolve => setTimeout(resolve, 300));
+            // Команды для открытия Composer
+            const composerCommands = [
+                'composer.startComposerPrompt', // Основная команда Composer
+                'cursor.composer', // Альтернативная команда
+                'aichat.startComposer' // Еще один вариант
+            ];
+            for (const command of composerCommands) {
+                try {
+                    console.log(`TaskExecutor: Trying Composer command: ${command}`);
+                    await vscode.commands.executeCommand(command, message);
+                    console.log(`TaskExecutor: Successfully opened Composer with: ${command}`);
+                    // Даем время Composer'у открыться
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    // Проверяем настройку автоприменения
+                    const config = vscode.workspace.getConfiguration('cursor-autonomous');
+                    const cursorIntegration = config.get('cursorIntegration', { autoApplyComposer: false });
+                    if (cursorIntegration.autoApplyComposer) {
+                        // Пытаемся автоматически применить изменения
+                        try {
+                            await vscode.commands.executeCommand('composer.acceptAll');
+                            console.log('TaskExecutor: Auto-applied Composer changes');
+                        }
+                        catch (acceptError) {
+                            console.debug('TaskExecutor: Auto-apply not available');
+                        }
+                    }
+                    return true;
+                }
+                catch (error) {
+                    console.debug(`TaskExecutor: Composer command ${command} not available:`, error.message);
+                    continue;
+                }
             }
-            catch (chatError) {
-                // Команда может быть недоступна в некоторых версиях CursorAI
-                console.debug('Chat command not available:', chatError.message);
-            }
-            // Пытаемся вставить текст
-            // В реальности это может потребовать специального API CursorAI
-            await vscode.commands.executeCommand('editor.action.clipboardPasteAction');
+            console.warn('TaskExecutor: No Composer command worked');
+            return false;
         }
         catch (error) {
-            console.warn('Auto-paste failed, user will need to paste manually');
+            console.error('TaskExecutor: Failed to send to Composer:', error);
+            return false;
+        }
+    }
+    /**
+     * Открытие Cursor Chat
+     * Пробует различные команды для открытия чата
+     */
+    async openCursorChat() {
+        // Список возможных команд для открытия чата в Cursor
+        const chatCommands = [
+            'aichat.newaiconversation', // Основная команда Cursor Chat
+            'cursor.newChat', // Альтернативная команда
+            'workbench.panel.chat.view.copilot.focus', // GitHub Copilot Chat (может быть в Cursor)
+            'workbench.action.chat.open' // Общая команда VS Code
+        ];
+        for (const command of chatCommands) {
+            try {
+                console.log(`TaskExecutor: Trying command: ${command}`);
+                await vscode.commands.executeCommand(command);
+                await new Promise(resolve => setTimeout(resolve, 500)); // Даем время на открытие
+                console.log(`TaskExecutor: Successfully executed: ${command}`);
+                return true;
+            }
+            catch (error) {
+                console.debug(`TaskExecutor: Command ${command} not available:`, error.message);
+                continue;
+            }
+        }
+        console.warn('TaskExecutor: No chat command worked');
+        return false;
+    }
+    /**
+     * Отправка сообщения в открытый чат
+     * Пытается автоматически отправить сообщение
+     */
+    async sendMessageToChat(message) {
+        try {
+            // Даем время чату открыться
+            await new Promise(resolve => setTimeout(resolve, 800));
+            // Пытаемся отправить сообщение через команды
+            const sendCommands = [
+                'aichat.sendMessage', // Если есть такая команда
+                'chat.action.submit', // Альтернативная команда
+                'workbench.action.chat.submit' // VS Code команда
+            ];
+            for (const command of sendCommands) {
+                try {
+                    console.log(`TaskExecutor: Trying send command: ${command}`);
+                    await vscode.commands.executeCommand(command, message);
+                    console.log(`TaskExecutor: Successfully sent message with: ${command}`);
+                    return true;
+                }
+                catch (error) {
+                    console.debug(`TaskExecutor: Send command ${command} not available:`, error.message);
+                    continue;
+                }
+            }
+            // Если команды не работают, пробуем симулировать вставку и Enter
+            console.log('TaskExecutor: Trying paste and enter simulation...');
+            await vscode.commands.executeCommand('editor.action.clipboardPasteAction');
+            await new Promise(resolve => setTimeout(resolve, 200));
+            // Пытаемся нажать Enter для отправки
+            await vscode.commands.executeCommand('type', { text: '\n' });
+            console.log('TaskExecutor: Paste and enter simulation completed');
+            return true;
+        }
+        catch (error) {
+            console.error('TaskExecutor: Failed to send message to chat:', error);
+            return false;
         }
     }
     /**
