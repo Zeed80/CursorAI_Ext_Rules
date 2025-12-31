@@ -1,0 +1,281 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  test-and-quality:
+    name: Tests & Quality Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Для coverage comparison
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile TypeScript
+        run: npm run compile
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Run Unit Tests
+        run: npm run test:jest -- --testPathPattern="unit|helpers" --coverage --coverageDirectory=./coverage/unit
+        timeout-minutes: 5
+        env:
+          NODE_ENV: test
+
+      - name: Check Unit Test Performance Budget
+        run: |
+          # Проверяем что unit тесты выполнились быстро
+          UNIT_TIME=$(cat coverage/unit/test-results.json | jq '.testResults | map(.duration) | add')
+          echo "Unit tests took: ${UNIT_TIME}ms"
+          if [ $(echo "$UNIT_TIME > 45000" | bc) -eq 1 ]; then
+            echo "❌ Unit tests exceeded performance budget (45s)"
+            exit 1
+          fi
+          echo "✅ Unit tests within performance budget"
+
+      - name: Run Integration Tests
+        run: npm run test:jest -- --testPathPattern="integration" --coverage --coverageDirectory=./coverage/integration
+        timeout-minutes: 10
+        env:
+          NODE_ENV: test
+
+      - name: Run Performance Tests
+        run: npm run test:jest -- --testPathPattern="performance" --coverage --coverageDirectory=./coverage/performance
+        timeout-minutes: 15
+        env:
+          NODE_ENV: test
+
+      - name: Merge Coverage Reports
+        run: |
+          npx nyc merge ./coverage/unit ./coverage/merged
+          npx nyc merge ./coverage/integration ./coverage/merged
+          npx nyc merge ./coverage/performance ./coverage/merged
+          npx nyc report --reporter=json --reporter=lcov --reporter=text-summary --report-dir=./coverage/final
+
+      - name: Check Coverage Threshold
+        run: |
+          COVERAGE=$(cat coverage/final/coverage-summary.json | jq '.total.lines.pct')
+          echo "Total coverage: ${COVERAGE}%"
+          
+          if [ $(echo "$COVERAGE < 70" | bc) -eq 1 ]; then
+            echo "❌ Coverage ${COVERAGE}% is below threshold (70%)"
+            exit 1
+          fi
+          echo "✅ Coverage meets threshold"
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/final/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+
+      - name: Detect Test Smells
+        run: |
+          echo "🔍 Detecting test smells..."
+          
+          # Проверяем пустые тесты
+          EMPTY_TESTS=$(grep -r "it('.*')" src/__tests__ | grep -v "expect\|assert" | wc -l)
+          echo "Empty tests found: $EMPTY_TESTS"
+          
+          # Проверяем использование sleep
+          SLEEP_USAGE=$(grep -r "setTimeout\|sleep" src/__tests__/**/*.test.ts | wc -l)
+          echo "setTimeout/sleep usage: $SLEEP_USAGE"
+          
+          # Проверяем длинные тесты (>30 строк)
+          LONG_TESTS=$(find src/__tests__ -name "*.test.ts" -exec awk '/it\(/ {count++; start=NR} /}\);/ && start {if (NR-start > 30) long++} END {print long}' {} \; | awk '{sum+=$1} END {print sum}')
+          echo "Long tests (>30 lines): $LONG_TESTS"
+          
+          TOTAL_SMELLS=$((EMPTY_TESTS + SLEEP_USAGE + LONG_TESTS))
+          echo "Total test smells: $TOTAL_SMELLS"
+          
+          if [ $TOTAL_SMELLS -gt 5 ]; then
+            echo "❌ Too many test smells detected: $TOTAL_SMELLS (limit: 5)"
+            exit 1
+          fi
+          echo "✅ Test smells within acceptable range"
+
+      - name: Check for Missing INTENT Comments
+        run: |
+          echo "🔍 Checking for INTENT comments in tests..."
+          
+          TOTAL_TESTS=$(grep -r "it('.*')" src/__tests__/**/*.test.ts | wc -l)
+          INTENT_COMMENTS=$(grep -r "INTENT:" src/__tests__/**/*.test.ts | wc -l)
+          
+          COVERAGE_PERCENT=$((INTENT_COMMENTS * 100 / TOTAL_TESTS))
+          echo "INTENT comment coverage: ${COVERAGE_PERCENT}% (${INTENT_COMMENTS}/${TOTAL_TESTS})"
+          
+          if [ $COVERAGE_PERCENT -lt 80 ]; then
+            echo "⚠️ Warning: INTENT comment coverage below 80%"
+            # Не блокируем, только предупреждаем
+          else
+            echo "✅ Good INTENT comment coverage"
+          fi
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: test-and-quality
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=moderate --json > audit-results.json || true
+          
+          CRITICAL=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
+          HIGH=$(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0')
+          
+          echo "Critical vulnerabilities: $CRITICAL"
+          echo "High vulnerabilities: $HIGH"
+          
+          if [ $CRITICAL -gt 0 ] || [ $HIGH -gt 0 ]; then
+            echo "❌ Critical or High vulnerabilities found"
+            cat audit-results.json | jq '.vulnerabilities'
+            exit 1
+          fi
+          echo "✅ No Critical/High vulnerabilities"
+
+      - name: Check for hardcoded secrets (basic)
+        run: |
+          echo "🔍 Scanning for potential secrets..."
+          
+          # Проверяем на hardcoded API keys (простая эвристика)
+          POTENTIAL_SECRETS=$(grep -r -E "(sk-[a-zA-Z0-9]{32,}|AIza[a-zA-Z0-9]{35}|ghp_[a-zA-Z0-9]{36})" src/ || true)
+          
+          if [ ! -z "$POTENTIAL_SECRETS" ]; then
+            echo "⚠️ Potential secrets found:"
+            echo "$POTENTIAL_SECRETS"
+            echo "Please verify these are not real API keys!"
+            # Не блокируем автоматически, но предупреждаем
+          else
+            echo "✅ No obvious secrets detected"
+          fi
+
+  performance-regression:
+    name: Performance Regression Detection
+    runs-on: ubuntu-latest
+    needs: test-and-quality
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Нужен для сравнения с предыдущим коммитом
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run performance benchmarks
+        run: npm run test:jest -- --testPathPattern="performance" --json --outputFile=perf-results-current.json
+        env:
+          NODE_ENV: test
+
+      - name: Checkout previous commit
+        run: git checkout HEAD~1
+
+      - name: Install dependencies (previous)
+        run: npm ci
+
+      - name: Run performance benchmarks (previous)
+        run: npm run test:jest -- --testPathPattern="performance" --json --outputFile=perf-results-previous.json
+        continue-on-error: true # Previous commit может не иметь тестов
+        env:
+          NODE_ENV: test
+
+      - name: Compare performance
+        run: |
+          if [ -f perf-results-previous.json ]; then
+            echo "📊 Comparing performance with previous commit..."
+            
+            # Здесь должен быть скрипт сравнения, для примера используем простую логику
+            CURRENT_TIME=$(cat perf-results-current.json | jq '.testResults | map(.duration) | add // 0')
+            PREVIOUS_TIME=$(cat perf-results-previous.json | jq '.testResults | map(.duration) | add // 0')
+            
+            if [ $PREVIOUS_TIME -gt 0 ]; then
+              REGRESSION=$(echo "scale=2; ($CURRENT_TIME - $PREVIOUS_TIME) / $PREVIOUS_TIME * 100" | bc)
+              echo "Performance change: ${REGRESSION}%"
+              
+              if [ $(echo "$REGRESSION > 10" | bc) -eq 1 ]; then
+                echo "❌ Performance regression detected: ${REGRESSION}%"
+                exit 1
+              fi
+              echo "✅ No significant performance regression"
+            else
+              echo "ℹ️ No previous performance data available"
+            fi
+          else
+            echo "ℹ️ No previous performance tests found"
+          fi
+
+  quality-report:
+    name: Quality Summary Report
+    runs-on: ubuntu-latest
+    needs: [test-and-quality, security-scan, performance-regression]
+    if: always()
+
+    steps:
+      - name: Generate Quality Report
+        run: |
+          echo "## 📊 Quality Gates Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Gate | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Tests | ${{ needs.test-and-quality.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.security-scan.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Performance | ${{ needs.performance-regression.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.test-and-quality.result }}" == "success" ] && \
+             [ "${{ needs.security-scan.result }}" == "success" ] && \
+             [ "${{ needs.performance-regression.result }}" == "success" ]; then
+            echo "### ✅ All Quality Gates Passed!" >> $GITHUB_STEP_SUMMARY
+            echo "Safe to merge." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Quality Gates Failed" >> $GITHUB_STEP_SUMMARY
+            echo "Please fix the issues before merging." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Block merge if quality gates fail
+        if: needs.test-and-quality.result != 'success' || needs.security-scan.result != 'success' || needs.performance-regression.result != 'success'
+        run: |
+          echo "❌ Quality gates failed - blocking merge"
+          exit 1
