@@ -23,12 +23,6 @@ export class ProvidersInitializer {
         const manager = ModelProviderManager.getInstance();
         const settingsManager = new SettingsManager();
 
-        // Инициализируем CursorAPI для CursorAI провайдера
-        const cursorApiKey = settingsManager.getSetting<string>('apiKey', '');
-        if (cursorApiKey) {
-            CursorAPI.initialize(cursorApiKey);
-        }
-
         // Получаем глобальные настройки провайдеров
         const providersConfig = vscode.workspace.getConfiguration('cursor-autonomous').get<{
             [key: string]: any;
@@ -36,13 +30,22 @@ export class ProvidersInitializer {
 
         // Регистрируем CursorAI провайдер
         if (providersConfig.cursorai?.enabled !== false) {
+            // Приоритет: providersConfig.cursorai.apiKey > общий apiKey
+            const cursorApiKey = providersConfig.cursorai?.apiKey || settingsManager.getSetting<string>('apiKey', '');
+            
             const cursorAIConfig: ProviderConfig = {
                 apiKey: cursorApiKey,
-                baseUrl: 'https://api.cursor.com'
+                baseUrl: providersConfig.cursorai?.baseUrl || 'https://api.cursor.com'
             };
+            
+            // Инициализируем CursorAPI если есть API ключ
+            if (cursorApiKey) {
+                CursorAPI.initialize(cursorApiKey, cursorAIConfig.baseUrl);
+            }
+            
             const cursorAIProvider = new CursorAIProvider(cursorAIConfig, 'default');
             manager.registerProvider(cursorAIProvider);
-            console.log('ProvidersInitializer: CursorAI provider registered');
+            console.log('ProvidersInitializer: CursorAI provider registered with API key:', cursorApiKey ? 'present' : 'missing');
         }
 
         // Регистрируем OpenAI провайдер

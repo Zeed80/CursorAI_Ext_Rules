@@ -489,6 +489,27 @@
           "type": "boolean",
           "default": true,
           "description": "Использовать CursorAI для финальной обработки только для критических задач (high priority)"
+        },
+        "cursor-autonomous.quality.minAcceptableScore": {
+          "type": "number",
+          "default": 70,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Минимальный балл качества кода (0-100) для прохождения проверки QualityController"
+        },
+        "cursor-autonomous.quality.virtualUserAutoApproveThreshold": {
+          "type": "number",
+          "default": 0.8,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Порог уверенности для автоматического одобрения решений VirtualUser (0-1)"
+        },
+        "cursor-autonomous.quality.virtualUserRequestConfirmationThreshold": {
+          "type": "number",
+          "default": 0.6,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Порог уверенности для запроса подтверждения VirtualUser (0-1). Ниже этого порога решения автоматически отклоняются"
         }
       }
     },

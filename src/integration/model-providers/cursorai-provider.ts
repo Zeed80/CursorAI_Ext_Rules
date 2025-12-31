@@ -29,6 +29,18 @@ export class CursorAIProvider extends BaseModelProvider {
         }
     }
 
+    /**
+     * Переопределяем updateConfig для обновления CursorAPI
+     */
+    updateConfig(config: Partial<ProviderConfig>): void {
+        super.updateConfig(config);
+        
+        // Реинициализируем CursorAPI с новым API ключом
+        if (this.config.apiKey) {
+            CursorAPI.initialize(this.config.apiKey, this.config.baseUrl);
+        }
+    }
+
     getProviderType(): ModelProviderType {
         return 'cursorai';
     }

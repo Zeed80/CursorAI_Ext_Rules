@@ -12,6 +12,7 @@ export interface TaskExecutionResult {
     error?: string;
     filesChanged?: string[];
     codeChanges?: number;
+    executionTime?: number; // Время выполнения в миллисекундах
 }
 
 /**

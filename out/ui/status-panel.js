@@ -388,6 +388,20 @@ class StatusPanel {
                             ✅ Выполнено: ${Array.isArray(agentTask.executionResult.filesChanged) ? agentTask.executionResult.filesChanged.length : 0} файлов изменено
                         </div>
                     ` : ''}
+                    ${agentTask.qualityReport ? `
+                        <div style="margin-top: 8px; padding: 8px; background: ${agentTask.qualityReport.passed ? 'var(--vscode-testing-iconPassed)' : 'var(--vscode-testing-iconFailed)'}; opacity: 0.1; border-radius: 4px; border-left: 3px solid ${agentTask.qualityReport.passed ? 'var(--vscode-testing-iconPassed)' : 'var(--vscode-testing-iconFailed)'};">
+                            <div style="font-size: 12px; font-weight: bold; margin-bottom: 4px;">
+                                ${agentTask.qualityReport.passed ? '✅' : '❌'} Качество: ${agentTask.qualityReport.score}/100
+                            </div>
+                            ${agentTask.qualityReport.issues.length > 0 ? `
+                                <div style="font-size: 11px; margin-top: 4px;">
+                                    Проблем: ${agentTask.qualityReport.issues.length}
+                                    ${agentTask.qualityReport.issues.slice(0, 2).map(issue => `<div>• ${issue.severity}: ${this.escapeHtml(issue.message)}</div>`).join('')}
+                                    ${agentTask.qualityReport.issues.length > 2 ? `<div>... и еще ${agentTask.qualityReport.issues.length - 2}</div>` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
                 </div>
             ` : ''}
             <button 
@@ -403,6 +417,20 @@ class StatusPanel {
             <div style="margin-top: 12px; padding: 8px; background: var(--vscode-input-background); border-radius: 4px; border: 1px solid var(--vscode-input-border); font-size: 12px; opacity: 0.8;">
                 ⚙️ Настройка модели: откройте панель настроек расширения
             </div>
+            ${agent.id === 'virtual-user' && agent.autonomousMode !== undefined ? `
+                <div style="margin-top: 8px; padding: 8px; background: ${agent.autonomousMode ? 'var(--vscode-testing-iconPassed)' : 'var(--vscode-testing-iconQueued)'}; opacity: 0.15; border-radius: 4px; border-left: 3px solid ${agent.autonomousMode ? 'var(--vscode-testing-iconPassed)' : 'var(--vscode-testing-iconQueued)'};">
+                    <div style="font-weight: bold; margin-bottom: 4px;">
+                        ${agent.autonomousMode ? '🤖 Автономный режим' : '👤 Ручной режим'}
+                    </div>
+                    ${agent.confidenceThresholds ? `
+                        <div style="font-size: 11px; opacity: 0.9;">
+                            Автоодобрение: >${Math.round(agent.confidenceThresholds.autoApprove * 100)}%<br>
+                            Запрос: ${Math.round(agent.confidenceThresholds.requestConfirmation * 100)}-${Math.round(agent.confidenceThresholds.autoApprove * 100)}%<br>
+                            Автоотклонение: <${Math.round(agent.confidenceThresholds.requestConfirmation * 100)}%
+                        </div>
+                    ` : ''}
+                </div>
+            ` : ''}
             ${agent.status === 'error' && agent.errorMessage ? `
                 <div style="margin-top: 12px; padding: 12px; background: var(--vscode-inputValidation-errorBackground); border-radius: 4px; border-left: 4px solid var(--vscode-errorForeground);">
                     <strong style="color: var(--vscode-errorForeground);">❌ Ошибка:</strong><br>

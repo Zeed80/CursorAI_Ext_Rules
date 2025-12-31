@@ -605,13 +605,18 @@ export class SettingsPanel {
             border-bottom: 2px solid transparent;
             margin-bottom: -2px;
             transition: all 0.2s;
+            opacity: 0.7;
         }
         .tab:hover {
             background: var(--vscode-list-hoverBackground);
+            opacity: 1;
         }
         .tab.active {
             border-bottom-color: var(--vscode-focusBorder);
-            color: var(--vscode-focusBorder);
+            background: var(--vscode-list-activeSelectionBackground);
+            color: var(--vscode-list-activeSelectionForeground);
+            font-weight: 600;
+            opacity: 1;
         }
         .tab-content {
             display: none;

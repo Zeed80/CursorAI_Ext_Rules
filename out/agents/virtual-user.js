@@ -42,6 +42,9 @@ class VirtualUser {
     constructor(context, orchestrator, settingsManager) {
         this.isRunning = false;
         this.projectGoals = [];
+        this.autonomousMode = true; // Автономный режим по умолчанию
+        this.autoApproveThreshold = 0.8; // Порог автоодобрения
+        this.requestConfirmationThreshold = 0.6; // Порог запроса подтверждения
         this.context = context;
         this.orchestrator = orchestrator;
         this.settingsManager = settingsManager;
@@ -193,18 +196,92 @@ class VirtualUser {
     }
     /**
      * Принятие решения о подтверждении предложения
+     * В автономном режиме принимает решения автоматически при высокой уверенности
      */
     async makeDecision(proposal) {
         console.log(`Virtual User: Making decision on proposal: ${proposal.title}`);
         // Анализ предложения
         const decision = await this.decisionMaker.analyzeProposal(proposal, this.projectGoals);
-        if (decision.approved) {
+        // В автономном режиме автоматически одобряем при высокой уверенности
+        if (this.autonomousMode) {
+            // Высокая уверенность (>autoApproveThreshold) - автоматически одобрить
+            if (decision.confidence > this.autoApproveThreshold && decision.approved) {
+                console.log(`Virtual User: Auto-approved (confidence: ${decision.confidence}): ${proposal.title}`);
+                this.uiIntegration.showVirtualUserNotification(`✅ Автоматически одобрено: ${proposal.title} (уверенность: ${Math.round(decision.confidence * 100)}%)`, 'info');
+                return true;
+            }
+            // Средняя уверенность (requestConfirmationThreshold - autoApproveThreshold) - запросить подтверждение
+            if (decision.confidence > this.requestConfirmationThreshold && decision.approved) {
+                console.log(`Virtual User: Requesting user confirmation (confidence: ${decision.confidence}): ${proposal.title}`);
+                return await this.requestUserConfirmation(proposal, decision);
+            }
+            // Низкая уверенность (<60%) или не одобрено - автоматически отклонить
+            console.log(`Virtual User: Auto-rejected (confidence: ${decision.confidence}): ${proposal.title}`);
+            this.uiIntegration.showVirtualUserNotification(`❌ Автоматически отклонено: ${proposal.title} (уверенность: ${Math.round(decision.confidence * 100)}%)\nПричина: ${decision.reason}`, 'warning');
+            return false;
+        }
+        // В ручном режиме всегда запрашиваем подтверждение
+        return await this.requestUserConfirmation(proposal, decision);
+    }
+    /**
+     * Запросить подтверждение пользователя
+     */
+    async requestUserConfirmation(proposal, decision) {
+        const action = await vscode.window.showInformationMessage(`Предложение: ${proposal.title}\n` +
+            `Уверенность: ${Math.round(decision.confidence * 100)}%\n` +
+            `Файлы: ${proposal.files.length}\n` +
+            `Преимущества: ${proposal.benefits.join(', ')}`, { modal: true }, 'Одобрить', 'Отклонить', 'Подробнее');
+        if (action === 'Одобрить') {
             this.uiIntegration.showVirtualUserNotification(`Approved: ${proposal.title}`, 'info');
+            return true;
+        }
+        else if (action === 'Подробнее') {
+            // Показать детали
+            const details = `Предложение: ${proposal.title}\n\n` +
+                `Описание: ${proposal.description}\n\n` +
+                `Файлы (${proposal.files.length}):\n${proposal.files.join('\n')}\n\n` +
+                `Преимущества:\n${proposal.benefits.map(b => `✓ ${b}`).join('\n')}\n\n` +
+                `Риски:\n${proposal.risks.map(r => `⚠ ${r}`).join('\n')}\n\n` +
+                `Время: ${proposal.estimatedTime}\n` +
+                `Уверенность: ${Math.round(decision.confidence * 100)}%`;
+            vscode.window.showInformationMessage(details, { modal: true }, 'OK');
+            // Повторно запросить решение
+            return await this.requestUserConfirmation(proposal, decision);
         }
         else {
-            this.uiIntegration.showVirtualUserNotification(`Rejected: ${proposal.title}. Reason: ${decision.reason}`, 'warning');
+            this.uiIntegration.showVirtualUserNotification(`Rejected: ${proposal.title}`, 'warning');
+            return false;
         }
-        return decision.approved;
+    }
+    /**
+     * Установить режим работы
+     */
+    setAutonomousMode(enabled) {
+        this.autonomousMode = enabled;
+        console.log(`Virtual User: Autonomous mode ${enabled ? 'enabled' : 'disabled'}`);
+    }
+    /**
+     * Получить текущий режим работы
+     */
+    isAutonomous() {
+        return this.autonomousMode;
+    }
+    /**
+     * Установить пороги уверенности
+     */
+    setConfidenceThresholds(autoApprove, requestConfirmation) {
+        this.autoApproveThreshold = Math.max(0, Math.min(1, autoApprove));
+        this.requestConfirmationThreshold = Math.max(0, Math.min(1, requestConfirmation));
+        console.log(`Virtual User: Confidence thresholds updated - autoApprove: ${this.autoApproveThreshold}, requestConfirmation: ${this.requestConfirmationThreshold}`);
+    }
+    /**
+     * Получить пороги уверенности
+     */
+    getConfidenceThresholds() {
+        return {
+            autoApprove: this.autoApproveThreshold,
+            requestConfirmation: this.requestConfirmationThreshold
+        };
     }
     /**
      * Инициация новой задачи

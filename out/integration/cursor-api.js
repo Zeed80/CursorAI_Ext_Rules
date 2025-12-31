@@ -63,10 +63,18 @@ class CursorAPI {
         // Также пробуем синхронные источники
         if (!this.apiKey) {
             const config = vscode.workspace.getConfiguration('cursor-autonomous');
-            const configApiKey = config.get('apiKey');
-            // Проверяем, что ключ не пустой
-            if (configApiKey && configApiKey.trim().length > 0) {
-                this.apiKey = configApiKey.trim();
+            // Сначала проверяем настройки провайдера CursorAI
+            const cursoraiProviderConfig = config.get('providers.cursorai');
+            if (cursoraiProviderConfig?.apiKey && cursoraiProviderConfig.apiKey.trim().length > 0) {
+                this.apiKey = cursoraiProviderConfig.apiKey.trim();
+            }
+            // Затем проверяем общие настройки расширения
+            if (!this.apiKey) {
+                const configApiKey = config.get('apiKey');
+                // Проверяем, что ключ не пустой
+                if (configApiKey && configApiKey.trim().length > 0) {
+                    this.apiKey = configApiKey.trim();
+                }
             }
         }
         if (!this.apiKey) {
@@ -109,14 +117,20 @@ class CursorAPI {
             console.log('Found CURSOR_API_KEY in environment variables');
             return process.env.CURSOR_API_KEY.trim();
         }
-        // 2. Настройки расширения
+        // 2. Настройки провайдера CursorAI
         const config = vscode.workspace.getConfiguration('cursor-autonomous');
+        const cursoraiProviderConfig = config.get('providers.cursorai');
+        if (cursoraiProviderConfig?.apiKey && cursoraiProviderConfig.apiKey.trim().length > 0) {
+            console.log('Found API key in CursorAI provider settings');
+            return cursoraiProviderConfig.apiKey.trim();
+        }
+        // 3. Настройки расширения (общие)
         const extensionApiKey = config.get('apiKey');
         if (extensionApiKey && extensionApiKey.trim().length > 0) {
             console.log('Found API key in extension settings');
             return extensionApiKey.trim();
         }
-        // 3. Настройки Cursor IDE (пробуем разные возможные ключи)
+        // 4. Настройки Cursor IDE (пробуем разные возможные ключи)
         const cursorConfig = vscode.workspace.getConfiguration('cursor');
         const cursorApiKey = cursorConfig.get('apiKey') ||
             cursorConfig.get('api.apiKey') ||
@@ -254,11 +268,20 @@ class CursorAPI {
         if (!this.apiKey || this.apiKey.trim().length === 0) {
             // Пробуем получить из синхронных источников
             const config = vscode.workspace.getConfiguration('cursor-autonomous');
-            const configApiKey = config.get('apiKey');
-            // Проверяем, что ключ не пустой
-            if (configApiKey && configApiKey.trim().length > 0) {
-                this.apiKey = configApiKey.trim();
+            // Сначала проверяем настройки провайдера CursorAI
+            const cursoraiProviderConfig = config.get('providers.cursorai');
+            if (cursoraiProviderConfig?.apiKey && cursoraiProviderConfig.apiKey.trim().length > 0) {
+                this.apiKey = cursoraiProviderConfig.apiKey.trim();
             }
+            // Затем проверяем общие настройки расширения
+            if (!this.apiKey) {
+                const configApiKey = config.get('apiKey');
+                // Проверяем, что ключ не пустой
+                if (configApiKey && configApiKey.trim().length > 0) {
+                    this.apiKey = configApiKey.trim();
+                }
+            }
+            // Затем проверяем настройки Cursor IDE
             if (!this.apiKey) {
                 const cursorConfig = vscode.workspace.getConfiguration('cursor');
                 const cursorApiKey = cursorConfig.get('apiKey') ||
@@ -269,6 +292,7 @@ class CursorAPI {
                     this.apiKey = cursorApiKey.trim();
                 }
             }
+            // Затем проверяем переменные окружения
             if (!this.apiKey && process.env.CURSOR_API_KEY && process.env.CURSOR_API_KEY.trim().length > 0) {
                 this.apiKey = process.env.CURSOR_API_KEY.trim();
             }
@@ -1537,6 +1561,13 @@ ${agent.description}
         }
         // Пробуем получить из синхронных источников
         const config = vscode.workspace.getConfiguration('cursor-autonomous');
+        // Сначала проверяем настройки провайдера CursorAI
+        const cursoraiProviderConfig = config.get('providers.cursorai');
+        if (cursoraiProviderConfig?.apiKey && cursoraiProviderConfig.apiKey.trim().length > 0) {
+            this.apiKey = cursoraiProviderConfig.apiKey.trim();
+            return this.apiKey;
+        }
+        // Затем проверяем общие настройки расширения
         const configApiKey = config.get('apiKey');
         // Проверяем, что ключ не пустой
         if (configApiKey && configApiKey.trim().length > 0) {

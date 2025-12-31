@@ -285,14 +285,16 @@ export function activate(context: vscode.ExtensionContext) {
         virtualUser.setAutonomousMode(!currentMode);
         
         // Обновляем статус агента в UI
-        const thresholds = virtualUser.getConfidenceThresholds();
-        agentsStatusTreeProvider.updateAgentStatus('virtual-user', {
-            autonomousMode: virtualUser.isAutonomous(),
-            confidenceThresholds: {
-                autoApprove: thresholds.autoApprove,
-                requestConfirmation: thresholds.requestConfirmation
-            }
-        });
+        if (agentsStatusTreeProvider) {
+            const thresholds = virtualUser.getConfidenceThresholds();
+            agentsStatusTreeProvider.updateAgentStatus('virtual-user', {
+                autonomousMode: virtualUser.isAutonomous(),
+                confidenceThresholds: {
+                    autoApprove: thresholds.autoApprove,
+                    requestConfirmation: thresholds.requestConfirmation
+                }
+            });
+        }
         
         const modeText = virtualUser.isAutonomous() ? 'автономный' : 'ручной';
         vscode.window.showInformationMessage(`Virtual User: режим изменен на ${modeText}`);
@@ -955,6 +957,11 @@ ${stats.health ? `Здоровье:
 
     // Функция применения настроек качества
     function applyQualitySettings() {
+        if (!orchestrator) {
+            console.warn('Cannot apply quality settings: orchestrator is not initialized');
+            return;
+        }
+        
         // Применяем минимальный балл качества
         const minQualityScore = settingsManager.getSetting<number>('quality.minAcceptableScore', 70);
         orchestrator.setMinQualityScore(minQualityScore);
@@ -968,14 +975,16 @@ ${stats.health ? `Здоровье:
             console.log(`Applied VirtualUser thresholds: autoApprove=${autoApproveThreshold}, requestConfirmation=${requestConfirmationThreshold}`);
             
             // Обновляем статус агента в UI
-            const thresholds = virtualUser.getConfidenceThresholds();
-            agentsStatusTreeProvider.updateAgentStatus('virtual-user', {
-                autonomousMode: virtualUser.isAutonomous(),
-                confidenceThresholds: {
-                    autoApprove: thresholds.autoApprove,
-                    requestConfirmation: thresholds.requestConfirmation
-                }
-            });
+            if (agentsStatusTreeProvider) {
+                const thresholds = virtualUser.getConfidenceThresholds();
+                agentsStatusTreeProvider.updateAgentStatus('virtual-user', {
+                    autonomousMode: virtualUser.isAutonomous(),
+                    confidenceThresholds: {
+                        autoApprove: thresholds.autoApprove,
+                        requestConfirmation: thresholds.requestConfirmation
+                    }
+                });
+            }
         }
     }
 
@@ -1080,6 +1089,18 @@ ${stats.health ? `Здоровье:
                         CursorAPI.initialize(undefined);
                         console.log('CursorAI API key cleared');
                     }
+                }
+                
+                // Переинициализация провайдеров при изменении их настроек
+                if (e.affectsConfiguration('cursor-autonomous.providers')) {
+                    console.log('Provider settings changed, reinitializing providers...');
+                    import('./integration/model-providers/providers-initializer').then(({ ProvidersInitializer }) => {
+                        ProvidersInitializer.initialize(context).then(() => {
+                            console.log('Model providers reinitialized after settings change');
+                        }).catch(err => {
+                            console.error('Error reinitializing model providers:', err);
+                        });
+                    });
                 }
                 
                 // Обновление настроек качества при изменении

@@ -122,6 +122,11 @@ function activate(context) {
                 detail: 'Вернуться к ручному управлению'
             },
             {
+                label: '$(settings-gear) Переключить автономный режим VirtualUser',
+                description: 'Переключить между автономным и ручным режимом',
+                detail: 'Автономный: авто-одобрение >80%, Ручной: всегда запрашивать подтверждение'
+            },
+            {
                 label: '$(search) Анализ проекта',
                 description: 'Проанализировать структуру и технологии проекта',
                 detail: 'Определить тип проекта и сгенерировать правила'
@@ -189,6 +194,9 @@ function activate(context) {
                     break;
                 case '$(person-off) Выключить виртуального пользователя':
                     await vscode.commands.executeCommand('cursor-autonomous.disableVirtualUser');
+                    break;
+                case '$(settings-gear) Переключить автономный режим VirtualUser':
+                    await vscode.commands.executeCommand('cursor-autonomous.toggleVirtualUserAutonomousMode');
                     break;
                 case '$(search) Анализ проекта':
                     await vscode.commands.executeCommand('cursor-autonomous.analyzeProject');
@@ -283,6 +291,28 @@ function activate(context) {
         }
         updateStatusBar('active');
         vscode.window.showInformationMessage('Virtual User mode disabled');
+    });
+    const toggleVirtualUserAutonomousMode = vscode.commands.registerCommand('cursor-autonomous.toggleVirtualUserAutonomousMode', async () => {
+        if (!virtualUser) {
+            vscode.window.showWarningMessage('Virtual User не инициализирован. Включите Virtual User сначала.');
+            return;
+        }
+        const currentMode = virtualUser.isAutonomous();
+        virtualUser.setAutonomousMode(!currentMode);
+        // Обновляем статус агента в UI
+        if (agentsStatusTreeProvider) {
+            const thresholds = virtualUser.getConfidenceThresholds();
+            agentsStatusTreeProvider.updateAgentStatus('virtual-user', {
+                autonomousMode: virtualUser.isAutonomous(),
+                confidenceThresholds: {
+                    autoApprove: thresholds.autoApprove,
+                    requestConfirmation: thresholds.requestConfirmation
+                }
+            });
+        }
+        const modeText = virtualUser.isAutonomous() ? 'автономный' : 'ручной';
+        vscode.window.showInformationMessage(`Virtual User: режим изменен на ${modeText}`);
+        console.log(`Virtual User autonomous mode toggled to: ${virtualUser.isAutonomous()}`);
     });
     const showStatus = vscode.commands.registerCommand('cursor-autonomous.showStatus', () => {
         const status = {
@@ -807,13 +837,47 @@ ${stats.health ? `Здоровье:
     context.subscriptions.push(statusPanelButton);
     // Автообновление статуса агентов
     startStatusUpdates();
+    // Функция применения настроек качества
+    function applyQualitySettings() {
+        if (!orchestrator) {
+            console.warn('Cannot apply quality settings: orchestrator is not initialized');
+            return;
+        }
+        // Применяем минимальный балл качества
+        const minQualityScore = settingsManager.getSetting('quality.minAcceptableScore', 70);
+        orchestrator.setMinQualityScore(minQualityScore);
+        console.log(`Applied quality settings: minScore=${minQualityScore}`);
+        // Применяем пороги уверенности для VirtualUser
+        if (virtualUser) {
+            const autoApproveThreshold = settingsManager.getSetting('quality.virtualUserAutoApproveThreshold', 0.8);
+            const requestConfirmationThreshold = settingsManager.getSetting('quality.virtualUserRequestConfirmationThreshold', 0.6);
+            virtualUser.setConfidenceThresholds(autoApproveThreshold, requestConfirmationThreshold);
+            console.log(`Applied VirtualUser thresholds: autoApprove=${autoApproveThreshold}, requestConfirmation=${requestConfirmationThreshold}`);
+            // Обновляем статус агента в UI
+            if (agentsStatusTreeProvider) {
+                const thresholds = virtualUser.getConfidenceThresholds();
+                agentsStatusTreeProvider.updateAgentStatus('virtual-user', {
+                    autonomousMode: virtualUser.isAutonomous(),
+                    confidenceThresholds: {
+                        autoApprove: thresholds.autoApprove,
+                        requestConfirmation: thresholds.requestConfirmation
+                    }
+                });
+            }
+        }
+    }
     // Инициализация виртуального пользователя (если включен в настройках)
     // НЕ запускаем автоматически - пользователь должен включить вручную
     if (settingsManager.getSetting('enableVirtualUser', false)) {
         virtualUser = new virtual_user_1.VirtualUser(context, orchestrator, settingsManager);
         context.subscriptions.push(virtualUser);
+        // Подключаем VirtualUser к Orchestrator для передачи результатов
+        orchestrator.setVirtualUser(virtualUser);
+        console.log('Virtual User instance created and connected to Orchestrator');
+        // Применяем настройки качества
+        applyQualitySettings();
         // НЕ запускаем автоматически - пользователь должен включить через команду
-        console.log('Virtual User instance created but not started (user must enable manually)');
+        console.log('Virtual User not started (user must enable manually)');
     }
     // Инициализация системы самосовершенствования
     if (settingsManager.getSetting('autoImprove', true)) {
@@ -825,7 +889,7 @@ ${stats.health ? `Здоровье:
         });
     }
     // Регистрация всех команд в subscriptions
-    context.subscriptions.push(quickMenu, toggleVirtualUser, startOrchestrator, stopOrchestrator, enableVirtualUser, disableVirtualUser, showStatus, analyzeProject, runQualityCheck, createTask, showStatusPanel, showAnalytics, openSettings, refreshAgentsStatus, selectAgentModel, showAgentDetails, sendTaskToChat, enableAutonomous, disableAutonomous, createTaskWithPriority, showAutonomousStats);
+    context.subscriptions.push(quickMenu, toggleVirtualUser, startOrchestrator, stopOrchestrator, enableVirtualUser, disableVirtualUser, toggleVirtualUserAutonomousMode, showStatus, analyzeProject, runQualityCheck, createTask, showStatusPanel, showAnalytics, openSettings, refreshAgentsStatus, selectAgentModel, showAgentDetails, sendTaskToChat, enableAutonomous, disableAutonomous, createTaskWithPriority, showAutonomousStats);
     // Логирование для отладки
     console.log('All commands registered. toggleVirtualUser:', toggleVirtualUser ? 'registered' : 'NOT registered');
     // Регистрация оркестратора в UI CursorAI
@@ -870,6 +934,22 @@ ${stats.health ? `Здоровье:
                     cursor_api_1.CursorAPI.initialize(undefined);
                     console.log('CursorAI API key cleared');
                 }
+            }
+            // Переинициализация провайдеров при изменении их настроек
+            if (e.affectsConfiguration('cursor-autonomous.providers')) {
+                console.log('Provider settings changed, reinitializing providers...');
+                Promise.resolve().then(() => __importStar(require('./integration/model-providers/providers-initializer'))).then(({ ProvidersInitializer }) => {
+                    ProvidersInitializer.initialize(context).then(() => {
+                        console.log('Model providers reinitialized after settings change');
+                    }).catch(err => {
+                        console.error('Error reinitializing model providers:', err);
+                    });
+                });
+            }
+            // Обновление настроек качества при изменении
+            if (e.affectsConfiguration('cursor-autonomous.quality')) {
+                applyQualitySettings();
+                console.log('Quality settings updated from configuration');
             }
             updateStatusBar();
         }
