@@ -15,6 +15,12 @@ export interface AgentStatus {
     errorMessage?: string; // Сообщение об ошибке, если агент не работает
     diagnostics?: AgentDiagnostics; // Диагностическая информация
     selectedModel?: LanguageModelInfo; // Выбранная языковая модель
+    // Для VirtualUser
+    autonomousMode?: boolean; // Режим автономной работы
+    confidenceThresholds?: {
+        autoApprove: number; // Порог автоматического одобрения (по умолчанию 0.8)
+        requestConfirmation: number; // Порог запроса подтверждения (по умолчанию 0.6)
+    };
 }
 
 export interface AgentDiagnostics {

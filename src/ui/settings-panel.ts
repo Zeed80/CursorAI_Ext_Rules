@@ -16,6 +16,11 @@ export interface SettingsData {
         enableOrchestrator: boolean;
         autonomousMode: boolean;
     };
+    quality: {
+        minAcceptableScore: number; // Минимальный балл качества (0-100)
+        virtualUserAutoApproveThreshold: number; // Порог автоодобрения (0-1)
+        virtualUserRequestConfirmationThreshold: number; // Порог запроса подтверждения (0-1)
+    };
     providers: {
         [key in ModelProviderType]?: {
             apiKey?: string;
@@ -215,6 +220,11 @@ export class SettingsPanel {
                     enableOrchestrator: this._settingsManager.enableOrchestrator,
                     autonomousMode: this._settingsManager.getSetting<boolean>('autonomousMode', false)
                 },
+                quality: {
+                    minAcceptableScore: this._settingsManager.getSetting<number>('quality.minAcceptableScore', 70),
+                    virtualUserAutoApproveThreshold: this._settingsManager.getSetting<number>('quality.virtualUserAutoApproveThreshold', 0.8),
+                    virtualUserRequestConfirmationThreshold: this._settingsManager.getSetting<number>('quality.virtualUserRequestConfirmationThreshold', 0.6)
+                },
                 providers: {},
                 agents: {},
                 orchestrator: {
@@ -340,6 +350,13 @@ export class SettingsPanel {
             // Сохраняем настройки оркестратора
             await this._settingsManager.updateSetting('useCursorAIForRefinement', settings.orchestrator.useCursorAIForRefinement);
             await this._settingsManager.updateSetting('cursorAIRefinementOnlyForCritical', settings.orchestrator.cursorAIRefinementOnlyForCritical);
+
+            // Сохраняем настройки качества
+            if (settings.quality) {
+                await this._settingsManager.updateSetting('quality.minAcceptableScore', settings.quality.minAcceptableScore);
+                await this._settingsManager.updateSetting('quality.virtualUserAutoApproveThreshold', settings.quality.virtualUserAutoApproveThreshold);
+                await this._settingsManager.updateSetting('quality.virtualUserRequestConfirmationThreshold', settings.quality.virtualUserRequestConfirmationThreshold);
+            }
 
             // Сохраняем настройки автономного режима
             if (settings.general.autonomousMode !== undefined) {
@@ -741,6 +758,7 @@ export class SettingsPanel {
         <button class="tab" data-tab="providers">Провайдеры</button>
         <button class="tab" data-tab="agents">Агенты</button>
         <button class="tab" data-tab="orchestrator">Оркестратор</button>
+        <button class="tab" data-tab="quality">Контроль качества</button>
         <button class="tab" data-tab="autonomous">Автономный режим</button>
         <button class="tab" data-tab="statistics">Статистика</button>
     </div>
@@ -827,6 +845,66 @@ export class SettingsPanel {
                 Использовать CursorAI только для критических задач
             </label>
             <div class="help-text">Применять CursorAI рефайнинг только для задач с высоким приоритетом</div>
+        </div>
+    </div>
+
+    <!-- Контроль качества -->
+    <div class="tab-content" id="tab-quality">
+        <h2>🎯 Контроль качества</h2>
+        <p>Настройки проверки качества кода и автономного режима VirtualUser</p>
+        
+        <h3>QualityController</h3>
+        
+        <div class="form-group">
+            <label for="minAcceptableScore">Минимальный балл качества (0-100)</label>
+            <input type="number" id="minAcceptableScore" min="0" max="100" value="70">
+            <div class="help-text">Минимальный балл для прохождения проверки качества. Рекомендуется: 70</div>
+        </div>
+        
+        <h3>VirtualUser - Автономные решения</h3>
+        
+        <div class="form-group">
+            <label for="virtualUserAutoApproveThreshold">Порог автоматического одобрения (0-1)</label>
+            <input type="number" id="virtualUserAutoApproveThreshold" min="0" max="1" step="0.05" value="0.8">
+            <div class="help-text">Решения с уверенностью выше этого порога одобряются автоматически. Рекомендуется: 0.8</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="virtualUserRequestConfirmationThreshold">Порог запроса подтверждения (0-1)</label>
+            <input type="number" id="virtualUserRequestConfirmationThreshold" min="0" max="1" step="0.05" value="0.6">
+            <div class="help-text">Решения с уверенностью выше этого порога запрашивают подтверждение. Ниже - автоматически отклоняются. Рекомендуется: 0.6</div>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: var(--vscode-textBlockQuote-background); border-left: 4px solid var(--vscode-textBlockQuote-border); border-radius: 4px;">
+            <h4 style="margin: 0 0 10px 0;">💡 Рекомендации</h4>
+            <ul style="margin: 0; padding-left: 20px; font-size: 12px;">
+                <li>Минимальный балл 70 обеспечивает хорошее качество без чрезмерной строгости</li>
+                <li>Автоодобрение на 80% гарантирует высокую уверенность в решении</li>
+                <li>Запрос подтверждения на 60-80% позволяет контролировать средние случаи</li>
+                <li>Ниже 60% - решение автоматически отклоняется для безопасности</li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: var(--vscode-inputValidation-infoBackground); border-radius: 4px;">
+            <h4 style="margin: 0 0 10px 0;">📊 Критерии оценки качества</h4>
+            <table style="width: 100%; font-size: 12px;">
+                <tr>
+                    <td><strong>Полнота кода:</strong></td>
+                    <td>-15 баллов за каждую заглушку/TODO</td>
+                </tr>
+                <tr>
+                    <td><strong>Стандарты:</strong></td>
+                    <td>-10 баллов за нарушение стандартов</td>
+                </tr>
+                <tr>
+                    <td><strong>Безопасность:</strong></td>
+                    <td>-20 баллов за проблему безопасности</td>
+                </tr>
+                <tr>
+                    <td><strong>Зависимости:</strong></td>
+                    <td>-5 баллов за проблему зависимостей</td>
+                </tr>
+            </table>
         </div>
     </div>
 
@@ -976,6 +1054,11 @@ export class SettingsPanel {
                     virtualUserDecisionThreshold: parseFloat(document.getElementById('virtualUserDecisionThreshold').value) || 0.7,
                     enableOrchestrator: document.getElementById('enableOrchestrator').checked,
                     autonomousMode: document.getElementById('autonomousMode').checked
+                },
+                quality: {
+                    minAcceptableScore: parseInt(document.getElementById('minAcceptableScore').value) || 70,
+                    virtualUserAutoApproveThreshold: parseFloat(document.getElementById('virtualUserAutoApproveThreshold').value) || 0.8,
+                    virtualUserRequestConfirmationThreshold: parseFloat(document.getElementById('virtualUserRequestConfirmationThreshold').value) || 0.6
                 },
                 providers: collectProviderSettings(),
                 agents: collectAgentSettings(),
@@ -1138,6 +1221,13 @@ export class SettingsPanel {
             // Заполняем настройки оркестратора
             document.getElementById('useCursorAIForRefinement').checked = settings.orchestrator.useCursorAIForRefinement;
             document.getElementById('cursorAIRefinementOnlyForCritical').checked = settings.orchestrator.cursorAIRefinementOnlyForCritical;
+            
+            // Заполняем настройки качества
+            if (settings.quality) {
+                document.getElementById('minAcceptableScore').value = settings.quality.minAcceptableScore || 70;
+                document.getElementById('virtualUserAutoApproveThreshold').value = settings.quality.virtualUserAutoApproveThreshold || 0.8;
+                document.getElementById('virtualUserRequestConfirmationThreshold').value = settings.quality.virtualUserRequestConfirmationThreshold || 0.6;
+            }
             
             // Заполняем настройки автономного режима
             if (settings.hybridMode) {

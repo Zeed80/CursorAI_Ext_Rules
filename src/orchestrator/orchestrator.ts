@@ -9,6 +9,7 @@ import { TaskExecutor, TaskExecutionResult } from './task-executor';
 import { QualityCheckResult } from './quality-checker';
 import { AgentSolution } from '../agents/local-agent';
 import { ModelProviderManager } from '../integration/model-providers/provider-manager';
+import { QualityController, QualityReport } from '../quality/quality-controller';
 
 export interface Task {
     id: string;
@@ -29,6 +30,8 @@ export interface Task {
     // Для задач проверки качества
     parentTaskId?: string; // ID родительской задачи проверки качества
     qualityCheckResults?: QualityCheckResult[];
+    // Результаты проверки качества от QualityController
+    qualityReport?: QualityReport;
 }
 
 export interface AgentConsultation {
@@ -46,8 +49,10 @@ export class Orchestrator {
     private ruleGenerator: RuleGenerator;
     private taskAnalytics: TaskAnalytics;
     private taskExecutor: TaskExecutor;
+    private qualityController: QualityController;
     private isRunning: boolean = false;
     private tasks: Task[] = [];
+    private virtualUser?: any; // VirtualUser instance (избегаем циклической зависимости)
 
     constructor(
         context: vscode.ExtensionContext,
@@ -61,6 +66,7 @@ export class Orchestrator {
         this.ruleGenerator = new RuleGenerator();
         this.taskAnalytics = new TaskAnalytics(context, settingsManager);
         this.taskExecutor = new TaskExecutor(context, this.taskAnalytics);
+        this.qualityController = new QualityController();
     }
 
     async start(): Promise<void> {
@@ -197,18 +203,69 @@ export class Orchestrator {
             task.executionResult = result;
 
             if (result.success) {
-                task.status = 'completed';
-                this.updateTaskStatus(taskId, 'completed', true);
+                // НОВОЕ: Проверка качества решения перед завершением
+                console.log(`Orchestrator: Checking quality for task ${taskId}...`);
                 
-                // Показываем уведомление о завершении
-                const filesCount = Array.isArray(result.filesChanged) ? result.filesChanged.length : (result.filesChanged || 0);
-                const message = `✅ Задача выполнена: ${task.description}\nИзменено файлов: ${filesCount}`;
-                vscode.window.showInformationMessage(message, 'Просмотреть изменения').then(action => {
-                    if (action === 'Просмотреть изменения' && filesCount > 0) {
-                        // Можно открыть список измененных файлов
-                        vscode.commands.executeCommand('workbench.action.showAllEditors');
+                // Создаем AgentSolution из результата для проверки качества
+                const solution = this.createSolutionFromResult(task, result);
+                const qualityReport = await this.qualityController.validateSolution(solution);
+                
+                // Сохраняем результат проверки качества в задачу
+                task.qualityReport = qualityReport;
+                
+                if (qualityReport.passed) {
+                    // Качество прошло проверку - передать VirtualUser для финального подтверждения
+                    if (this.virtualUser) {
+                        console.log(`Orchestrator: Sending result to VirtualUser for approval...`);
+                        const proposal = this.createProposalFromResult(task, result);
+                        const approved = await this.virtualUser.makeDecision(proposal);
+                        
+                        if (approved) {
+                            task.status = 'completed';
+                            this.updateTaskStatus(taskId, 'completed', true);
+                            console.log(`✅ Task ${taskId} completed and approved by VirtualUser`);
+                        } else {
+                            task.status = 'blocked';
+                            this.updateTaskStatus(taskId, 'blocked', false, 'Отклонено виртуальным пользователем');
+                            console.log(`⚠️ Task ${taskId} rejected by VirtualUser`);
+                        }
+                    } else {
+                        // VirtualUser не подключен - автоматически одобряем
+                        task.status = 'completed';
+                        this.updateTaskStatus(taskId, 'completed', true);
+                        console.log(`✅ Task ${taskId} completed (no VirtualUser, auto-approved)`);
                     }
-                });
+                    
+                    // Показываем уведомление о завершении с оценкой качества
+                    const filesCount = Array.isArray(result.filesChanged) ? result.filesChanged.length : (result.filesChanged || 0);
+                    const message = `✅ Задача выполнена: ${task.description}\nИзменено файлов: ${filesCount}\nКачество: ${qualityReport.score}/100`;
+                    vscode.window.showInformationMessage(message, 'Просмотреть изменения').then(action => {
+                        if (action === 'Просмотреть изменения' && filesCount > 0) {
+                            vscode.commands.executeCommand('workbench.action.showAllEditors');
+                        }
+                    });
+                } else {
+                    // Качество не прошло проверку
+                    task.status = 'blocked';
+                    this.updateTaskStatus(taskId, 'blocked', false, `Качество недостаточно: ${qualityReport.score}/100`);
+                    
+                    const issuesSummary = qualityReport.issues
+                        .slice(0, 3)
+                        .map(i => `- ${i.severity}: ${i.message}`)
+                        .join('\n');
+                    
+                    const message = `⚠️ Задача выполнена, но качество недостаточно\nОценка: ${qualityReport.score}/100\nПроблемы:\n${issuesSummary}`;
+                    vscode.window.showWarningMessage(message, 'Повторить с улучшениями', 'Принять как есть').then(action => {
+                        if (action === 'Повторить с улучшениями') {
+                            // Добавляем в описание задачи рекомендации по качеству
+                            task.description += `\n\nУлучшить качество:\n${qualityReport.recommendations.join('\n')}`;
+                            this.executeTask(taskId);
+                        } else if (action === 'Принять как есть') {
+                            task.status = 'completed';
+                            this.updateTaskStatus(taskId, 'completed', true);
+                        }
+                    });
+                }
             } else {
                 task.status = 'blocked';
                 this.updateTaskStatus(taskId, 'blocked', false, result.error);
@@ -366,6 +423,45 @@ export class Orchestrator {
     }
 
     /**
+     * Создать AgentSolution из результата выполнения для проверки качества
+     */
+    private createSolutionFromResult(task: Task, result: TaskExecutionResult): AgentSolution {
+        return {
+            id: `solution-${task.id}`,
+            agentId: task.assignedAgent || 'orchestrator',
+            agentName: task.assignedAgent || 'Orchestrator',
+            taskId: task.id,
+            timestamp: new Date(),
+            solution: {
+                title: task.description,
+                description: result.message || 'Задача выполнена',
+                approach: 'Автоматическое выполнение через агента',
+                filesToModify: result.filesChanged || [],
+                codeChanges: (result.filesChanged || []).map(file => ({
+                    file,
+                    type: 'modify' as const,
+                    description: `Изменения в ${file}`
+                })),
+                dependencies: {
+                    files: result.filesChanged || [],
+                    impact: result.filesChanged && result.filesChanged.length > 5 ? 'high' as const : 'low' as const
+                }
+            },
+            evaluation: {
+                quality: 0.8,
+                performance: 0.8,
+                security: 0.8,
+                maintainability: 0.8,
+                compliance: 0.8,
+                overallScore: 0.8
+            },
+            reasoning: result.message || 'Задача выполнена успешно',
+            confidence: 0.8,
+            estimatedTime: 0
+        };
+    }
+
+    /**
      * Остановка выполнения задачи
      */
     cancelTask(taskId: string): void {
@@ -517,6 +613,48 @@ export class Orchestrator {
         }
     }
 
+    /**
+     * Установить VirtualUser для передачи результатов
+     */
+    setVirtualUser(virtualUser: any): void {
+        this.virtualUser = virtualUser;
+        console.log('Orchestrator: VirtualUser connected');
+    }
+    
+    /**
+     * Установить минимальный балл качества
+     */
+    setMinQualityScore(score: number): void {
+        this.qualityController.setMinAcceptableScore(score);
+        console.log(`Orchestrator: Min quality score set to ${score}`);
+    }
+    
+    /**
+     * Получить текущий минимальный балл качества
+     */
+    getMinQualityScore(): number {
+        return this.qualityController.getMinAcceptableScore();
+    }
+    
+    /**
+     * Создать Proposal из результата выполнения для VirtualUser
+     */
+    private createProposalFromResult(task: Task, result: TaskExecutionResult): any {
+        return {
+            id: `proposal-${task.id}`,
+            title: `Результат: ${task.description}`,
+            description: result.message || 'Задача выполнена',
+            files: result.filesChanged || [],
+            risks: [],
+            benefits: [
+                `Изменено файлов: ${result.filesChanged?.length || 0}`,
+                `Время выполнения: ${result.executionTime ? Math.round(result.executionTime / 1000) : 0}с`
+            ],
+            estimatedTime: result.executionTime ? `${Math.round(result.executionTime / 1000)}с` : '0с',
+            confidence: 0.8
+        };
+    }
+    
     /**
      * Очистка ресурсов
      */

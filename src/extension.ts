@@ -98,6 +98,11 @@ export function activate(context: vscode.ExtensionContext) {
                 detail: 'Вернуться к ручному управлению'
             },
             {
+                label: '$(settings-gear) Переключить автономный режим VirtualUser',
+                description: 'Переключить между автономным и ручным режимом',
+                detail: 'Автономный: авто-одобрение >80%, Ручной: всегда запрашивать подтверждение'
+            },
+            {
                 label: '$(search) Анализ проекта',
                 description: 'Проанализировать структуру и технологии проекта',
                 detail: 'Определить тип проекта и сгенерировать правила'
@@ -167,6 +172,9 @@ export function activate(context: vscode.ExtensionContext) {
                     break;
                 case '$(person-off) Выключить виртуального пользователя':
                     await vscode.commands.executeCommand('cursor-autonomous.disableVirtualUser');
+                    break;
+                case '$(settings-gear) Переключить автономный режим VirtualUser':
+                    await vscode.commands.executeCommand('cursor-autonomous.toggleVirtualUserAutonomousMode');
                     break;
                 case '$(search) Анализ проекта':
                     await vscode.commands.executeCommand('cursor-autonomous.analyzeProject');
@@ -265,6 +273,30 @@ export function activate(context: vscode.ExtensionContext) {
         }
         updateStatusBar('active');
         vscode.window.showInformationMessage('Virtual User mode disabled');
+    });
+
+    const toggleVirtualUserAutonomousMode = vscode.commands.registerCommand('cursor-autonomous.toggleVirtualUserAutonomousMode', async () => {
+        if (!virtualUser) {
+            vscode.window.showWarningMessage('Virtual User не инициализирован. Включите Virtual User сначала.');
+            return;
+        }
+        
+        const currentMode = virtualUser.isAutonomous();
+        virtualUser.setAutonomousMode(!currentMode);
+        
+        // Обновляем статус агента в UI
+        const thresholds = virtualUser.getConfidenceThresholds();
+        agentsStatusTreeProvider.updateAgentStatus('virtual-user', {
+            autonomousMode: virtualUser.isAutonomous(),
+            confidenceThresholds: {
+                autoApprove: thresholds.autoApprove,
+                requestConfirmation: thresholds.requestConfirmation
+            }
+        });
+        
+        const modeText = virtualUser.isAutonomous() ? 'автономный' : 'ручной';
+        vscode.window.showInformationMessage(`Virtual User: режим изменен на ${modeText}`);
+        console.log(`Virtual User autonomous mode toggled to: ${virtualUser.isAutonomous()}`);
     });
 
     const showStatus = vscode.commands.registerCommand('cursor-autonomous.showStatus', () => {
@@ -921,13 +953,47 @@ ${stats.health ? `Здоровье:
     // Автообновление статуса агентов
     startStatusUpdates();
 
+    // Функция применения настроек качества
+    function applyQualitySettings() {
+        // Применяем минимальный балл качества
+        const minQualityScore = settingsManager.getSetting<number>('quality.minAcceptableScore', 70);
+        orchestrator.setMinQualityScore(minQualityScore);
+        console.log(`Applied quality settings: minScore=${minQualityScore}`);
+        
+        // Применяем пороги уверенности для VirtualUser
+        if (virtualUser) {
+            const autoApproveThreshold = settingsManager.getSetting<number>('quality.virtualUserAutoApproveThreshold', 0.8);
+            const requestConfirmationThreshold = settingsManager.getSetting<number>('quality.virtualUserRequestConfirmationThreshold', 0.6);
+            virtualUser.setConfidenceThresholds(autoApproveThreshold, requestConfirmationThreshold);
+            console.log(`Applied VirtualUser thresholds: autoApprove=${autoApproveThreshold}, requestConfirmation=${requestConfirmationThreshold}`);
+            
+            // Обновляем статус агента в UI
+            const thresholds = virtualUser.getConfidenceThresholds();
+            agentsStatusTreeProvider.updateAgentStatus('virtual-user', {
+                autonomousMode: virtualUser.isAutonomous(),
+                confidenceThresholds: {
+                    autoApprove: thresholds.autoApprove,
+                    requestConfirmation: thresholds.requestConfirmation
+                }
+            });
+        }
+    }
+
     // Инициализация виртуального пользователя (если включен в настройках)
     // НЕ запускаем автоматически - пользователь должен включить вручную
     if (settingsManager.getSetting('enableVirtualUser', false)) {
         virtualUser = new VirtualUser(context, orchestrator, settingsManager);
         context.subscriptions.push(virtualUser);
+        
+        // Подключаем VirtualUser к Orchestrator для передачи результатов
+        orchestrator.setVirtualUser(virtualUser);
+        console.log('Virtual User instance created and connected to Orchestrator');
+        
+        // Применяем настройки качества
+        applyQualitySettings();
+        
         // НЕ запускаем автоматически - пользователь должен включить через команду
-        console.log('Virtual User instance created but not started (user must enable manually)');
+        console.log('Virtual User not started (user must enable manually)');
     }
 
     // Инициализация системы самосовершенствования
@@ -948,6 +1014,7 @@ ${stats.health ? `Здоровье:
         stopOrchestrator,
         enableVirtualUser,
         disableVirtualUser,
+        toggleVirtualUserAutonomousMode,
         showStatus,
         analyzeProject,
         runQualityCheck,
@@ -1014,6 +1081,13 @@ ${stats.health ? `Здоровье:
                         console.log('CursorAI API key cleared');
                     }
                 }
+                
+                // Обновление настроек качества при изменении
+                if (e.affectsConfiguration('cursor-autonomous.quality')) {
+                    applyQualitySettings();
+                    console.log('Quality settings updated from configuration');
+                }
+                
                 updateStatusBar();
             }
         })
