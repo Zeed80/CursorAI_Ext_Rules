@@ -69,7 +69,7 @@
 
 <div align="center">
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/Zeed80/CursorAI_Ext_Rules)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/Zeed80/CursorAI_Ext_Rules)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/Zeed80/CursorAI_Ext_Rules/blob/main/LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![VS Code](https://img.shields.io/badge/VS%20Code-1.80+-blue)](https://code.visualstudio.com/)
@@ -305,7 +305,7 @@ The autonomous installer automatically:
 
 4. Install the built .vsix file in CursorAI:
    ```bash
-   code --install-extension cursor-ai-autonomous-extension-0.2.0.vsix
+   code --install-extension cursor-ai-autonomous-extension-0.3.0.vsix
    ```
 
 📖 More details: [BUILD.md](BUILD.md)
