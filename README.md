@@ -51,7 +51,7 @@
 > 
 > **The extension works perfectly without CursorAI Background Agents!**
 
-> ## 🌟 **NEW IN VERSION 0.2.0** 🌟
+> ## 🌟 **NEW IN VERSION 0.3.0** 🌟
 > 
 > ### **True Autonomous Operation with Local Models**
 > 
